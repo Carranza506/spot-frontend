@@ -1,0 +1,8 @@
+{
+  "name": "spot-frontend",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "start:mobile": "pnpm --filter mobile start"
+  }
+}
