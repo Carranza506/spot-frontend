@@ -1,5 +1,5 @@
 import { clearTokens, getTokens, setTokens } from './auth-storage';
-import { parseErrorResponse } from './errors';
+import { ApiError, parseErrorResponse } from './errors';
 import type { components } from './schema';
 
 type AuthTokens = components['schemas']['AuthTokens'];
@@ -12,6 +12,8 @@ type RefreshRequest = components['schemas']['RefreshRequest'];
  */
 const PUBLIC_POST_PATHS = new Set(['/auth/login', '/auth/register', '/auth/refresh', '/auth/google']);
 
+// Must stay in sync with the per-path `security: []` overrides for GET
+// operations in contracts/spot-api.yaml, so future public endpoints aren't missed.
 const PUBLIC_GET_PATH_TEMPLATES = [
   '/business/categories',
   '/business/businesses',
@@ -75,11 +77,24 @@ async function sendRequest(path: string, method: string, options: ApiFetchOption
     }
   }
 
+  let body: string | undefined;
+  if (options.body !== undefined) {
+    try {
+      body = JSON.stringify(options.body);
+    } catch {
+      throw new ApiError(0, {
+        code: 'SERIALIZATION_ERROR',
+        message: 'Failed to serialize request body.',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
   return fetch(buildUrl(path), {
     ...options,
     method,
     headers,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body,
   });
 }
 
