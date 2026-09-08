@@ -14,12 +14,12 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Registrar un nuevo usuario
-         * @description Crea una cuenta nueva con email y password. El rol por defecto es `CLIENT`;
-         *     una cuenta `BUSINESS_OWNER` se otorga mediante un flujo administrativo aparte
-         *     (fuera de alcance del MVP self-service).
+         * Register a new user
+         * @description Creates a new account with email and password. The default role is
+         *     `CLIENT`; a `BUSINESS_OWNER` account is granted through a separate
+         *     administrative flow (out of scope for the self-service MVP).
          *
-         *     Acceso: público (no requiere JWT).
+         *     Access: public (no JWT required).
          */
         post: operations["registerUser"];
         delete?: never;
@@ -38,11 +38,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Iniciar sesión con email y password
-         * @description Mecanismo de login principal del MVP. Valida credenciales contra
-         *     `users.password_hash` y emite un access token JWT y un refresh token.
+         * Log in with email and password
+         * @description Main login mechanism for the MVP. Validates credentials against
+         *     `users.password_hash` and issues a JWT access token and a refresh token.
          *
-         *     Acceso: público (no requiere JWT).
+         *     Access: public (no JWT required).
          */
         post: operations["loginWithPassword"];
         delete?: never;
@@ -61,19 +61,18 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Iniciar sesión / registrarse con Google (opcional)
-         * @description Login social opcional/secundario. Intercambia un ID token de Google por una
-         *     sesión de Spot. Si no existe una fila en `user_auth_providers` para
-         *     `(provider='GOOGLE', provider_user_id)`, se crea el usuario y su vínculo de
-         *     proveedor automáticamente (vinculando por email si ya existe una cuenta con
-         *     password para ese correo).
+         * Log in / sign up with Google (optional)
+         * @description Optional/secondary social login. Exchanges a Google ID token for a Spot
+         *     session. If no row exists in `user_auth_providers` for
+         *     `(provider='GOOGLE', provider_user_id)`, the user and their provider link
+         *     are created automatically (linking by email if an account with a password
+         *     already exists for that email).
          *
-         *     NOTA: este proveedor es tentativo para el MVP y podría removerse del alcance
-         *     final si no aporta suficiente valor frente al login con email/password.
-         *     Facebook y Apple no están soportados; aunque el enum `auth_provider` de la
-         *     base de datos los contempla, no se exponen en la API.
+         *     NOTE: this provider is tentative for the MVP and could be removed from the
+         *     final scope if it doesn't add enough value over email/password login. The
+         *     database's `auth_provider` enum only contemplates `GOOGLE`.
          *
-         *     Acceso: público (no requiere JWT).
+         *     Access: public (no JWT required).
          */
         post: operations["loginWithGoogle"];
         delete?: never;
@@ -92,12 +91,12 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Renovar el access token usando un refresh token
-         * @description Intercambia un refresh token vigente (fila no revocada y no expirada en
-         *     `refresh_tokens`) por un nuevo par de tokens. El refresh token usado se marca
-         *     como rotado/revocado.
+         * Renew the access token using a refresh token
+         * @description Exchanges a valid refresh token (a non-revoked, non-expired row in
+         *     `refresh_tokens`) for a new token pair. The refresh token used is marked
+         *     as rotated/revoked.
          *
-         *     Acceso: público (no requiere JWT; se autentica con el refresh token).
+         *     Access: public (no JWT required; authenticated with the refresh token).
          */
         post: operations["refreshAccessToken"];
         delete?: never;
@@ -116,10 +115,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Cerrar sesión (revocar refresh token)
-         * @description Revoca el refresh token indicado (`refresh_tokens.revoked_at`).
+         * Log out (revoke refresh token)
+         * @description Revokes the given refresh token (`refresh_tokens.revoked_at`).
          *
-         *     Rol requerido: cualquier usuario autenticado (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
          *     `SUPERADMIN`).
          */
         post: operations["logout"];
@@ -137,8 +136,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Obtener el perfil del usuario autenticado
-         * @description Rol requerido: cualquier usuario autenticado (`CLIENT`, `BUSINESS_OWNER`,
+         * Get the authenticated user's profile
+         * @description Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
          *     `SUPERADMIN`).
          */
         get: operations["getOwnProfile"];
@@ -148,11 +147,12 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Actualizar el perfil del usuario autenticado
-         * @description Actualiza campos editables del propio perfil (`first_name`, `last_name`,
-         *     `phone`, `profile_photo_url`). No permite cambiar `email` ni `role`.
+         * Update the authenticated user's profile
+         * @description Updates editable fields of the user's own profile (`first_name`,
+         *     `last_name`, `phone`, `profile_photo_url`). Does not allow changing
+         *     `email` or `role`.
          *
-         *     Rol requerido: cualquier usuario autenticado (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
          *     `SUPERADMIN`).
          */
         patch: operations["updateOwnProfile"];
@@ -168,11 +168,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Cambiar la contraseña del usuario autenticado
-         * @description Requiere la contraseña actual para autorizar el cambio. Revoca todos los
-         *     refresh tokens activos del usuario tras el cambio.
+         * Change the authenticated user's password
+         * @description Requires the current password to authorize the change. Revokes all of
+         *     the user's active refresh tokens after the change.
          *
-         *     Rol requerido: cualquier usuario autenticado (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
          *     `SUPERADMIN`).
          */
         post: operations["changePassword"];
@@ -190,19 +190,19 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar categorías
-         * @description Lista el árbol de categorías (`categories`), opcionalmente filtrado por
-         *     categoría padre.
+         * List categories
+         * @description Lists the category tree (`categories`), optionally filtered by parent
+         *     category.
          *
-         *     Acceso: público (no requiere JWT).
+         *     Access: public (no JWT required).
          */
         get: operations["listCategories"];
         put?: never;
         /**
-         * Crear una categoría
-         * @description Rol requerido: `SUPERADMIN`. La gestión del catálogo global de categorías es
-         *     administrativa; los dueños de negocio solo asignan categorías existentes a
-         *     sus negocios (ver `PUT /business/businesses/{businessId}/categories`).
+         * Create a category
+         * @description Required role: `SUPERADMIN`. Managing the global category catalog is an
+         *     administrative task; business owners only assign existing categories to
+         *     their businesses (see `PUT /business/businesses/{businessId}/categories`).
          */
         post: operations["createCategory"];
         delete?: never;
@@ -227,8 +227,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Actualizar una categoría
-         * @description Rol requerido: `SUPERADMIN`.
+         * Update a category
+         * @description Required role: `SUPERADMIN`.
          */
         patch: operations["updateCategory"];
         trace?: never;
@@ -241,21 +241,21 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Buscar/listar negocios (búsqueda tradicional)
-         * @description Búsqueda pública de negocios activos con filtros tradicionales (texto,
-         *     categoría, ciudad/provincia y cercanía geográfica). Para búsqueda en lenguaje
-         *     natural ver `POST /ai-search/query`.
+         * Search/list businesses (traditional search)
+         * @description Public search of active businesses with traditional filters (text,
+         *     category, city/province, and geographic proximity). For natural language
+         *     search see `POST /ai-search/query`.
          *
-         *     Acceso: público (no requiere JWT).
+         *     Access: public (no JWT required).
          */
         get: operations["searchBusinesses"];
         put?: never;
         /**
-         * Crear un negocio
-         * @description Crea un negocio y registra al usuario autenticado como dueño en
+         * Create a business
+         * @description Creates a business and registers the authenticated user as its owner in
          *     `business_owners`.
          *
-         *     Rol requerido: `BUSINESS_OWNER`.
+         *     Required role: `BUSINESS_OWNER`.
          */
         post: operations["createBusiness"];
         delete?: never;
@@ -274,25 +274,25 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Obtener el detalle de un negocio
-         * @description Acceso: público (no requiere JWT).
+         * Get a business's details
+         * @description Access: public (no JWT required).
          */
         get: operations["getBusiness"];
         put?: never;
         post?: never;
         /**
-         * Desactivar (borrado lógico) un negocio
-         * @description Marca `businesses.is_active = false`. No elimina físicamente el registro
-         *     porque tiene reservaciones y reseñas asociadas.
+         * Deactivate (soft-delete) a business
+         * @description Sets `businesses.is_active = false`. Does not physically delete the
+         *     record because it has associated bookings and reviews.
          *
-         *     Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         *     Required role: `BUSINESS_OWNER` who owns the business.
          */
         delete: operations["deactivateBusiness"];
         options?: never;
         head?: never;
         /**
-         * Actualizar un negocio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         * Update a business
+         * @description Required role: `BUSINESS_OWNER` who owns the business.
          */
         patch: operations["updateBusiness"];
         trace?: never;
@@ -307,16 +307,17 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Obtener la ubicación de un negocio
-         * @description Acceso: público (no requiere JWT).
+         * Get a business's location
+         * @description Access: public (no JWT required).
          */
         get: operations["getBusinessLocation"];
         /**
-         * Crear o reemplazar la ubicación de un negocio
-         * @description `business_locations.business_id` es único: como máximo una ubicación por
-         *     negocio. Este endpoint crea la fila si no existe o la reemplaza si ya existe.
+         * Create or replace a business's location
+         * @description `business_locations.business_id` is unique: at most one location per
+         *     business. This endpoint creates the row if it doesn't exist or replaces
+         *     it if it already does.
          *
-         *     Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         *     Required role: `BUSINESS_OWNER` who owns the business.
          */
         put: operations["upsertBusinessLocation"];
         post?: never;
@@ -336,14 +337,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar los contactos de un negocio
-         * @description Acceso: público (no requiere JWT).
+         * List a business's contacts
+         * @description Access: public (no JWT required).
          */
         get: operations["listBusinessContacts"];
         put?: never;
         /**
-         * Agregar un contacto a un negocio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         * Add a contact to a business
+         * @description Required role: `BUSINESS_OWNER` who owns the business.
          */
         post: operations["createBusinessContact"];
         delete?: never;
@@ -366,8 +367,8 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar un contacto de un negocio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         * Remove a contact from a business
+         * @description Required role: `BUSINESS_OWNER` who owns the business.
          */
         delete: operations["deleteBusinessContact"];
         options?: never;
@@ -385,20 +386,22 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar el horario semanal de un negocio
-         * @description Devuelve hasta 7 filas de `business_hours` (una por `day_of_week`, 0=domingo..6=sábado).
+         * List a business's weekly schedule
+         * @description Returns up to 7 rows from `business_hours` (one per `day_of_week`,
+         *     0=Sunday..6=Saturday).
          *
-         *     Acceso: público (no requiere JWT).
+         *     Access: public (no JWT required).
          */
         get: operations["listBusinessHours"];
         /**
-         * Reemplazar el horario semanal completo de un negocio
-         * @description Reemplaza (upsert por `day_of_week`, restricción única `(business_id,day_of_week)`)
-         *     el horario semanal completo del negocio en una sola operación. Cada día debe
-         *     cumplir que, si `isClosed=false`, `openTime` y `closeTime` sean requeridos y
-         *     `openTime < closeTime` (validado por el CHECK de `business_hours`).
+         * Replace a business's full weekly schedule
+         * @description Replaces (upsert by `day_of_week`, unique constraint
+         *     `(business_id,day_of_week)`) the business's complete weekly schedule in a
+         *     single operation. Each day must satisfy that, if `isClosed=false`,
+         *     `openTime` and `closeTime` are required and `openTime < closeTime`
+         *     (validated by the `business_hours` CHECK).
          *
-         *     Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         *     Required role: `BUSINESS_OWNER` who owns the business.
          */
         put: operations["replaceBusinessHours"];
         post?: never;
@@ -418,21 +421,22 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar excepciones de horario de un negocio
-         * @description Lista `business_schedule_exceptions` (feriados, cierres puntuales u horarios
-         *     especiales por fecha), que tienen prioridad sobre `business_hours` al calcular
-         *     disponibilidad.
+         * List a business's schedule exceptions
+         * @description Lists `business_schedule_exceptions` (holidays, one-off closures, or
+         *     special hours for a specific date), which take priority over
+         *     `business_hours` when calculating availability.
          *
-         *     Acceso: público (no requiere JWT).
+         *     Access: public (no JWT required).
          */
         get: operations["listBusinessScheduleExceptions"];
         put?: never;
         /**
-         * Crear una excepción de horario
-         * @description `(business_id, exception_date)` es único: no puede haber dos excepciones para
-         *     la misma fecha. Si `isClosed=false`, requiere `openTime < closeTime`.
+         * Create a schedule exception
+         * @description `(business_id, exception_date)` is unique: there cannot be two
+         *     exceptions for the same date. If `isClosed=false`, requires
+         *     `openTime < closeTime`.
          *
-         *     Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         *     Required role: `BUSINESS_OWNER` who owns the business.
          */
         post: operations["createBusinessScheduleException"];
         delete?: never;
@@ -455,8 +459,8 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar una excepción de horario
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         * Delete a schedule exception
+         * @description Required role: `BUSINESS_OWNER` who owns the business.
          */
         delete: operations["deleteBusinessScheduleException"];
         options?: never;
@@ -474,16 +478,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar las categorías asignadas a un negocio
-         * @description Acceso: público (no requiere JWT).
+         * List the categories assigned to a business
+         * @description Access: public (no JWT required).
          */
         get: operations["listBusinessCategories"];
         /**
-         * Reemplazar el conjunto de categorías de un negocio
-         * @description Reemplaza completamente las filas de `business_categories` para el negocio
-         *     con el conjunto de `categoryIds` provisto.
+         * Replace a business's set of categories
+         * @description Completely replaces the `business_categories` rows for the business with
+         *     the given set of `categoryIds`.
          *
-         *     Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         *     Required role: `BUSINESS_OWNER` who owns the business.
          */
         put: operations["replaceBusinessCategories"];
         post?: never;
@@ -503,14 +507,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar los servicios ofrecidos por un negocio
-         * @description Acceso: público (no requiere JWT).
+         * List the services offered by a business
+         * @description Access: public (no JWT required).
          */
         get: operations["listBusinessServices"];
         put?: never;
         /**
-         * Crear un servicio para un negocio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         * Create a service for a business
+         * @description Required role: `BUSINESS_OWNER` who owns the business.
          */
         post: operations["createService"];
         delete?: never;
@@ -529,80 +533,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Obtener el detalle de un servicio
-         * @description Acceso: público (no requiere JWT).
+         * Get a service's details
+         * @description Access: public (no JWT required).
          */
         get: operations["getService"];
         put?: never;
         post?: never;
         /**
-         * Desactivar un servicio
-         * @description Marca `services.is_active = false` en lugar de borrar físicamente, para
-         *     preservar la integridad histórica de `booking_services` (que referencia
-         *     `service_id` con `ON DELETE RESTRICT`).
+         * Deactivate a service
+         * @description Sets `services.is_active = false` instead of physically deleting it, to
+         *     preserve the historical integrity of `bookings` (which references
+         *     `service_id`).
          *
-         *     Rol requerido: `BUSINESS_OWNER` dueño del negocio al que pertenece el servicio.
+         *     Required role: `BUSINESS_OWNER` who owns the business the service
+         *     belongs to.
          */
         delete: operations["deleteService"];
         options?: never;
         head?: never;
         /**
-         * Actualizar un servicio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio al que pertenece el servicio.
+         * Update a service
+         * @description Required role: `BUSINESS_OWNER` who owns the business the service
+         *     belongs to.
          */
         patch: operations["updateService"];
-        trace?: never;
-    };
-    "/business/businesses/{businessId}/products": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                businessId: components["parameters"]["BusinessIdParam"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Listar los productos ofrecidos por un negocio
-         * @description Acceso: público (no requiere JWT).
-         */
-        get: operations["listBusinessProducts"];
-        put?: never;
-        /**
-         * Crear un producto para un negocio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
-         */
-        post: operations["createProduct"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/business/products/{productId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                productId: components["parameters"]["ProductIdParam"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Desactivar un producto
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio al que pertenece el producto.
-         */
-        delete: operations["deleteProduct"];
-        options?: never;
-        head?: never;
-        /**
-         * Actualizar un producto
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio al que pertenece el producto.
-         */
-        patch: operations["updateProduct"];
         trace?: never;
     };
     "/business/businesses/{businessId}/photos": {
@@ -615,14 +569,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar las fotos de un negocio
-         * @description Acceso: público (no requiere JWT).
+         * List a business's photos
+         * @description Access: public (no JWT required).
          */
         get: operations["listBusinessPhotos"];
         put?: never;
         /**
-         * Subir una foto de negocio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         * Upload a business photo
+         * @description Required role: `BUSINESS_OWNER` who owns the business.
          */
         post: operations["uploadBusinessPhoto"];
         delete?: never;
@@ -645,8 +599,8 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar una foto de negocio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         * Delete a business photo
+         * @description Required role: `BUSINESS_OWNER` who owns the business.
          */
         delete: operations["deleteBusinessPhoto"];
         options?: never;
@@ -664,14 +618,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar las fotos de un servicio
-         * @description Acceso: público (no requiere JWT).
+         * List a service's photos
+         * @description Access: public (no JWT required).
          */
         get: operations["listServicePhotos"];
         put?: never;
         /**
-         * Subir una foto de servicio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio al que pertenece el servicio.
+         * Upload a service photo
+         * @description Required role: `BUSINESS_OWNER` who owns the business the service
+         *     belongs to.
          */
         post: operations["uploadServicePhoto"];
         delete?: never;
@@ -694,59 +649,11 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar una foto de servicio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio al que pertenece el servicio.
+         * Delete a service photo
+         * @description Required role: `BUSINESS_OWNER` who owns the business the service
+         *     belongs to.
          */
         delete: operations["deleteServicePhoto"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/business/products/{productId}/photos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                productId: components["parameters"]["ProductIdParam"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Listar las fotos de un producto
-         * @description Acceso: público (no requiere JWT).
-         */
-        get: operations["listProductPhotos"];
-        put?: never;
-        /**
-         * Subir una foto de producto
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio al que pertenece el producto.
-         */
-        post: operations["uploadProductPhoto"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/business/products/{productId}/photos/{photoId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                productId: components["parameters"]["ProductIdParam"];
-                photoId: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Eliminar una foto de producto
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio al que pertenece el producto.
-         */
-        delete: operations["deleteProductPhoto"];
         options?: never;
         head?: never;
         patch?: never;
@@ -762,21 +669,22 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Consultar disponibilidad real de un negocio en un rango de fechas
-         * @description Calcula los espacios disponibles combinando, para cada día del rango
-         *     `[from, to]`: (1) el horario base del día de la semana en `business_hours`
-         *     (o cierre si `is_closed=true`), (2) sobrescrito por una excepción puntual en
-         *     `business_schedule_exceptions` si existe para esa fecha, y (3) restando los
-         *     bloques ya ocupados por reservaciones activas (`status IN ('PENDING','CONFIRMED')`)
-         *     del negocio, que son mutuamente excluyentes gracias al exclusion constraint
-         *     `excl_active_booking_overlap` sobre `(business_id, tstzrange(start_at,end_at))`.
-         *     Si se indica `serviceId`, los slots devueltos tienen la duración de ese
-         *     servicio (`services.duration_minutes`); si se omite, se usa `slotMinutes`.
+         * Query a business's real availability over a date range
+         * @description Calculates the available slots by combining, for each day in the
+         *     `[from, to]` range: (1) the base schedule for that day of the week in
+         *     `business_hours` (or closed if `is_closed=true`), (2) overridden by a
+         *     one-off exception in `business_schedule_exceptions` if one exists for
+         *     that date, and (3) subtracting the blocks already taken by active
+         *     bookings (`status IN ('PENDING','CONFIRMED')`) for the business, which
+         *     are mutually exclusive thanks to the exclusion constraint
+         *     `excl_active_booking_overlap` on `(business_id, tstzrange(start_at,end_at))`.
+         *     If `serviceId` is given, the returned slots have the duration of that
+         *     service (`services.duration_minutes`); if omitted, `slotMinutes` is used.
          *
-         *     No se pagina: el resultado está acotado por el rango de fechas solicitado
-         *     (máximo 31 días).
+         *     Not paginated: the result is bounded by the requested date range
+         *     (maximum 31 days).
          *
-         *     Acceso: público (no requiere JWT).
+         *     Access: public (no JWT required).
          */
         get: operations["getBusinessAvailability"];
         put?: never;
@@ -795,25 +703,28 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar las reservaciones propias del cliente autenticado
-         * @description Rol requerido: `CLIENT` (u otro rol autenticado consultando su propio
-         *     historial). Solo devuelve reservaciones donde `bookings.user_id` es el
-         *     usuario autenticado.
+         * List the authenticated client's own bookings
+         * @description Required role: `CLIENT` (or another authenticated role querying its own
+         *     history). Only returns bookings where `bookings.user_id` is the
+         *     authenticated user.
          */
         get: operations["listOwnBookings"];
         put?: never;
         /**
-         * Crear una reservación
-         * @description Crea una reservación (`bookings`) con uno o más servicios (`booking_services`),
-         *     calculando `start_at`/`end_at` y `total_price` a partir de los servicios
-         *     elegidos. La base de datos garantiza, vía el exclusion constraint
-         *     `excl_active_booking_overlap`, que no puedan coexistir dos reservaciones
-         *     activas (`PENDING`/`CONFIRMED`) del mismo negocio con rangos de tiempo
-         *     traslapados — un intento de reservar un slot ya tomado responde `409`.
-         *     Reservar fuera del horario del negocio (según `business_hours` /
-         *     `business_schedule_exceptions`) responde `422`.
+         * Create a booking
+         * @description Creates a booking (`bookings`) for a single service (`service_id`),
+         *     calculating `start_at`/`end_at` from the chosen service's duration and
+         *     copying its name/price/duration at the time of booking (`service_name`,
+         *     `service_price`, `service_duration_minutes`). Each booking is associated
+         *     with exactly one service — `bookings` does not support multiple services
+         *     per booking. The database guarantees, via the exclusion constraint
+         *     `excl_active_booking_overlap`, that two active bookings (`PENDING`/
+         *     `CONFIRMED`) for the same business cannot coexist with overlapping time
+         *     ranges — attempting to book an already-taken slot responds `409`.
+         *     Booking outside the business's hours (per `business_hours` /
+         *     `business_schedule_exceptions`) responds `422`.
          *
-         *     Rol requerido: `CLIENT`.
+         *     Required role: `CLIENT`.
          */
         post: operations["createBooking"];
         delete?: never;
@@ -832,9 +743,9 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Obtener el detalle de una reservación
-         * @description Rol requerido: `CLIENT` dueño de la reservación (`bookings.user_id`),
-         *     `BUSINESS_OWNER` dueño del negocio de la reservación, o `SUPERADMIN`.
+         * Get a booking's details
+         * @description Required role: `CLIENT` who owns the booking (`bookings.user_id`),
+         *     `BUSINESS_OWNER` who owns the booking's business, or `SUPERADMIN`.
          */
         get: operations["getBooking"];
         put?: never;
@@ -857,13 +768,13 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Cancelar una reservación
-         * @description Transiciona `status` a `CANCELLED`. Solo es válido desde `PENDING` o
-         *     `CONFIRMED`; cancelar una reserva ya `COMPLETED`, `CANCELLED` o `NO_SHOW`
-         *     responde `422`.
+         * Cancel a booking
+         * @description Transitions `status` to `CANCELLED`. Only valid from `PENDING` or
+         *     `CONFIRMED`; canceling a booking that is already `COMPLETED`,
+         *     `CANCELLED`, or `NO_SHOW` responds `422`.
          *
-         *     Rol requerido: `CLIENT` dueño de la reservación o `BUSINESS_OWNER` dueño del
-         *     negocio de la reservación.
+         *     Required role: `CLIENT` who owns the booking or `BUSINESS_OWNER` who owns
+         *     the booking's business.
          */
         post: operations["cancelBooking"];
         delete?: never;
@@ -884,11 +795,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Marcar una reservación como completada
-         * @description Transiciona `status` a `COMPLETED`. Solo válido desde `CONFIRMED`; de lo
-         *     contrario responde `422`. Habilita al cliente a dejar una reseña.
+         * Mark a booking as completed
+         * @description Transitions `status` to `COMPLETED`. Only valid from `CONFIRMED`;
+         *     otherwise responds `422`. Enables the client to leave a review.
          *
-         *     Rol requerido: `BUSINESS_OWNER` dueño del negocio de la reservación.
+         *     Required role: `BUSINESS_OWNER` who owns the booking's business.
          */
         post: operations["completeBooking"];
         delete?: never;
@@ -909,11 +820,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Marcar una reservación como no-show
-         * @description Transiciona `status` a `NO_SHOW`. Solo válido desde `CONFIRMED`; de lo
-         *     contrario responde `422`.
+         * Mark a booking as no-show
+         * @description Transitions `status` to `NO_SHOW`. Only valid from `CONFIRMED`;
+         *     otherwise responds `422`.
          *
-         *     Rol requerido: `BUSINESS_OWNER` dueño del negocio de la reservación.
+         *     Required role: `BUSINESS_OWNER` who owns the booking's business.
          */
         post: operations["markBookingNoShow"];
         delete?: never;
@@ -934,15 +845,15 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Dejar una reseña de una reservación completada
-         * @description Crea una fila en `reviews` para la reservación. El trigger
-         *     `trg_validate_review` obliga a que la reservación exista, esté en estado
-         *     `COMPLETED`, y que el usuario y negocio de la reseña coincidan con los de la
-         *     reservación; violar cualquiera de estas reglas responde `422`. Como
-         *     `reviews.booking_id` es único, intentar reseñar una reservación que ya tiene
-         *     reseña responde `409`.
+         * Leave a review for a completed booking
+         * @description Creates a row in `reviews` for the booking. The `trg_validate_review`
+         *     trigger requires that the booking exists, is in `COMPLETED` status, and
+         *     that the review's user and business match those of the booking;
+         *     violating any of these rules responds `422`. Since `reviews.booking_id`
+         *     is unique, attempting to review a booking that already has a review
+         *     responds `409`.
          *
-         *     Rol requerido: `CLIENT` dueño de la reservación.
+         *     Required role: `CLIENT` who owns the booking.
          */
         post: operations["createBookingReview"];
         delete?: never;
@@ -961,8 +872,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar las reservaciones de un negocio
-         * @description Rol requerido: `BUSINESS_OWNER` dueño del negocio.
+         * List a business's bookings
+         * @description Required role: `BUSINESS_OWNER` who owns the business.
          */
         get: operations["listBusinessBookings"];
         put?: never;
@@ -983,8 +894,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar las reseñas de un negocio
-         * @description Acceso: público (no requiere JWT).
+         * List a business's reviews
+         * @description Access: public (no JWT required).
          */
         get: operations["listBusinessReviews"];
         put?: never;
@@ -1003,8 +914,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar los negocios favoritos del cliente autenticado
-         * @description Rol requerido: `CLIENT`.
+         * List the authenticated client's favorite businesses
+         * @description Required role: `CLIENT`.
          */
         get: operations["listFavoriteBusinesses"];
         put?: never;
@@ -1026,17 +937,18 @@ export interface paths {
         };
         get?: never;
         /**
-         * Agregar un negocio a favoritos
-         * @description Idempotente: agregar un negocio que ya es favorito no genera error
-         *     (`favorite_businesses` tiene llave primaria compuesta `(user_id,business_id)`).
+         * Add a business to favorites
+         * @description Idempotent: adding a business that is already a favorite does not raise
+         *     an error (`favorite_businesses` has a composite primary key
+         *     `(user_id,business_id)`).
          *
-         *     Rol requerido: `CLIENT`.
+         *     Required role: `CLIENT`.
          */
         put: operations["addFavoriteBusiness"];
         post?: never;
         /**
-         * Quitar un negocio de favoritos
-         * @description Rol requerido: `CLIENT`.
+         * Remove a business from favorites
+         * @description Required role: `CLIENT`.
          */
         delete: operations["removeFavoriteBusiness"];
         options?: never;
@@ -1054,24 +966,24 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Buscar negocios usando una consulta en lenguaje natural
-         * @description Recibe una consulta en lenguaje natural más la ubicación aproximada del
-         *     usuario y devuelve (a) los criterios estructurados extraídos por el modelo de
-         *     IA (servicio, fecha, hora, presupuesto, categoría) y (b) los negocios que
-         *     cumplen esos criterios.
+         * Search for businesses using a natural language query
+         * @description Receives a natural language query plus the user's approximate location
+         *     and returns (a) the structured criteria extracted by the AI model
+         *     (service, date, time, budget, category) and (b) the businesses that
+         *     match those criteria.
          *
-         *     Importante: el modelo de IA actúa como un **parser stateless sin acceso a
-         *     base de datos** — únicamente traduce lenguaje natural a criterios
-         *     estructurados (`AiSearchCriteria`). Es el propio backend de Spot.AiSearch.Api
-         *     quien valida esos criterios y ejecuta la búsqueda real de negocios contra la
-         *     base de datos (delegando en la lógica de disponibilidad/búsqueda de
-         *     Spot.Booking.Api / Spot.Business.Api); el modelo nunca consulta ni modifica
-         *     datos directamente. Cada invocación se registra como una fila en
-         *     `ai_requests` (prompt, respuesta, tokens, latencia y estado), cuyo resumen se
-         *     devuelve en el campo `aiRequest` de la respuesta para trazabilidad; el
-         *     historial completo se consulta vía `GET /ai-search/requests`.
+         *     Important: the AI model acts as a **stateless parser with no database
+         *     access** — it only translates natural language into structured criteria
+         *     (`AiSearchCriteria`). It is Spot.AiSearch.Api's own backend that
+         *     validates those criteria and executes the actual business search
+         *     against the database (delegating to the availability/search logic of
+         *     Spot.Booking.Api / Spot.Business.Api); the model never queries or
+         *     modifies data directly. Each invocation is logged as a row in
+         *     `ai_requests` (prompt, response, tokens, latency, and status), whose
+         *     summary is returned in the response's `aiRequest` field for
+         *     traceability; the full history is queried via `GET /ai-search/requests`.
          *
-         *     Rol requerido: cualquier usuario autenticado (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
          *     `SUPERADMIN`).
          */
         post: operations["aiSearchQuery"];
@@ -1089,13 +1001,12 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Auditoría interna de interacciones de IA
-         * @description Endpoint interno de auditoría que expone el historial crudo de
-         *     `ai_requests` (prompt, respuesta, parámetros extraídos, tokens, latencia,
-         *     estado y errores) para soporte, calidad y análisis de costos del proveedor de
-         *     IA.
+         * Internal audit of AI interactions
+         * @description Internal audit endpoint that exposes the raw history of `ai_requests`
+         *     (prompt, response, extracted parameters, tokens, latency, status, and
+         *     errors) for support, quality, and AI provider cost analysis.
          *
-         *     Rol requerido: `SUPERADMIN`.
+         *     Required role: `SUPERADMIN`.
          */
         get: operations["listAiRequests"];
         put?: never;
@@ -1116,8 +1027,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Obtener el detalle de una interacción de IA
-         * @description Rol requerido: `SUPERADMIN`.
+         * Get an AI interaction's details
+         * @description Required role: `SUPERADMIN`.
          */
         get: operations["getAiRequest"];
         put?: never;
@@ -1138,11 +1049,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Registrar el token de push de un dispositivo
-         * @description Registra (o reactiva, si ya existía y estaba inactivo) el token de push del
-         *     dispositivo del usuario autenticado para el envío de notificaciones.
+         * Register a device's push token
+         * @description Registers (or reactivates, if it already existed and was inactive) the
+         *     authenticated user's device push token for sending notifications.
          *
-         *     Rol requerido: cualquier usuario autenticado (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
          *     `SUPERADMIN`).
          */
         post: operations["registerDeviceToken"];
@@ -1165,9 +1076,9 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar el token de push de un dispositivo
-         * @description Rol requerido: dueño del token (cualquier usuario autenticado, sobre sus
-         *     propios tokens).
+         * Delete a device's push token
+         * @description Required role: owner of the token (any authenticated user, over their
+         *     own tokens).
          */
         delete: operations["removeDeviceToken"];
         options?: never;
@@ -1183,9 +1094,9 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Listar las notificaciones del usuario autenticado
-         * @description Rol requerido: cualquier usuario autenticado (`CLIENT`, `BUSINESS_OWNER`,
-         *     `SUPERADMIN`), sobre sus propias notificaciones.
+         * List the authenticated user's notifications
+         * @description Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
+         *     `SUPERADMIN`), over their own notifications.
          */
         get: operations["listOwnNotifications"];
         put?: never;
@@ -1212,11 +1123,11 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Marcar una notificación como leída (o no leída)
-         * @description Actualiza el estado `isRead` de la notificación.
+         * Mark a notification as read (or unread)
+         * @description Updates the notification's `isRead` state.
          *
-         *     Rol requerido: dueño de la notificación (cualquier usuario autenticado, sobre
-         *     sus propias notificaciones).
+         *     Required role: owner of the notification (any authenticated user, over
+         *     their own notifications).
          */
         patch: operations["markNotificationRead"];
         trace?: never;
@@ -1231,15 +1142,15 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * [Interno] Disparar una notificación de cambio de estado de reserva
-         * @description Endpoint interno de servicio-a-servicio, invocado por Spot.Booking.Api cada
-         *     vez que cambia `bookings.status` (confirmación, cancelación, completado,
-         *     no-show), para que Spot.Notifications.Api genere y envíe la notificación push
-         *     correspondiente al cliente y/o al dueño del negocio.
+         * [Internal] Trigger a booking status change notification
+         * @description Internal service-to-service endpoint, invoked by Spot.Booking.Api every
+         *     time `bookings.status` changes (confirmation, cancellation, completion,
+         *     no-show), so that Spot.Notifications.Api generates and sends the
+         *     corresponding push notification to the client and/or the business owner.
          *
-         *     No expuesto a clientes finales: el Gateway solo enruta esta llamada cuando
-         *     proviene de la red interna de servicios, autenticada con una API key de
-         *     servicio (header `X-Internal-Api-Key`) en lugar de un JWT de usuario.
+         *     Not exposed to end clients: the Gateway only routes this call when it
+         *     comes from the internal service network, authenticated with a service
+         *     API key (header `X-Internal-Api-Key`) instead of a user JWT.
          */
         post: operations["triggerBookingStatusNotification"];
         delete?: never;
@@ -1254,13 +1165,13 @@ export interface components {
     schemas: {
         Error: {
             /**
-             * @description Código de error estable, legible por máquina.
+             * @description Stable, machine-readable error code.
              * @example BOOKING_SLOT_OVERLAP
              */
             code: string;
-            /** @description Mensaje amigable para mostrar al usuario final. */
+            /** @description Friendly message to show the end user. */
             message: string;
-            /** @description Información adicional opcional sobre el error (nunca detalles internos sensibles). */
+            /** @description Optional additional information about the error (never sensitive internal details). */
             details?: {
                 [key: string]: unknown;
             };
@@ -1290,9 +1201,8 @@ export interface components {
         /** @enum {string} */
         AiRequestType: "BUSINESS_SEARCH" | "GENERAL_QUERY" | "OTHER";
         /**
-         * @description Proveedores de login social expuestos por la API. La base de datos reserva
-         *     también FACEBOOK, APPLE y OTHER en el enum `auth_provider` para uso futuro,
-         *     pero el MVP solo soporta GOOGLE.
+         * @description Supported social login providers. Faithfully reflects the database's
+         *     `auth_provider` enum, which currently only contemplates GOOGLE.
          * @enum {string}
          */
         AuthProvider: "GOOGLE";
@@ -1313,8 +1223,8 @@ export interface components {
             role: components["schemas"]["UserRole"];
             isActive: boolean;
             /**
-             * @description Proveedores de login social vinculados a la cuenta (según
-             *     `user_auth_providers`). Vacío si el usuario solo usa email/password.
+             * @description Social login providers linked to the account (per
+             *     `user_auth_providers`). Empty if the user only uses email/password.
              */
             linkedProviders?: components["schemas"]["AuthProvider"][];
             /** Format: date-time */
@@ -1338,7 +1248,7 @@ export interface components {
             password: string;
         };
         GoogleLoginRequest: {
-            /** @description ID token emitido por Google Identity Services para el usuario. */
+            /** @description ID token issued by Google Identity Services for the user. */
             idToken: string;
         };
         RefreshRequest: {
@@ -1366,7 +1276,7 @@ export interface components {
              */
             tokenType: "Bearer";
             /**
-             * @description Segundos hasta la expiración del access token.
+             * @description Seconds until the access token expires.
              * @example 3600
              */
             expiresIn: number;
@@ -1506,7 +1416,7 @@ export interface components {
             id: string;
             /** Format: uuid */
             businessId: string;
-            /** @description 0=domingo, 1=lunes, ..., 6=sábado. */
+            /** @description 0=Sunday, 1=Monday, ..., 6=Saturday. */
             dayOfWeek: number;
             /** @example 09:00:00 */
             openTime?: string | null;
@@ -1570,7 +1480,7 @@ export interface components {
             description?: string | null;
             /**
              * Format: double
-             * @description Precio en colones (CRC).
+             * @description Price in Costa Rican colones (CRC).
              */
             price: number;
             durationMinutes: number;
@@ -1599,47 +1509,12 @@ export interface components {
             data: components["schemas"]["Service"][];
             pagination: components["schemas"]["PaginationMeta"];
         };
-        Product: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            businessId: string;
-            name: string;
-            description?: string | null;
-            /**
-             * Format: double
-             * @description Precio en colones (CRC). Puede ser nulo si el producto no se vende directamente.
-             */
-            price?: number | null;
-            isActive: boolean;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        ProductCreateRequest: {
-            name: string;
-            description?: string;
-            /** Format: double */
-            price?: number;
-        };
-        ProductUpdateRequest: {
-            name?: string;
-            description?: string | null;
-            /** Format: double */
-            price?: number | null;
-            isActive?: boolean;
-        };
-        PaginatedProducts: {
-            data: components["schemas"]["Product"][];
-            pagination: components["schemas"]["PaginationMeta"];
-        };
         Photo: {
             /** Format: uuid */
             id: string;
             /** Format: uri */
             url: string;
-            /** @description Solo aplica a fotos de negocio; se omite/false en fotos de servicio o producto. */
+            /** @description Only applies to business photos; omitted/false on service photos. */
             isPrimary?: boolean;
             displayOrder: number;
             /** Format: date-time */
@@ -1672,19 +1547,6 @@ export interface components {
             to: string;
             days: components["schemas"]["AvailabilityDay"][];
         };
-        BookingService: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            serviceId: string;
-            /** @description Copia del nombre del servicio al momento de la reserva. */
-            serviceName: string;
-            /** Format: double */
-            unitPrice: number;
-            durationMinutes: number;
-            /** Format: date-time */
-            createdAt: string;
-        };
         Booking: {
             /** Format: uuid */
             id: string;
@@ -1692,18 +1554,26 @@ export interface components {
             userId: string;
             /** Format: uuid */
             businessId: string;
+            /**
+             * Format: uuid
+             * @description Each booking is associated with exactly one service (`bookings.service_id`).
+             */
+            serviceId: string;
             /** Format: date-time */
             startAt: string;
             /** Format: date-time */
             endAt: string;
             status: components["schemas"]["BookingStatus"];
+            /** @description Copy of the service's name at the time of booking. */
+            serviceName: string;
             /**
              * Format: double
-             * @description Monto total en colones (CRC).
+             * @description Copy of the service's price (in Costa Rican colones, CRC) at the time of booking.
              */
-            totalPrice: number;
+            servicePrice: number;
+            /** @description Copy of the service's duration (in minutes) at the time of booking. */
+            serviceDurationMinutes: number;
             notes?: string | null;
-            services: components["schemas"]["BookingService"][];
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -1714,10 +1584,14 @@ export interface components {
             businessId: string;
             /**
              * Format: date-time
-             * @description Hora de inicio deseada; `endAt` se calcula sumando la duración de los servicios elegidos.
+             * @description Desired start time; `endAt` is calculated by adding the chosen service's duration.
              */
             startAt: string;
-            serviceIds: string[];
+            /**
+             * Format: uuid
+             * @description Service to book. A booking can only have one service (`bookings.service_id`).
+             */
+            serviceId: string;
             notes?: string;
         };
         PaginatedBookings: {
@@ -1760,7 +1634,7 @@ export interface components {
             pagination: components["schemas"]["PaginationMeta"];
         };
         AiSearchQueryRequest: {
-            /** @description Consulta del usuario en lenguaje natural. */
+            /** @description User's query in natural language. */
             query: string;
             location?: components["schemas"]["GeoPoint"];
             /**
@@ -1773,9 +1647,9 @@ export interface components {
             /** @default 20 */
             pageSize: number;
         };
-        /** @description Criterios estructurados extraídos del lenguaje natural por el modelo de IA. */
+        /** @description Structured criteria extracted from natural language by the AI model. */
         AiSearchCriteria: {
-            /** @description Texto del servicio buscado, ej. "corte de cabello". */
+            /** @description Text of the searched service, e.g. "haircut". */
             serviceQuery?: string | null;
             /** Format: uuid */
             categoryId?: string | null;
@@ -1801,7 +1675,7 @@ export interface components {
             businesses: components["schemas"]["PaginatedBusinesses"];
             aiRequest: components["schemas"]["AiRequestSummary"];
         };
-        /** @description Refleja fielmente la tabla `ai_requests`, para uso de auditoría interna. */
+        /** @description Faithfully reflects the `ai_requests` table, for internal audit use. */
         AiRequestLog: {
             /** Format: uuid */
             id: string;
@@ -1876,12 +1750,12 @@ export interface components {
             /** Format: uuid */
             userId: string;
             status: components["schemas"]["BookingStatus"];
-            /** @description Mensaje opcional a incluir en la notificación; si se omite, se genera uno por defecto según `status`. */
+            /** @description Optional message to include in the notification; if omitted, a default one is generated based on `status`. */
             message?: string;
         };
     };
     responses: {
-        /** @description La petición no pasó las validaciones de formato/input. */
+        /** @description The request failed format/input validation. */
         BadRequest: {
             headers: {
                 [name: string]: unknown;
@@ -1900,7 +1774,7 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description Falta el JWT, es inválido, o expiró. */
+        /** @description The JWT is missing, invalid, or expired. */
         Unauthorized: {
             headers: {
                 [name: string]: unknown;
@@ -1916,7 +1790,7 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description El usuario autenticado no tiene el rol o la propiedad requerida para esta acción. */
+        /** @description The authenticated user does not have the role or ownership required for this action. */
         Forbidden: {
             headers: {
                 [name: string]: unknown;
@@ -1932,7 +1806,7 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description El recurso solicitado no existe. */
+        /** @description The requested resource does not exist. */
         NotFound: {
             headers: {
                 [name: string]: unknown;
@@ -1949,10 +1823,10 @@ export interface components {
             };
         };
         /**
-         * @description La operación entra en conflicto con el estado actual de los datos (por
-         *     ejemplo, traslape de horario detectado por el exclusion constraint de
-         *     reservaciones, un email ya registrado, o una reseña duplicada para la misma
-         *     reservación).
+         * @description The operation conflicts with the current state of the data (for
+         *     example, a schedule overlap detected by the bookings exclusion
+         *     constraint, an already-registered email, or a duplicate review for the
+         *     same booking).
          */
         Conflict: {
             headers: {
@@ -1970,9 +1844,9 @@ export interface components {
             };
         };
         /**
-         * @description La petición es sintácticamente válida pero viola una regla de negocio (por
-         *     ejemplo, reservar en un horario cerrado, o reseñar una reservación que no
-         *     está completada).
+         * @description The request is syntactically valid but violates a business rule (for
+         *     example, booking during closed hours, or reviewing a booking that is
+         *     not completed).
          */
         UnprocessableEntity: {
             headers: {
@@ -1990,8 +1864,8 @@ export interface components {
             };
         };
         /**
-         * @description Error no controlado (por ejemplo, un fallo de base de datos). Nunca expone
-         *     detalles internos; solo un código genérico y un mensaje amigable.
+         * @description Unhandled error (for example, a database failure). Never exposes
+         *     internal details; only a generic code and a friendly message.
          */
         InternalServerError: {
             headers: {
@@ -2014,7 +1888,6 @@ export interface components {
         PageSizeParam: number;
         BusinessIdParam: string;
         ServiceIdParam: string;
-        ProductIdParam: string;
         BookingIdParam: string;
     };
     requestBodies: never;
@@ -2045,7 +1918,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Usuario creado y sesión iniciada. */
+            /** @description User created and session started. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2079,7 +1952,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Login exitoso. */
+            /** @description Successful login. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2111,7 +1984,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Login/registro con Google exitoso. */
+            /** @description Successful login/registration with Google. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2138,7 +2011,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Tokens renovados. */
+            /** @description Tokens renewed. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2165,7 +2038,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Sesión cerrada. */
+            /** @description Session closed. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -2186,7 +2059,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Perfil del usuario. */
+            /** @description User profile. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2226,7 +2099,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Perfil actualizado. */
+            /** @description Profile updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2253,7 +2126,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Contraseña actualizada. */
+            /** @description Password updated. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -2271,7 +2144,7 @@ export interface operations {
             query?: {
                 page?: components["parameters"]["PageParam"];
                 pageSize?: components["parameters"]["PageSizeParam"];
-                /** @description Filtra por id de categoría padre. Usar `null` para categorías raíz. */
+                /** @description Filters by parent category id. Use `null` for root categories. */
                 parentCategoryId?: string;
             };
             header?: never;
@@ -2280,7 +2153,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de categorías. */
+            /** @description Page of categories. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2327,7 +2200,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Categoría creada. */
+            /** @description Category created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2358,7 +2231,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Categoría actualizada. */
+            /** @description Category updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2380,16 +2253,16 @@ export interface operations {
             query?: {
                 page?: components["parameters"]["PageParam"];
                 pageSize?: components["parameters"]["PageSizeParam"];
-                /** @description Texto libre buscado en nombre y descripción del negocio. */
+                /** @description Free text searched in the business name and description. */
                 q?: string;
                 categoryId?: string;
                 city?: string;
                 province?: string;
-                /** @description Latitud del punto de referencia para búsqueda por cercanía. */
+                /** @description Latitude of the reference point for proximity search. */
                 lat?: number;
-                /** @description Longitud del punto de referencia para búsqueda por cercanía. */
+                /** @description Longitude of the reference point for proximity search. */
                 lng?: number;
-                /** @description Radio de búsqueda en kilómetros (requiere `lat`/`lng`). */
+                /** @description Search radius in kilometers (requires `lat`/`lng`). */
                 radiusKm?: number;
             };
             header?: never;
@@ -2398,7 +2271,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de negocios. */
+            /** @description Page of businesses. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2460,7 +2333,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Negocio creado. */
+            /** @description Business created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2487,7 +2360,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Detalle del negocio. */
+            /** @description Business details. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2511,7 +2384,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Negocio desactivado. */
+            /** @description Business deactivated. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -2539,7 +2412,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Negocio actualizado. */
+            /** @description Business updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2567,7 +2440,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Ubicación del negocio. */
+            /** @description Business location. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2608,7 +2481,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Ubicación creada o reemplazada. */
+            /** @description Location created or replaced. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2638,7 +2511,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de contactos. */
+            /** @description Page of contacts. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2673,7 +2546,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Contacto creado. */
+            /** @description Contact created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2701,7 +2574,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Contacto eliminado. */
+            /** @description Contact deleted. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -2728,7 +2601,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de horarios semanales. */
+            /** @description Page of weekly hours. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2772,7 +2645,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Horario semanal actualizado. */
+            /** @description Weekly schedule updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2807,7 +2680,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de excepciones de horario. */
+            /** @description Page of schedule exceptions. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2843,7 +2716,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Excepción creada. */
+            /** @description Exception created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2873,7 +2746,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Excepción eliminada. */
+            /** @description Exception deleted. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -2900,7 +2773,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de categorías del negocio. */
+            /** @description Page of the business's categories. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2930,7 +2803,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Categorías del negocio actualizadas. */
+            /** @description Business categories updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2963,7 +2836,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de servicios. */
+            /** @description Page of services. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3022,7 +2895,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Servicio creado. */
+            /** @description Service created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3049,7 +2922,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Detalle del servicio. */
+            /** @description Service details. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3073,7 +2946,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Servicio desactivado. */
+            /** @description Service deactivated. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3101,134 +2974,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Servicio actualizado. */
+            /** @description Service updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["Service"];
-                };
-            };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            500: components["responses"]["InternalServerError"];
-        };
-    };
-    listBusinessProducts: {
-        parameters: {
-            query?: {
-                page?: components["parameters"]["PageParam"];
-                pageSize?: components["parameters"]["PageSizeParam"];
-                isActive?: boolean;
-            };
-            header?: never;
-            path: {
-                businessId: components["parameters"]["BusinessIdParam"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Página de productos. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedProducts"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-            500: components["responses"]["InternalServerError"];
-        };
-    };
-    createProduct: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                businessId: components["parameters"]["BusinessIdParam"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                /**
-                 * @example {
-                 *       "name": "Shampoo reparador 300ml",
-                 *       "description": "Shampoo profesional para cabello dañado.",
-                 *       "price": 8500
-                 *     }
-                 */
-                "application/json": components["schemas"]["ProductCreateRequest"];
-            };
-        };
-        responses: {
-            /** @description Producto creado. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Product"];
-                };
-            };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            500: components["responses"]["InternalServerError"];
-        };
-    };
-    deleteProduct: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                productId: components["parameters"]["ProductIdParam"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Producto desactivado. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            500: components["responses"]["InternalServerError"];
-        };
-    };
-    updateProduct: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                productId: components["parameters"]["ProductIdParam"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProductUpdateRequest"];
-            };
-        };
-        responses: {
-            /** @description Producto actualizado. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Product"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -3252,7 +3004,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de fotos del negocio. */
+            /** @description Page of the business's photos. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3287,7 +3039,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Foto subida. */
+            /** @description Photo uploaded. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3315,7 +3067,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Foto eliminada. */
+            /** @description Photo deleted. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3342,7 +3094,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de fotos del servicio. */
+            /** @description Page of the service's photos. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3375,7 +3127,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Foto subida. */
+            /** @description Photo uploaded. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3403,95 +3155,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Foto eliminada. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            500: components["responses"]["InternalServerError"];
-        };
-    };
-    listProductPhotos: {
-        parameters: {
-            query?: {
-                page?: components["parameters"]["PageParam"];
-                pageSize?: components["parameters"]["PageSizeParam"];
-            };
-            header?: never;
-            path: {
-                productId: components["parameters"]["ProductIdParam"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Página de fotos del producto. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedPhotos"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-            500: components["responses"]["InternalServerError"];
-        };
-    };
-    uploadProductPhoto: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                productId: components["parameters"]["ProductIdParam"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    file: string;
-                    /** @default 0 */
-                    displayOrder?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Foto subida. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Photo"];
-                };
-            };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            500: components["responses"]["InternalServerError"];
-        };
-    };
-    deleteProductPhoto: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                productId: components["parameters"]["ProductIdParam"];
-                photoId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Foto eliminada. */
+            /** @description Photo deleted. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3509,9 +3173,9 @@ export interface operations {
             query: {
                 from: string;
                 to: string;
-                /** @description Si se indica, los slots se calculan con la duración de este servicio. */
+                /** @description If given, slots are calculated with this service's duration. */
                 serviceId?: string;
-                /** @description Duración del slot cuando no se indica `serviceId`. */
+                /** @description Slot duration when `serviceId` is not given. */
                 slotMinutes?: number;
             };
             header?: never;
@@ -3522,7 +3186,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Disponibilidad calculada para el rango solicitado. */
+            /** @description Availability calculated for the requested range. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3578,7 +3242,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de reservaciones propias. */
+            /** @description Page of the client's own bookings. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3604,9 +3268,7 @@ export interface operations {
                  * @example {
                  *       "businessId": "1b2c3d4e-5f60-4a1b-8c2d-9e0f1a2b3c4d",
                  *       "startAt": "2026-09-01T14:00:00Z",
-                 *       "serviceIds": [
-                 *         "4d5e6f70-8192-4a3b-9c0d-1e2f3a4b5c6d"
-                 *       ],
+                 *       "serviceId": "4d5e6f70-8192-4a3b-9c0d-1e2f3a4b5c6d",
                  *       "notes": "Preferiblemente con la estilista Ana."
                  *     }
                  */
@@ -3614,7 +3276,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Reservación creada. */
+            /** @description Booking created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3643,7 +3305,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Detalle de la reservación. */
+            /** @description Booking details. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3675,7 +3337,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Reservación cancelada. */
+            /** @description Booking cancelled. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3702,7 +3364,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Reservación marcada como completada. */
+            /** @description Booking marked as completed. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3729,7 +3391,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Reservación marcada como no-show. */
+            /** @description Booking marked as no-show. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3766,7 +3428,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Reseña creada. */
+            /** @description Review created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3801,7 +3463,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de reservaciones del negocio. */
+            /** @description Page of the business's bookings. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3830,7 +3492,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de reseñas del negocio. */
+            /** @description Page of the business's reviews. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3877,7 +3539,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de negocios favoritos. */
+            /** @description Page of favorite businesses. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3901,7 +3563,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Negocio agregado a favoritos. */
+            /** @description Business added to favorites. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3924,7 +3586,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Negocio removido de favoritos. */
+            /** @description Business removed from favorites. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3959,7 +3621,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Criterios estructurados extraídos y negocios que califican. */
+            /** @description Extracted structured criteria and matching businesses. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4035,7 +3697,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página del historial de interacciones de IA. */
+            /** @description Page of the AI interaction history. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4061,7 +3723,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Detalle de la interacción de IA. */
+            /** @description AI interaction details. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4095,7 +3757,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Token registrado. */
+            /** @description Token registered. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -4120,7 +3782,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Token eliminado. */
+            /** @description Token deleted. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -4146,7 +3808,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Página de notificaciones. */
+            /** @description Page of notifications. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4202,7 +3864,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Notificación actualizada. */
+            /** @description Notification updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4239,7 +3901,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Notificación encolada para envío. */
+            /** @description Notification queued for delivery. */
             202: {
                 headers: {
                     [name: string]: unknown;

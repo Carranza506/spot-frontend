@@ -25,10 +25,8 @@ const PUBLIC_GET_PATH_TEMPLATES = [
   '/business/businesses/{businessId}/categories',
   '/business/businesses/{businessId}/services',
   '/business/services/{serviceId}',
-  '/business/businesses/{businessId}/products',
   '/business/businesses/{businessId}/photos',
   '/business/services/{serviceId}/photos',
-  '/business/products/{productId}/photos',
   '/booking/businesses/{businessId}/availability',
   '/booking/businesses/{businessId}/reviews',
 ];
