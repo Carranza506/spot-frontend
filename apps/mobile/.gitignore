@@ -66,6 +66,11 @@ yarn-error.log
 # testing
 /coverage
 
+# Env files (local overrides only — see .env.example)
+.env
+.env.*
+!.env.example
+
 # Yarn
 .yarn/*
 !.yarn/patches

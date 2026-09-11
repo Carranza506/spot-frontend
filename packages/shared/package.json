@@ -2,5 +2,11 @@
   "name": "@spot/shared",
   "version": "0.0.1",
   "main": "src/index.ts",
-  "types": "src/index.ts"
+  "types": "src/index.ts",
+  "scripts": {
+    "codegen:api": "openapi-typescript ../../contracts/spot-api.yaml -o ./src/api/schema.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0"
+  }
 }

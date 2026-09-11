@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev:web": "pnpm --filter web dev",
-    "start:mobile": "pnpm --filter mobile start"
+    "start:mobile": "pnpm --filter mobile start",
+    "codegen:api": "pnpm --filter @spot/shared codegen:api"
   }
 }

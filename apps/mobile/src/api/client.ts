@@ -1,12 +1,12 @@
+import { API_BASE_URL } from '@env';
 import { createApiClient, type ApiClient, type ApiFetchOptions } from '@spot/shared';
 import { clearTokens, getTokens, setTokens } from './auth-storage';
 
 function getBaseUrl(): string {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  if (!baseUrl) {
-    throw new Error('VITE_API_BASE_URL is not set. Copy apps/web/.env.example to apps/web/.env and set it.');
+  if (!API_BASE_URL) {
+    throw new Error('API_BASE_URL is not set. Copy apps/mobile/.env.example to apps/mobile/.env and set it.');
   }
-  return baseUrl;
+  return API_BASE_URL;
 }
 
 let client: ApiClient | null = null;
