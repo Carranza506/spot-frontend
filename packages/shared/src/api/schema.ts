@@ -15,9 +15,9 @@ export interface paths {
         put?: never;
         /**
          * Register a new user
-         * @description Creates a new account with email and password. The default role is
-         *     `CLIENT`; a `BUSINESS_OWNER` account is granted through a separate
-         *     administrative flow (out of scope for the self-service MVP).
+         * @description Creates a new account with email and password. The register endpoint
+         *     accepts `CLIENT` (default) or `BUSINESS_OWNER`; any other role is
+         *     rejected with 400.
          *
          *     Access: public (no JWT required).
          */
@@ -1240,6 +1240,12 @@ export interface components {
             firstName: string;
             lastName: string;
             phone?: string;
+            /**
+             * @description Optional. Defaults to CLIENT when omitted. Only CLIENT and BUSINESS_OWNER may be requested here — SUPERADMIN is never granted through self-service registration.
+             * @default CLIENT
+             * @enum {string}
+             */
+            role: "CLIENT" | "BUSINESS_OWNER";
         };
         LoginRequest: {
             /** Format: email */
