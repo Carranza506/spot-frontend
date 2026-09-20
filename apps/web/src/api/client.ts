@@ -1,4 +1,4 @@
-import { createApiClient, type ApiClient, type ApiFetchOptions } from '@spot/shared';
+import { createApiClient, type ApiClient, type ApiFetchOptions, type AuthClient, type TokenStorage } from '@spot/shared';
 import { clearTokens, getTokens, setTokens } from './auth-storage';
 
 function getBaseUrl(): string {
@@ -24,5 +24,10 @@ function getClient(): ApiClient {
 export function apiFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> {
   return getClient().apiFetch<T>(path, options);
 }
+
+export const authStorage: TokenStorage = { getTokens, setTokens, clearTokens };
+
+/** apiFetch + token storage bundled for the shared auth helpers (login/register/logout/getOwnProfile). */
+export const authClient: AuthClient = { apiFetch, storage: authStorage };
 
 export type { ApiFetchOptions } from '@spot/shared';

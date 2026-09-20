@@ -9,3 +9,18 @@ export {
   type StoredTokens,
   type TokenStorage,
 } from './api/client';
+export { color, radius, spacing, fontSize, theme, themeToCssVariables } from './theme';
+export {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  validateEmail,
+  validatePassword,
+  validateRequired,
+  mapAuthApiError,
+  type AuthFormErrors,
+  login,
+  register,
+  logout,
+  getOwnProfile,
+  type AuthClient,
+} from './auth';

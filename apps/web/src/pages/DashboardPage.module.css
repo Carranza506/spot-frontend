@@ -1,0 +1,13 @@
+.page {
+  padding: var(--spacing-xl);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--fontSize-lg);
+  font-weight: 600;
+  color: var(--color-textPrimary);
+}
