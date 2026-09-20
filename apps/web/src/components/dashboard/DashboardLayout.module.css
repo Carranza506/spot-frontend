@@ -1,0 +1,118 @@
+.page {
+  min-height: 100svh;
+  display: flex;
+}
+
+.sidebar {
+  flex: 0 0 280px;
+  background: var(--color-panelDark);
+  color: var(--color-onPanelDark);
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--fontSize-lg);
+  font-weight: 700;
+  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-lg);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  color: var(--color-onPanelDarkInactive);
+  text-decoration: none;
+  font-size: var(--fontSize-md);
+  font-weight: 500;
+}
+
+.navItem:hover {
+  color: var(--color-onPanelDark);
+}
+
+.navItemActive {
+  background: var(--color-accentTeal);
+  color: var(--color-onPanelDark);
+  font-weight: 600;
+}
+
+.logoutButton {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: none;
+  border: none;
+  color: var(--color-onPanelDarkInactive);
+  font-size: var(--fontSize-md);
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  text-align: left;
+}
+
+.logoutButton:hover {
+  color: var(--color-onPanelDark);
+}
+
+.contentColumn {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: var(--fontSize-xl);
+  font-weight: 700;
+  color: var(--color-textPrimary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+  margin: var(--spacing-xs) 0 0;
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accentTeal);
+  color: var(--color-onPanelDark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fontSize-sm);
+  font-weight: 700;
+}
+
+.content {
+  flex: 1 1 auto;
+  background: var(--color-background);
+  padding: var(--spacing-xl);
+}

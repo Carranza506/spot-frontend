@@ -12,11 +12,17 @@ export const color = {
   accentTealHover: '#357e74',
   surface: '#ffffff',
   surfaceMuted: '#f5f6f4',
+  background: '#f4f3ef',
   textPrimary: '#152a26',
   textSecondary: '#6e7b77',
   placeholder: '#9ea8a4',
   border: '#e6e5e0',
   danger: '#d1453b',
+  onPanelDarkInactive: '#adb5b3',
+  success: '#35803a',
+  successBg: '#e1fce6',
+  warningText: '#a85403',
+  warningBg: '#fbf3c6',
 } as const;
 
 export const radius = {
