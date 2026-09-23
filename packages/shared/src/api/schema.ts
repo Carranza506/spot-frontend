@@ -15,9 +15,10 @@ export interface paths {
         put?: never;
         /**
          * Register a new user
-         * @description Creates a new account with email and password. The register endpoint
-         *     accepts `CLIENT` (default) or `BUSINESS_OWNER`; any other role is
-         *     rejected with 400.
+         * @description Creates a new account with email and password. `role` is optional and
+         *     defaults to `CLIENT`; a caller may also request `BUSINESS`
+         *     directly. Any other value (including `SUPERADMIN`) is rejected with
+         *     400 — elevated roles beyond these two are never self-service.
          *
          *     Access: public (no JWT required).
          */
@@ -118,7 +119,7 @@ export interface paths {
          * Log out (revoke refresh token)
          * @description Revokes the given refresh token (`refresh_tokens.revoked_at`).
          *
-         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS`,
          *     `SUPERADMIN`).
          */
         post: operations["logout"];
@@ -137,7 +138,7 @@ export interface paths {
         };
         /**
          * Get the authenticated user's profile
-         * @description Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
+         * @description Required role: any authenticated user (`CLIENT`, `BUSINESS`,
          *     `SUPERADMIN`).
          */
         get: operations["getOwnProfile"];
@@ -152,7 +153,12 @@ export interface paths {
          *     `last_name`, `phone`, `profile_photo_url`). Does not allow changing
          *     `email` or `role`.
          *
-         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
+         *     A CLIENT cannot clear `firstName`/`lastName` to null or empty (400). A
+         *     BUSINESS account cannot send `firstName`/`lastName` at all (400) — its
+         *     name is `businesses.name`, edited via `PATCH /business/businesses/me`
+         *     instead.
+         *
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS`,
          *     `SUPERADMIN`).
          */
         patch: operations["updateOwnProfile"];
@@ -172,7 +178,7 @@ export interface paths {
          * @description Requires the current password to authorize the change. Revokes all of
          *     the user's active refresh tokens after the change.
          *
-         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS`,
          *     `SUPERADMIN`).
          */
         post: operations["changePassword"];
@@ -223,7 +229,13 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete a category
+         * @description Required role: `SUPERADMIN`. A category with existing subcategories
+         *     cannot be deleted — reparent or remove its subcategories first.
+         *     Deleting a category never cascade-deletes its subcategories.
+         */
+        delete: operations["deleteCategory"];
         options?: never;
         head?: never;
         /**
@@ -252,16 +264,42 @@ export interface paths {
         put?: never;
         /**
          * Create a business
-         * @description Creates a business and registers the authenticated user as its owner in
-         *     `business_owners`.
+         * @description Creates the business profile for the authenticated BUSINESS account
+         *     (`businesses.account_id`, taken from the JWT `sub` claim — never from
+         *     the request body). A business account can only ever have one business:
+         *     409 if this account already has one.
          *
-         *     Required role: `BUSINESS_OWNER`.
+         *     Required role: `BUSINESS`.
          */
         post: operations["createBusiness"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/business/businesses/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the authenticated account's own business
+         * @description Required role: `BUSINESS`.
+         */
+        get: operations["getOwnBusiness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update the authenticated account's own business
+         * @description Required role: `BUSINESS`.
+         */
+        patch: operations["updateOwnBusiness"];
         trace?: never;
     };
     "/business/businesses/{businessId}": {
@@ -285,14 +323,14 @@ export interface paths {
          * @description Sets `businesses.is_active = false`. Does not physically delete the
          *     record because it has associated bookings and reviews.
          *
-         *     Required role: `BUSINESS_OWNER` who owns the business.
+         *     Required role: `BUSINESS` who owns the business.
          */
         delete: operations["deactivateBusiness"];
         options?: never;
         head?: never;
         /**
          * Update a business
-         * @description Required role: `BUSINESS_OWNER` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business.
          */
         patch: operations["updateBusiness"];
         trace?: never;
@@ -317,7 +355,7 @@ export interface paths {
          *     business. This endpoint creates the row if it doesn't exist or replaces
          *     it if it already does.
          *
-         *     Required role: `BUSINESS_OWNER` who owns the business.
+         *     Required role: `BUSINESS` who owns the business.
          */
         put: operations["upsertBusinessLocation"];
         post?: never;
@@ -344,7 +382,7 @@ export interface paths {
         put?: never;
         /**
          * Add a contact to a business
-         * @description Required role: `BUSINESS_OWNER` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business.
          */
         post: operations["createBusinessContact"];
         delete?: never;
@@ -368,7 +406,7 @@ export interface paths {
         post?: never;
         /**
          * Remove a contact from a business
-         * @description Required role: `BUSINESS_OWNER` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business.
          */
         delete: operations["deleteBusinessContact"];
         options?: never;
@@ -401,7 +439,7 @@ export interface paths {
          *     `openTime` and `closeTime` are required and `openTime < closeTime`
          *     (validated by the `business_hours` CHECK).
          *
-         *     Required role: `BUSINESS_OWNER` who owns the business.
+         *     Required role: `BUSINESS` who owns the business.
          */
         put: operations["replaceBusinessHours"];
         post?: never;
@@ -436,7 +474,7 @@ export interface paths {
          *     exceptions for the same date. If `isClosed=false`, requires
          *     `openTime < closeTime`.
          *
-         *     Required role: `BUSINESS_OWNER` who owns the business.
+         *     Required role: `BUSINESS` who owns the business.
          */
         post: operations["createBusinessScheduleException"];
         delete?: never;
@@ -460,7 +498,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a schedule exception
-         * @description Required role: `BUSINESS_OWNER` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business.
          */
         delete: operations["deleteBusinessScheduleException"];
         options?: never;
@@ -487,7 +525,7 @@ export interface paths {
          * @description Completely replaces the `business_categories` rows for the business with
          *     the given set of `categoryIds`.
          *
-         *     Required role: `BUSINESS_OWNER` who owns the business.
+         *     Required role: `BUSINESS` who owns the business.
          */
         put: operations["replaceBusinessCategories"];
         post?: never;
@@ -514,7 +552,7 @@ export interface paths {
         put?: never;
         /**
          * Create a service for a business
-         * @description Required role: `BUSINESS_OWNER` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business.
          */
         post: operations["createService"];
         delete?: never;
@@ -545,7 +583,7 @@ export interface paths {
          *     preserve the historical integrity of `bookings` (which references
          *     `service_id`).
          *
-         *     Required role: `BUSINESS_OWNER` who owns the business the service
+         *     Required role: `BUSINESS` who owns the business the service
          *     belongs to.
          */
         delete: operations["deleteService"];
@@ -553,7 +591,7 @@ export interface paths {
         head?: never;
         /**
          * Update a service
-         * @description Required role: `BUSINESS_OWNER` who owns the business the service
+         * @description Required role: `BUSINESS` who owns the business the service
          *     belongs to.
          */
         patch: operations["updateService"];
@@ -576,7 +614,7 @@ export interface paths {
         put?: never;
         /**
          * Upload a business photo
-         * @description Required role: `BUSINESS_OWNER` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business.
          */
         post: operations["uploadBusinessPhoto"];
         delete?: never;
@@ -600,7 +638,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a business photo
-         * @description Required role: `BUSINESS_OWNER` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business.
          */
         delete: operations["deleteBusinessPhoto"];
         options?: never;
@@ -625,7 +663,7 @@ export interface paths {
         put?: never;
         /**
          * Upload a service photo
-         * @description Required role: `BUSINESS_OWNER` who owns the business the service
+         * @description Required role: `BUSINESS` who owns the business the service
          *     belongs to.
          */
         post: operations["uploadServicePhoto"];
@@ -650,7 +688,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a service photo
-         * @description Required role: `BUSINESS_OWNER` who owns the business the service
+         * @description Required role: `BUSINESS` who owns the business the service
          *     belongs to.
          */
         delete: operations["deleteServicePhoto"];
@@ -745,7 +783,7 @@ export interface paths {
         /**
          * Get a booking's details
          * @description Required role: `CLIENT` who owns the booking (`bookings.user_id`),
-         *     `BUSINESS_OWNER` who owns the booking's business, or `SUPERADMIN`.
+         *     `BUSINESS` who owns the booking's business, or `SUPERADMIN`.
          */
         get: operations["getBooking"];
         put?: never;
@@ -773,7 +811,7 @@ export interface paths {
          *     `CONFIRMED`; canceling a booking that is already `COMPLETED`,
          *     `CANCELLED`, or `NO_SHOW` responds `422`.
          *
-         *     Required role: `CLIENT` who owns the booking or `BUSINESS_OWNER` who owns
+         *     Required role: `CLIENT` who owns the booking or `BUSINESS` who owns
          *     the booking's business.
          */
         post: operations["cancelBooking"];
@@ -799,7 +837,7 @@ export interface paths {
          * @description Transitions `status` to `COMPLETED`. Only valid from `CONFIRMED`;
          *     otherwise responds `422`. Enables the client to leave a review.
          *
-         *     Required role: `BUSINESS_OWNER` who owns the booking's business.
+         *     Required role: `BUSINESS` who owns the booking's business.
          */
         post: operations["completeBooking"];
         delete?: never;
@@ -824,7 +862,7 @@ export interface paths {
          * @description Transitions `status` to `NO_SHOW`. Only valid from `CONFIRMED`;
          *     otherwise responds `422`.
          *
-         *     Required role: `BUSINESS_OWNER` who owns the booking's business.
+         *     Required role: `BUSINESS` who owns the booking's business.
          */
         post: operations["markBookingNoShow"];
         delete?: never;
@@ -873,7 +911,7 @@ export interface paths {
         };
         /**
          * List a business's bookings
-         * @description Required role: `BUSINESS_OWNER` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business.
          */
         get: operations["listBusinessBookings"];
         put?: never;
@@ -983,7 +1021,7 @@ export interface paths {
          *     summary is returned in the response's `aiRequest` field for
          *     traceability; the full history is queried via `GET /ai-search/requests`.
          *
-         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS`,
          *     `SUPERADMIN`).
          */
         post: operations["aiSearchQuery"];
@@ -1053,7 +1091,7 @@ export interface paths {
          * @description Registers (or reactivates, if it already existed and was inactive) the
          *     authenticated user's device push token for sending notifications.
          *
-         *     Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
+         *     Required role: any authenticated user (`CLIENT`, `BUSINESS`,
          *     `SUPERADMIN`).
          */
         post: operations["registerDeviceToken"];
@@ -1095,7 +1133,7 @@ export interface paths {
         };
         /**
          * List the authenticated user's notifications
-         * @description Required role: any authenticated user (`CLIENT`, `BUSINESS_OWNER`,
+         * @description Required role: any authenticated user (`CLIENT`, `BUSINESS`,
          *     `SUPERADMIN`), over their own notifications.
          */
         get: operations["listOwnNotifications"];
@@ -1191,7 +1229,7 @@ export interface components {
             longitude: number;
         };
         /** @enum {string} */
-        UserRole: "CLIENT" | "BUSINESS_OWNER" | "SUPERADMIN";
+        UserRole: "CLIENT" | "BUSINESS" | "SUPERADMIN";
         /** @enum {string} */
         ContactType: "PHONE" | "WHATSAPP" | "EMAIL" | "WEBSITE" | "FACEBOOK" | "INSTAGRAM" | "TIKTOK" | "OTHER";
         /** @enum {string} */
@@ -1215,8 +1253,10 @@ export interface components {
             id: string;
             /** Format: email */
             email: string;
-            firstName: string;
-            lastName: string;
+            /** @description Null for a BUSINESS account — its name is `businesses.name` instead. */
+            firstName: string | null;
+            /** @description Null for a BUSINESS account — its name is `businesses.name` instead. */
+            lastName: string | null;
             phone?: string | null;
             /** Format: uri */
             profilePhotoUrl?: string | null;
@@ -1237,15 +1277,17 @@ export interface components {
             email: string;
             /** Format: password */
             password: string;
-            firstName: string;
-            lastName: string;
+            /** @description Required when role is CLIENT (the default). Ignored for BUSINESS — a business account has no person name. */
+            firstName?: string;
+            /** @description Required when role is CLIENT (the default). Ignored for BUSINESS — a business account has no person name. */
+            lastName?: string;
             phone?: string;
             /**
-             * @description Optional. Defaults to CLIENT when omitted. Only CLIENT and BUSINESS_OWNER may be requested here — SUPERADMIN is never granted through self-service registration.
+             * @description Optional. Defaults to CLIENT when omitted. Only CLIENT and BUSINESS may be requested here — SUPERADMIN is never granted through self-service registration.
              * @default CLIENT
              * @enum {string}
              */
-            role: "CLIENT" | "BUSINESS_OWNER";
+            role: "CLIENT" | "BUSINESS";
         };
         LoginRequest: {
             /** Format: email */
@@ -1267,7 +1309,9 @@ export interface components {
             newPassword: string;
         };
         UpdateProfileRequest: {
+            /** @description CLIENT only: cannot be cleared to null or empty (400). Rejected outright (400) for a BUSINESS account — its name is edited via PATCH /business/businesses/me instead. */
             firstName?: string;
+            /** @description CLIENT only: cannot be cleared to null or empty (400). Rejected outright (400) for a BUSINESS account — its name is edited via PATCH /business/businesses/me instead. */
             lastName?: string;
             phone?: string | null;
             /** Format: uri */
@@ -2218,6 +2262,32 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    deleteCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Category deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             500: components["responses"]["InternalServerError"];
         };
@@ -2351,6 +2421,60 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getOwnBusiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's business. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Business"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    updateOwnBusiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BusinessUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Business updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Business"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             500: components["responses"]["InternalServerError"];
         };

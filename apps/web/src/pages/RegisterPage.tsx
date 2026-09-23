@@ -1,6 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ApiError, mapAuthApiError, register, validateEmail, validatePassword, validateRequired } from '@spot/shared';
+import {
+  ApiError,
+  createBusiness,
+  mapAuthApiError,
+  register,
+  validateEmail,
+  validatePassword,
+  validateRequired,
+} from '@spot/shared';
 import { authClient } from '../api/client';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { Button } from '../components/Button';
@@ -9,10 +17,9 @@ import formStyles from './AuthForm.module.css';
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -22,14 +29,12 @@ export function RegisterPage() {
     event.preventDefault();
 
     const errors: Record<string, string> = {};
+    const nameError = validateRequired(businessName, 'El nombre del negocio es requerido.');
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    const firstNameError = validateRequired(firstName, 'El nombre es requerido.');
-    const lastNameError = validateRequired(lastName, 'El apellido es requerido.');
+    if (nameError) errors.name = nameError;
     if (emailError) errors.email = emailError;
     if (passwordError) errors.password = passwordError;
-    if (firstNameError) errors.firstName = firstNameError;
-    if (lastNameError) errors.lastName = lastNameError;
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -41,15 +46,7 @@ export function RegisterPage() {
     setGeneralError(null);
     setSubmitting(true);
     try {
-      await register(authClient, {
-        email,
-        password,
-        firstName,
-        lastName,
-        role: 'BUSINESS_OWNER',
-        ...(phone.trim() ? { phone: phone.trim() } : {}),
-      });
-      navigate('/dashboard', { replace: true });
+      await register(authClient, { email, password, role: 'BUSINESS' });
     } catch (error) {
       if (error instanceof ApiError) {
         const mapped = mapAuthApiError(error);
@@ -58,8 +55,19 @@ export function RegisterPage() {
       } else {
         setGeneralError('No se pudo conectar con el servidor. Intentá de nuevo.');
       }
-    } finally {
       setSubmitting(false);
+      return;
+    }
+
+    // The account and its session already exist at this point, so a failure here must
+    // not leave the user on a form whose resubmit would 409 on the email: they finish
+    // the business profile from the complete-profile page instead.
+    const business = { name: businessName.trim(), ...(phone.trim() ? { phone: phone.trim() } : {}) };
+    try {
+      await createBusiness(authClient, business);
+      navigate('/dashboard', { replace: true });
+    } catch {
+      navigate('/complete-profile', { replace: true, state: business });
     }
   }
 
@@ -75,22 +83,13 @@ export function RegisterPage() {
       <form className={formStyles.form} onSubmit={handleSubmit} noValidate>
         {generalError && <p className={formStyles.generalError}>{generalError}</p>}
         <TextField
-          id="firstName"
-          label="Nombre"
-          placeholder="María José"
-          autoComplete="given-name"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          error={fieldErrors.firstName}
-        />
-        <TextField
-          id="lastName"
-          label="Apellido"
-          placeholder="Rodríguez Solís"
-          autoComplete="family-name"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          error={fieldErrors.lastName}
+          id="name"
+          label="Nombre del negocio"
+          placeholder="Salón Bella Vista"
+          autoComplete="organization"
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
+          error={fieldErrors.name}
         />
         <TextField
           id="email"
@@ -106,7 +105,7 @@ export function RegisterPage() {
           id="phone"
           label="Teléfono (opcional)"
           type="tel"
-          placeholder="+506 8888-1234"
+          placeholder="+506 2222-3344"
           autoComplete="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
