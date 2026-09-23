@@ -24,3 +24,4 @@ export {
   getOwnProfile,
   type AuthClient,
 } from './auth';
+export { createBusiness, getMyBusiness } from './business';

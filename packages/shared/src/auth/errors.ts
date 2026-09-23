@@ -5,9 +5,9 @@ export interface AuthFormErrors {
   generalError?: string;
 }
 
-// Fields the login/register forms can submit; used to recognize a `details.field`
-// the API points to (see the BadRequest response example in contracts/spot-api.yaml).
-const KNOWN_FIELDS = new Set(['email', 'password', 'firstName', 'lastName', 'phone']);
+// Fields the login/register/business-profile forms can submit; used to recognize a
+// `details.field` the API points to (see the BadRequest response example in contracts/spot-api.yaml).
+const KNOWN_FIELDS = new Set(['email', 'password', 'firstName', 'lastName', 'phone', 'name']);
 
 /**
  * Maps an auth ApiError to field-level errors when the API identifies the

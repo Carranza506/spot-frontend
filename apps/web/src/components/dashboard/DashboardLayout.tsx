@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { getOwnProfile, logout, type components } from '@spot/shared';
+import { NavLink, Outlet, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
+import { logout, type components } from '@spot/shared';
 import { authClient } from '../../api/client';
 import {
   CalendarIcon,
@@ -15,7 +14,7 @@ import {
 } from './icons';
 import styles from './DashboardLayout.module.css';
 
-type User = components['schemas']['User'];
+type Business = components['schemas']['Business'];
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', Icon: GridIcon },
@@ -27,21 +26,16 @@ const NAV_ITEMS = [
   { path: '/reviews', label: 'Reseñas', Icon: ChatIcon },
 ];
 
-function initials(user: User | null): string {
-  if (!user) return '';
-  return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return `${parts[0]?.charAt(0) ?? ''}${parts[1]?.charAt(0) ?? ''}`.toUpperCase();
 }
 
 export function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    getOwnProfile(authClient)
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, []);
+  // Provided by BusinessGuard, which only renders this layout once the business is loaded.
+  const business = useOutletContext<Business>();
 
   async function handleLogout() {
     await logout(authClient);
@@ -79,9 +73,9 @@ export function DashboardLayout() {
         <header className={styles.topbar}>
           <div>
             <h1 className={styles.title}>{title}</h1>
-            <p className={styles.subtitle}>Salón Bella Vista · Administrador</p>
+            <p className={styles.subtitle}>{business.name} · Administrador</p>
           </div>
-          <div className={styles.avatar}>{initials(user)}</div>
+          <div className={styles.avatar}>{initials(business.name)}</div>
         </header>
         <main className={styles.content}>
           <Outlet />

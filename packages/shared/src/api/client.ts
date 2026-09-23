@@ -30,10 +30,15 @@ const PUBLIC_GET_PATH_TEMPLATES = [
   '/booking/businesses/{businessId}/reviews',
 ];
 
+// Authenticated literal paths that would otherwise match a public template above
+// (e.g. `/business/businesses/me` vs `/business/businesses/{businessId}`).
+const AUTHENTICATED_GET_PATHS = new Set(['/business/businesses/me']);
+
 export function isPublicApiPath(method: string, path: string): boolean {
   const pathname = path.split('?')[0];
   if (method === 'POST') return PUBLIC_POST_PATHS.has(pathname);
   if (method !== 'GET') return false;
+  if (AUTHENTICATED_GET_PATHS.has(pathname)) return false;
   return PUBLIC_GET_PATH_TEMPLATES.some((template) => matchesTemplate(template, pathname));
 }
 
