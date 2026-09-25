@@ -1,0 +1,87 @@
+/* Same columns as DashboardPage's .contentGrid. */
+.page {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--spacing-lg);
+  align-items: start;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Same card as DashboardPage's .card/.cardTitle. */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+}
+
+.cardTitle {
+  font-size: var(--fontSize-md);
+  font-weight: 700;
+  color: var(--color-textPrimary);
+  margin: 0 0 var(--spacing-lg);
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.success {
+  font-size: var(--fontSize-sm);
+  color: var(--color-success);
+  background: var(--color-successBg);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0;
+}
+
+/* Loading/error states, styled like BusinessGuard's .message but inside the card. */
+.message {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+}
+
+.message p {
+  margin: 0;
+}
+
+/* Empty/loading text inside a card (Ubicación placeholder, Contactos states). */
+.placeholder {
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+  margin: 0 0 var(--spacing-lg);
+}
+
+.placeholder:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .page,
+  .form {
+    grid-template-columns: 1fr;
+  }
+}

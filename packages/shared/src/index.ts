@@ -24,4 +24,17 @@ export {
   getOwnProfile,
   type AuthClient,
 } from './auth';
-export { createBusiness, getMyBusiness } from './business';
+export {
+  createBusiness,
+  getMyBusiness,
+  updateOwnBusiness,
+  mapBusinessApiError,
+  mapBusinessContactApiError,
+  listBusinessContacts,
+  createBusinessContact,
+  deleteBusinessContact,
+  validateHttpUrl,
+  BUSINESS_NAME_MAX_LENGTH,
+  BUSINESS_LEGAL_NAME_MAX_LENGTH,
+  BUSINESS_PHONE_MAX_LENGTH,
+} from './business';

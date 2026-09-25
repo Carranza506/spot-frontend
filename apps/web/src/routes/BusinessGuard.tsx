@@ -3,6 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { ApiError, getMyBusiness, type components } from '@spot/shared';
 import { authClient } from '../api/client';
 import { Button } from '../components/Button';
+import type { BusinessContext } from './businessContext';
 import styles from './BusinessGuard.module.css';
 
 type Business = components['schemas']['Business'];
@@ -16,7 +17,8 @@ type GuardState =
 
 /**
  * A BUSINESS account is only usable once its business profile exists: loads it and hands
- * it to the routes below as outlet context, or sends accounts without one to complete it.
+ * it to the routes below as outlet context (see BusinessContext), or sends accounts without
+ * one to complete it.
  */
 export function BusinessGuard() {
   const [state, setState] = useState<GuardState>({ status: 'loading' });
@@ -33,14 +35,18 @@ export function BusinessGuard() {
 
   useEffect(fetchBusiness, [fetchBusiness]);
 
+  const setBusiness = useCallback((business: Business) => setState({ status: 'ready', business }), []);
+
   function retry() {
     setState({ status: 'loading' });
     fetchBusiness();
   }
 
   switch (state.status) {
-    case 'ready':
-      return <Outlet context={state.business} />;
+    case 'ready': {
+      const context: BusinessContext = { business: state.business, setBusiness };
+      return <Outlet context={context} />;
+    }
     case 'missing':
       return <Navigate to="/complete-profile" replace />;
     case 'unauthenticated':

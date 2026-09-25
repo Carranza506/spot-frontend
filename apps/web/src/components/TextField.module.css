@@ -20,6 +20,13 @@
   color: var(--color-textPrimary);
 }
 
+.textarea {
+  font-family: inherit;
+  line-height: inherit;
+  min-height: 112px;
+  resize: vertical;
+}
+
 .input::placeholder {
   color: var(--color-placeholder);
 }
