@@ -1,6 +1,7 @@
-import { NavLink, Outlet, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
-import { logout, type components } from '@spot/shared';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { logout } from '@spot/shared';
 import { authClient } from '../../api/client';
+import { useBusinessContext } from '../../routes/businessContext';
 import {
   CalendarIcon,
   ChatIcon,
@@ -13,8 +14,6 @@ import {
   TagIcon,
 } from './icons';
 import styles from './DashboardLayout.module.css';
-
-type Business = components['schemas']['Business'];
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', Icon: GridIcon },
@@ -34,8 +33,10 @@ function initials(name: string): string {
 export function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  // Provided by BusinessGuard, which only renders this layout once the business is loaded.
-  const business = useOutletContext<Business>();
+  // Provided by BusinessGuard, which only renders this layout once the business is loaded;
+  // passed on to the pages so they can read it and keep this header in sync after edits.
+  const businessContext = useBusinessContext();
+  const { business } = businessContext;
 
   async function handleLogout() {
     await logout(authClient);
@@ -78,7 +79,7 @@ export function DashboardLayout() {
           <div className={styles.avatar}>{initials(business.name)}</div>
         </header>
         <main className={styles.content}>
-          <Outlet />
+          <Outlet context={businessContext} />
         </main>
       </div>
     </div>

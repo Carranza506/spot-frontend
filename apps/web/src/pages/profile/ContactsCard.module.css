@@ -1,0 +1,121 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* The stack's gap already spaces its children. */
+.stack > p {
+  margin: 0;
+}
+
+/* Rows follow DashboardPage's "Próximas citas" list. */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row:first-child {
+  padding-top: 0;
+}
+
+.row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.type {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--fontSize-md);
+  font-weight: 600;
+  color: var(--color-textPrimary);
+}
+
+.value {
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+  overflow-wrap: anywhere;
+}
+
+/* Same as DashboardPage's .badge.badgeConfirmed. */
+.badge {
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--fontSize-xs);
+  font-weight: 600;
+  background: var(--color-successBg);
+  color: var(--color-success);
+}
+
+.deleteButton,
+.cancelButton {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  padding: var(--spacing-xs);
+  font-size: var(--fontSize-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteButton {
+  color: var(--color-danger);
+}
+
+.cancelButton {
+  color: var(--color-textSecondary);
+}
+
+.deleteButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--fontSize-sm);
+  color: var(--color-textPrimary);
+  cursor: pointer;
+}
+
+.checkbox input {
+  accent-color: var(--color-accentTeal);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-md);
+}
