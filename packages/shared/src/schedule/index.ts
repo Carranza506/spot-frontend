@@ -1,9 +1,9 @@
 import type { ApiClient } from '../api/client';
-import type { components } from '../api/schema';
+import type { components, operations } from '../api/schema';
 
-type BusinessHour = components['schemas']['BusinessHour'];
 type BusinessHourInput = components['schemas']['BusinessHourInput'];
 type PaginatedBusinessHours = components['schemas']['PaginatedBusinessHours'];
+type ReplaceBusinessHoursResponse = operations['replaceBusinessHours']['responses'][200]['content']['application/json'];
 type BusinessScheduleException = components['schemas']['BusinessScheduleException'];
 type BusinessScheduleExceptionCreateRequest = components['schemas']['BusinessScheduleExceptionCreateRequest'];
 type PaginatedScheduleExceptions = components['schemas']['PaginatedScheduleExceptions'];
@@ -38,8 +38,8 @@ export function replaceBusinessHours(
   client: Pick<ApiClient, 'apiFetch'>,
   businessId: string,
   hours: BusinessHourInput[],
-): Promise<{ data: BusinessHour[] }> {
-  return client.apiFetch<{ data: BusinessHour[] }>(`${businessPath(businessId)}/hours`, {
+): Promise<ReplaceBusinessHoursResponse> {
+  return client.apiFetch<ReplaceBusinessHoursResponse>(`${businessPath(businessId)}/hours`, {
     method: 'PUT',
     body: { hours },
   });

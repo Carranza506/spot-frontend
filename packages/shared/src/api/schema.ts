@@ -433,13 +433,16 @@ export interface paths {
         get: operations["listBusinessHours"];
         /**
          * Replace a business's full weekly schedule
-         * @description Replaces (upsert by `day_of_week`, unique constraint
-         *     `(business_id,day_of_week)`) the business's complete weekly schedule in a
-         *     single operation. Each day must satisfy that, if `isClosed=false`,
-         *     `openTime` and `closeTime` are required and `openTime < closeTime`
-         *     (validated by the `business_hours` CHECK).
+         * @description Fully replaces the business's weekly schedule in a single, atomic
+         *     operation: days already stored are updated, new days are created, and
+         *     days not included in the request are deleted. Each `dayOfWeek` may
+         *     appear at most once. If `isClosed=false`, `openTime` and `closeTime` are
+         *     required and `openTime < closeTime`; if `isClosed=true`, any
+         *     `openTime`/`closeTime` sent are ignored and stored as `null`. These rules
+         *     are validated by the API (`422`). The response lists the resulting
+         *     schedule ordered by `dayOfWeek`.
          *
-         *     Required role: `BUSINESS` who owns the business.
+         *     Required role: `BUSINESS` who owns the business (also when the business is inactive).
          */
         put: operations["replaceBusinessHours"];
         post?: never;
@@ -1480,9 +1483,8 @@ export interface components {
         };
         BusinessHourInput: {
             dayOfWeek: number;
-            openTime?: string;
-            closeTime?: string;
-            /** @default false */
+            openTime?: string | null;
+            closeTime?: string | null;
             isClosed: boolean;
         };
         BusinessHoursUpsertRequest: {
@@ -2782,7 +2784,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data?: components["schemas"]["BusinessHour"][];
+                        data: components["schemas"]["BusinessHour"][];
                     };
                 };
             };
@@ -2790,6 +2792,12 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            /**
+             * @description The schedule is well-formed but breaks a rule. `code` is one of:
+             *     - `DUPLICATE_DAY_OF_WEEK`: the same `dayOfWeek` appears more than once.
+             *     - `MISSING_OPENING_HOURS`: `isClosed=false` without `openTime` or `closeTime`.
+             *     - `INVALID_TIME_RANGE`: `isClosed=false` and `openTime >= closeTime`.
+             */
             422: components["responses"]["UnprocessableEntity"];
             500: components["responses"]["InternalServerError"];
         };
