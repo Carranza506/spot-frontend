@@ -13,7 +13,7 @@ export function SchedulePage() {
     <div className={pageStyles.page}>
       {isScheduleMock && (
         <p className={`${styles.mockNotice} ${pageStyles.fullRow}`}>
-          Modo de prueba: los horarios se guardan solo en este navegador (VITE_SCHEDULE_MOCK=true).
+          Modo de prueba: las excepciones se guardan solo en este navegador (VITE_SCHEDULE_MOCK=true).
         </p>
       )}
       <WeeklyHoursCard businessId={business.id} />

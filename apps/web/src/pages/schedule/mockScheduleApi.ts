@@ -1,19 +1,17 @@
 import { ApiError, type components } from '@spot/shared';
 import type { ScheduleApi } from './scheduleApi';
 
-type BusinessHour = components['schemas']['BusinessHour'];
 type BusinessScheduleException = components['schemas']['BusinessScheduleException'];
 
-// In-browser stand-in for the hours and schedule-exceptions endpoints, which spot-backend
-// doesn't serve yet (#60, #61). Enabled with VITE_SCHEDULE_MOCK=true. Persists per business in
-// localStorage and reproduces the contract's validation errors (400/404/409/422), so every
-// path of the Horarios view can be exercised. Delete once those endpoints are live.
+// In-browser stand-in for the schedule-exceptions endpoints, which spot-backend doesn't serve yet
+// (#61); weekly hours (#60) always use the real API. Enabled with VITE_SCHEDULE_MOCK=true. Persists
+// per business in localStorage and reproduces the contract's validation errors (400/404/409/422),
+// so every path of the exceptions card can be exercised. Delete once those endpoints are live.
 
 const STORAGE_PREFIX = 'spot.scheduleMock.';
 const LATENCY_MS = 300;
 
 interface MockStore {
-  hours: BusinessHour[];
   exceptions: BusinessScheduleException[];
 }
 
@@ -24,7 +22,7 @@ function load(businessId: string): MockStore {
   } catch {
     // Unreadable storage: start from an empty schedule.
   }
-  return { hours: [], exceptions: [] };
+  return { exceptions: [] };
 }
 
 function save(businessId: string, store: MockStore): void {
@@ -64,34 +62,7 @@ function assertTimeRange(isClosed: boolean, openTime?: string | null, closeTime?
   }
 }
 
-export const mockScheduleApi: ScheduleApi = {
-  listHours: (businessId) =>
-    withLatency(() => [...load(businessId).hours].sort((a, b) => a.dayOfWeek - b.dayOfWeek)),
-
-  replaceHours: (businessId, hours) =>
-    withLatency(() => {
-      for (const day of hours) assertTimeRange(day.isClosed ?? false, day.openTime, day.closeTime);
-
-      const store = load(businessId);
-      const now = new Date().toISOString();
-      for (const day of hours) {
-        const existing = store.hours.find((h) => h.dayOfWeek === day.dayOfWeek);
-        const row: BusinessHour = {
-          id: existing?.id ?? crypto.randomUUID(),
-          businessId,
-          dayOfWeek: day.dayOfWeek,
-          isClosed: day.isClosed ?? false,
-          openTime: day.isClosed ? null : (day.openTime ?? null),
-          closeTime: day.isClosed ? null : (day.closeTime ?? null),
-          createdAt: existing?.createdAt ?? now,
-          updatedAt: now,
-        };
-        store.hours = [...store.hours.filter((h) => h.dayOfWeek !== day.dayOfWeek), row];
-      }
-      save(businessId, store);
-      return [...store.hours].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
-    }),
-
+export const mockScheduleApi: Pick<ScheduleApi, 'listExceptions' | 'createException' | 'deleteException'> = {
   listExceptions: (businessId, from) =>
     withLatency(() =>
       load(businessId)

@@ -956,7 +956,11 @@ export interface paths {
         };
         /**
          * List the authenticated client's favorite businesses
-         * @description Required role: `CLIENT`.
+         * @description Returns only the caller's favorites, newest first (`createdAt` descending,
+         *     then `businessId`). Favorites of an inactive business are left out and are
+         *     not counted in `pagination.total`.
+         *
+         *     Required role: `CLIENT`.
          */
         get: operations["listFavoriteBusinesses"];
         put?: never;
@@ -981,7 +985,9 @@ export interface paths {
          * Add a business to favorites
          * @description Idempotent: adding a business that is already a favorite does not raise
          *     an error (`favorite_businesses` has a composite primary key
-         *     `(user_id,business_id)`).
+         *     `(user_id,business_id)`). It returns `204` again and keeps the original
+         *     `createdAt`. Returns `404` if the business doesn't exist or is inactive,
+         *     even when it is already a favorite.
          *
          *     Required role: `CLIENT`.
          */
@@ -989,7 +995,11 @@ export interface paths {
         post?: never;
         /**
          * Remove a business from favorites
-         * @description Required role: `CLIENT`.
+         * @description Idempotent: always returns `204`, whether or not the business was a
+         *     favorite and whether or not the business exists or is active. Only the
+         *     caller's own favorite is removed.
+         *
+         *     Required role: `CLIENT`.
          */
         delete: operations["removeFavoriteBusiness"];
         options?: never;
@@ -3686,7 +3696,9 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedFavorites"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -3701,7 +3713,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Business added to favorites. */
+            /** @description Business added to favorites (or it already was one). */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3709,6 +3721,7 @@ export interface operations {
                 content?: never;
             };
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["InternalServerError"];
         };
@@ -3724,7 +3737,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Business removed from favorites. */
+            /** @description Business removed from favorites (or it wasn't one). */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3732,7 +3745,7 @@ export interface operations {
                 content?: never;
             };
             401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
+            403: components["responses"]["Forbidden"];
             500: components["responses"]["InternalServerError"];
         };
     };

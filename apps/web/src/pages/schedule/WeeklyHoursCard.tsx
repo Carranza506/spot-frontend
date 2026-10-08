@@ -159,8 +159,8 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
               Todavía no publicaste tu horario. Marcá los días que abrís, ajustá las horas y guardá.
             </p>
           )}
-          {generalError && <p className={formStyles.generalError}>{generalError}</p>}
-          {saved && <p className={pageStyles.success}>El horario se guardó correctamente.</p>}
+          {generalError && <p className={formStyles.generalError} role="alert">{generalError}</p>}
+          {saved && <p className={pageStyles.success} role="status">El horario se guardó correctamente.</p>}
 
           <ul className={styles.hoursList}>
             {rows.map((row) => {
@@ -177,6 +177,7 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
                       type="checkbox"
                       aria-label={`${label}: abierto`}
                       checked={!row.isClosed}
+                      disabled={submitting}
                       onChange={(e) => updateRow(row.dayOfWeek, { isClosed: !e.target.checked })}
                     />
                     Abierto
@@ -190,6 +191,7 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
                           type="time"
                           aria-label={`Hora de apertura (${label})`}
                           aria-invalid={error ? true : undefined}
+                          disabled={submitting}
                           className={inputClass}
                           value={row.openTime}
                           onChange={(e) => updateRow(row.dayOfWeek, { openTime: e.target.value })}
@@ -199,6 +201,7 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
                           type="time"
                           aria-label={`Hora de cierre (${label})`}
                           aria-invalid={error ? true : undefined}
+                          disabled={submitting}
                           className={inputClass}
                           value={row.closeTime}
                           onChange={(e) => updateRow(row.dayOfWeek, { closeTime: e.target.value })}

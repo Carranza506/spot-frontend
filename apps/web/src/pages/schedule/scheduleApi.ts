@@ -42,4 +42,12 @@ const remoteScheduleApi: ScheduleApi = {
 /** True when VITE_SCHEDULE_MOCK=true — see mockScheduleApi. */
 export const isScheduleMock = import.meta.env.VITE_SCHEDULE_MOCK === 'true';
 
-export const scheduleApi: ScheduleApi = isScheduleMock ? mockScheduleApi : remoteScheduleApi;
+// Weekly hours (spot-backend #60) are always real; only schedule exceptions (#61) can be mocked.
+export const scheduleApi: ScheduleApi = isScheduleMock
+  ? {
+      ...remoteScheduleApi,
+      listExceptions: mockScheduleApi.listExceptions,
+      createException: mockScheduleApi.createException,
+      deleteException: mockScheduleApi.deleteException,
+    }
+  : remoteScheduleApi;
