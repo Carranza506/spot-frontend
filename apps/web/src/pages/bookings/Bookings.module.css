@@ -1,0 +1,193 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Same as the Horarios mock banner (#38). */
+.mockNotice {
+  font-size: var(--fontSize-sm);
+  color: var(--color-warningText);
+  background: var(--color-warningBg);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 220px));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* The stack's gap already spaces its children. */
+.stack > p {
+  margin: 0;
+}
+
+/* Rows follow ContactsCard / DashboardPage's "Próximas citas" list. */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: var(--spacing-md);
+  row-gap: var(--spacing-md);
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row:first-child {
+  padding-top: 0;
+}
+
+.row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.when,
+.info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.day,
+.service {
+  font-size: var(--fontSize-md);
+  font-weight: 600;
+  color: var(--color-textPrimary);
+}
+
+.day::first-letter {
+  text-transform: uppercase;
+}
+
+.time,
+.meta,
+.pageInfo,
+.pendingText {
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+}
+
+.notes {
+  font-size: var(--fontSize-sm);
+  font-style: italic;
+  color: var(--color-textSecondary);
+  overflow-wrap: anywhere;
+}
+
+/* Same as DashboardPage's .badge. */
+.badge {
+  justify-self: start;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-pill);
+  font-size: var(--fontSize-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeConfirmed {
+  background: var(--color-successBg);
+  color: var(--color-success);
+}
+
+.badgePending {
+  background: var(--color-warningBg);
+  color: var(--color-warningText);
+}
+
+.badgeCompleted {
+  background: var(--color-surfaceMuted);
+  color: var(--color-accentTeal);
+}
+
+.badgeClosed {
+  background: var(--color-surfaceMuted);
+  color: var(--color-textSecondary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  min-width: 220px;
+}
+
+/* Text buttons, same as ContactsCard's delete/cancel buttons. */
+.action,
+.dangerAction {
+  background: none;
+  border: none;
+  padding: var(--spacing-xs);
+  font-size: var(--fontSize-sm);
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-accentTeal);
+}
+
+.dangerAction {
+  color: var(--color-danger);
+}
+
+.action:disabled,
+.dangerAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelForm {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-surfaceMuted);
+  border-radius: var(--radius-md);
+}
+
+.cancelActions,
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.pager {
+  justify-content: space-between;
+}
+
+@media (max-width: 900px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}
