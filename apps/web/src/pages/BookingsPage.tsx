@@ -82,7 +82,15 @@ export function BookingsPage() {
         to: filters.to || undefined,
       })
       .then((result) => {
-        if (!ignore) setLoaded({ query, status: 'ready', bookings: result.data, pagination: result.pagination });
+        if (ignore) return;
+        // The page can end up past the last one (e.g. its only row left the status filter after an
+        // action or a 404/422 reload). Move to the last page instead of showing an empty list with no pager.
+        const lastPage = Math.max(1, result.pagination.totalPages);
+        if (page > lastPage) {
+          setPage(lastPage);
+          return;
+        }
+        setLoaded({ query, status: 'ready', bookings: result.data, pagination: result.pagination });
       })
       .catch((error: unknown) => {
         if (!ignore && !handleAuthError(error)) setLoaded({ query, status: 'error' });

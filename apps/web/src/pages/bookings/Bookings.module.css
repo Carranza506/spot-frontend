@@ -190,4 +190,19 @@
   .filters {
     grid-template-columns: 1fr;
   }
+
+  /* Stack the row (day, service, badge, actions) so no column gets squeezed. */
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--spacing-sm);
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .pager {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
