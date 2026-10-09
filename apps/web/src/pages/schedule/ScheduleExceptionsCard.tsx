@@ -62,6 +62,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const busy = submitting || deletingId !== null;
 
   // Only upcoming exceptions: past ones no longer affect availability.
   const fetchExceptions = useCallback(() => {
@@ -213,7 +214,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                     type="button"
                     className={styles.deleteButton}
                     onClick={() => handleDelete(exception)}
-                    disabled={deletingId !== null}
+                    disabled={busy}
                   >
                     {deletingId === exception.id ? 'Eliminando…' : 'Eliminar'}
                   </button>
@@ -233,14 +234,14 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                 value={exceptionDate}
                 onChange={(e) => setExceptionDate(e.target.value)}
                 error={fieldErrors.exceptionDate}
-                disabled={submitting}
+                disabled={busy}
               />
               <label className={styles.checkbox}>
                 <input
                   type="checkbox"
                   checked={isClosed}
                   onChange={(e) => setIsClosed(e.target.checked)}
-                  disabled={submitting}
+                  disabled={busy}
                 />
                 Cerrado todo el día
               </label>
@@ -253,7 +254,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                       type="time"
                       value={openTime}
                       onChange={(e) => setOpenTime(e.target.value)}
-                      disabled={submitting}
+                      disabled={busy}
                       className={fieldErrors.timeRange ? fieldStyles.inputError : undefined}
                     />
                     <TextField
@@ -262,7 +263,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                       type="time"
                       value={closeTime}
                       onChange={(e) => setCloseTime(e.target.value)}
-                      disabled={submitting}
+                      disabled={busy}
                       className={fieldErrors.timeRange ? fieldStyles.inputError : undefined}
                     />
                   </div>
@@ -277,13 +278,13 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 error={fieldErrors.reason}
-                disabled={submitting}
+                disabled={busy}
               />
               <div className={styles.formActions}>
-                <button type="button" className={styles.cancelButton} onClick={closeForm} disabled={submitting}>
+                <button type="button" className={styles.cancelButton} onClick={closeForm} disabled={busy}>
                   Cancelar
                 </button>
-                <Button type="submit" disabled={submitting}>
+                <Button type="submit" disabled={busy}>
                   {submitting ? 'Guardando…' : 'Guardar excepción'}
                 </Button>
               </div>
