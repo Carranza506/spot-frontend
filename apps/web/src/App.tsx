@@ -5,6 +5,7 @@ import { CompleteBusinessProfilePage } from './pages/CompleteBusinessProfilePage
 import { DashboardPage } from './pages/DashboardPage';
 import { ComingSoonPage } from './pages/ComingSoonPage';
 import { BusinessProfilePage } from './pages/BusinessProfilePage';
+import { BookingsPage } from './pages/BookingsPage';
 import { SchedulePage } from './pages/SchedulePage';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { ProtectedRoute } from './routes/ProtectedRoute';
@@ -21,7 +22,7 @@ function App() {
         <Route element={<BusinessGuard />}>
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/reservations" element={<ComingSoonPage title="Reservaciones" />} />
+            <Route path="/reservations" element={<BookingsPage />} />
             <Route path="/services" element={<ComingSoonPage title="Servicios" />} />
             <Route path="/categories" element={<ComingSoonPage title="Categorías" />} />
             <Route path="/schedule" element={<SchedulePage />} />
