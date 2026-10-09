@@ -433,13 +433,16 @@ export interface paths {
         get: operations["listBusinessHours"];
         /**
          * Replace a business's full weekly schedule
-         * @description Replaces (upsert by `day_of_week`, unique constraint
-         *     `(business_id,day_of_week)`) the business's complete weekly schedule in a
-         *     single operation. Each day must satisfy that, if `isClosed=false`,
-         *     `openTime` and `closeTime` are required and `openTime < closeTime`
-         *     (validated by the `business_hours` CHECK).
+         * @description Fully replaces the business's weekly schedule in a single, atomic
+         *     operation: days already stored are updated, new days are created, and
+         *     days not included in the request are deleted. Each `dayOfWeek` may
+         *     appear at most once. If `isClosed=false`, `openTime` and `closeTime` are
+         *     required and `openTime < closeTime`; if `isClosed=true`, any
+         *     `openTime`/`closeTime` sent are ignored and stored as `null`. These rules
+         *     are validated by the API (`422`). The response lists the resulting
+         *     schedule ordered by `dayOfWeek`.
          *
-         *     Required role: `BUSINESS` who owns the business.
+         *     Required role: `BUSINESS` who owns the business (also when the business is inactive).
          */
         put: operations["replaceBusinessHours"];
         post?: never;
@@ -953,7 +956,11 @@ export interface paths {
         };
         /**
          * List the authenticated client's favorite businesses
-         * @description Required role: `CLIENT`.
+         * @description Returns only the caller's favorites, newest first (`createdAt` descending,
+         *     then `businessId`). Favorites of an inactive business are left out and are
+         *     not counted in `pagination.total`.
+         *
+         *     Required role: `CLIENT`.
          */
         get: operations["listFavoriteBusinesses"];
         put?: never;
@@ -978,7 +985,9 @@ export interface paths {
          * Add a business to favorites
          * @description Idempotent: adding a business that is already a favorite does not raise
          *     an error (`favorite_businesses` has a composite primary key
-         *     `(user_id,business_id)`).
+         *     `(user_id,business_id)`). It returns `204` again and keeps the original
+         *     `createdAt`. Returns `404` if the business doesn't exist or is inactive,
+         *     even when it is already a favorite.
          *
          *     Required role: `CLIENT`.
          */
@@ -986,7 +995,11 @@ export interface paths {
         post?: never;
         /**
          * Remove a business from favorites
-         * @description Required role: `CLIENT`.
+         * @description Idempotent: always returns `204`, whether or not the business was a
+         *     favorite and whether or not the business exists or is active. Only the
+         *     caller's own favorite is removed.
+         *
+         *     Required role: `CLIENT`.
          */
         delete: operations["removeFavoriteBusiness"];
         options?: never;
@@ -1480,9 +1493,8 @@ export interface components {
         };
         BusinessHourInput: {
             dayOfWeek: number;
-            openTime?: string;
-            closeTime?: string;
-            /** @default false */
+            openTime?: string | null;
+            closeTime?: string | null;
             isClosed: boolean;
         };
         BusinessHoursUpsertRequest: {
@@ -2782,7 +2794,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data?: components["schemas"]["BusinessHour"][];
+                        data: components["schemas"]["BusinessHour"][];
                     };
                 };
             };
@@ -2790,6 +2802,12 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            /**
+             * @description The schedule is well-formed but breaks a rule. `code` is one of:
+             *     - `DUPLICATE_DAY_OF_WEEK`: the same `dayOfWeek` appears more than once.
+             *     - `MISSING_OPENING_HOURS`: `isClosed=false` without `openTime` or `closeTime`.
+             *     - `INVALID_TIME_RANGE`: `isClosed=false` and `openTime >= closeTime`.
+             */
             422: components["responses"]["UnprocessableEntity"];
             500: components["responses"]["InternalServerError"];
         };
@@ -3678,7 +3696,9 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedFavorites"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -3693,7 +3713,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Business added to favorites. */
+            /** @description Business added to favorites (or it already was one). */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3701,6 +3721,7 @@ export interface operations {
                 content?: never;
             };
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["InternalServerError"];
         };
@@ -3716,7 +3737,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Business removed from favorites. */
+            /** @description Business removed from favorites (or it wasn't one). */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -3724,7 +3745,7 @@ export interface operations {
                 content?: never;
             };
             401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
+            403: components["responses"]["Forbidden"];
             500: components["responses"]["InternalServerError"];
         };
     };

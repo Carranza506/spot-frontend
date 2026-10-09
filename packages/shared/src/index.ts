@@ -48,3 +48,14 @@ export {
   type BookingAction,
   type BusinessBookingsFilter,
 } from './bookings';
+export {
+  listBusinessHours,
+  replaceBusinessHours,
+  listBusinessScheduleExceptions,
+  createBusinessScheduleException,
+  deleteBusinessScheduleException,
+  validateTimeRange,
+  toApiTime,
+  fromApiTime,
+  SCHEDULE_EXCEPTION_REASON_MAX_LENGTH,
+} from './schedule';
