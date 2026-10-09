@@ -1,0 +1,11 @@
+stub up full
+GET /api/v1/business/businesses/{businessId}/hours?page=1&pageSize=7
+GET /api/v1/business/businesses/{businessId}/schedule-exceptions?page=1&pageSize=100&from=2026-10-08
+PUT /api/v1/business/businesses/{businessId}/hours {"hours":[{"dayOfWeek":1,"isClosed":false,"openTime":"08:00:00","closeTime":"17:00:00"},{"dayOfWeek":2,"isClosed":false,"openTime":"09:00:00","closeTime":"18:00:00"},{"dayOfWeek":3,"isClosed":true},{"dayOfWeek":4,"isClosed":true},{"dayOfWeek":5,"isClosed":true},{"dayOfWeek":6,"isClosed":true},{"dayOfWeek":0,"isClosed":true}]}
+POST /api/v1/business/businesses/{businessId}/schedule-exceptions {"exceptionDate":"2026-12-25","isClosed":true,"reason":"Navidad"}
+GET /api/v1/business/businesses/{businessId}/schedule-exceptions?page=1&pageSize=100&from=2026-10-08
+POST /api/v1/business/businesses/{businessId}/schedule-exceptions {"exceptionDate":"2026-12-25","isClosed":true}
+POST /api/v1/business/businesses/{businessId}/schedule-exceptions {"exceptionDate":"2026-12-31","isClosed":false,"openTime":"10:00:00","closeTime":"14:00:00"}
+GET /api/v1/business/businesses/{businessId}/schedule-exceptions?page=1&pageSize=100&from=2026-10-08
+DELETE /api/v1/business/businesses/{businessId}/schedule-exceptions/c9cf8961-54d2-491a-9f04-c17bda73a2ac
+GET /api/v1/business/businesses/{businessId}/schedule-exceptions?page=1&pageSize=100&from=2026-10-08

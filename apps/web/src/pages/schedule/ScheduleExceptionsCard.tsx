@@ -180,7 +180,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
       {list.status === 'loading' && <p className={pageStyles.placeholder}>Cargando…</p>}
       {list.status === 'error' && (
         <div className={styles.stack}>
-          <p className={formStyles.generalError}>No se pudieron cargar las excepciones.</p>
+          <p className={formStyles.generalError} role="alert">No se pudieron cargar las excepciones.</p>
           <Button type="button" onClick={retry}>
             Reintentar
           </Button>
@@ -191,7 +191,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
           <p className={pageStyles.placeholder}>
             Feriados, cierres o un horario distinto para un día puntual. Tienen prioridad sobre el horario semanal.
           </p>
-          {actionError && <p className={formStyles.generalError}>{actionError}</p>}
+          {actionError && <p className={formStyles.generalError} role="alert">{actionError}</p>}
           {list.exceptions.length === 0 ? (
             <p className={pageStyles.placeholder}>Sin excepciones próximas.</p>
           ) : (
@@ -224,7 +224,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
 
           {formOpen ? (
             <form className={styles.form} onSubmit={handleSubmit} noValidate>
-              {generalError && <p className={formStyles.generalError}>{generalError}</p>}
+              {generalError && <p className={formStyles.generalError} role="alert">{generalError}</p>}
               <TextField
                 id="exceptionDate"
                 label="Fecha"
@@ -233,9 +233,15 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                 value={exceptionDate}
                 onChange={(e) => setExceptionDate(e.target.value)}
                 error={fieldErrors.exceptionDate}
+                disabled={submitting}
               />
               <label className={styles.checkbox}>
-                <input type="checkbox" checked={isClosed} onChange={(e) => setIsClosed(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={isClosed}
+                  onChange={(e) => setIsClosed(e.target.checked)}
+                  disabled={submitting}
+                />
                 Cerrado todo el día
               </label>
               {!isClosed && (
@@ -247,6 +253,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                       type="time"
                       value={openTime}
                       onChange={(e) => setOpenTime(e.target.value)}
+                      disabled={submitting}
                       className={fieldErrors.timeRange ? fieldStyles.inputError : undefined}
                     />
                     <TextField
@@ -255,10 +262,11 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                       type="time"
                       value={closeTime}
                       onChange={(e) => setCloseTime(e.target.value)}
+                      disabled={submitting}
                       className={fieldErrors.timeRange ? fieldStyles.inputError : undefined}
                     />
                   </div>
-                  {fieldErrors.timeRange && <span className={fieldStyles.error}>{fieldErrors.timeRange}</span>}
+                  {fieldErrors.timeRange && <span className={fieldStyles.error} role="alert">{fieldErrors.timeRange}</span>}
                 </>
               )}
               <TextField
@@ -269,6 +277,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 error={fieldErrors.reason}
+                disabled={submitting}
               />
               <div className={styles.formActions}>
                 <button type="button" className={styles.cancelButton} onClick={closeForm} disabled={submitting}>

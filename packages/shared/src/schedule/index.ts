@@ -31,8 +31,8 @@ export function listBusinessHours(
 }
 
 /**
- * Replaces the weekly schedule of a business the authenticated BUSINESS account owns, upserting
- * by dayOfWeek. Open days need openTime < closeTime (400/422 otherwise).
+ * Replaces the weekly schedule of a business the authenticated BUSINESS account owns, replacing
+ * the whole week: days not sent are deleted. Open days need openTime < closeTime (400/422 otherwise).
  */
 export function replaceBusinessHours(
   client: Pick<ApiClient, 'apiFetch'>,
