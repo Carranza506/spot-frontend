@@ -38,3 +38,14 @@ export {
   BUSINESS_LEGAL_NAME_MAX_LENGTH,
   BUSINESS_PHONE_MAX_LENGTH,
 } from './business';
+export {
+  listBusinessHours,
+  replaceBusinessHours,
+  listBusinessScheduleExceptions,
+  createBusinessScheduleException,
+  deleteBusinessScheduleException,
+  validateTimeRange,
+  toApiTime,
+  fromApiTime,
+  SCHEDULE_EXCEPTION_REASON_MAX_LENGTH,
+} from './schedule';
