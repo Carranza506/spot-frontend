@@ -96,7 +96,9 @@ export function createApiClient({ baseUrl, storage }: ApiClientConfig): ApiClien
 
   async function sendRequest(path: string, method: string, options: ApiFetchOptions): Promise<Response> {
     const headers = new Headers(options.headers);
-    if (options.body !== undefined && !headers.has('Content-Type')) {
+    // multipart/form-data uploads (photos) go as-is: fetch sets the Content-Type with its boundary.
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+    if (options.body !== undefined && !isFormData && !headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json');
     }
     if (!isPublicApiPath(method, path)) {
@@ -106,8 +108,10 @@ export function createApiClient({ baseUrl, storage }: ApiClientConfig): ApiClien
       }
     }
 
-    let body: string | undefined;
-    if (options.body !== undefined) {
+    let body: string | FormData | undefined;
+    if (isFormData) {
+      body = options.body as FormData;
+    } else if (options.body !== undefined) {
       try {
         body = JSON.stringify(options.body);
       } catch {
