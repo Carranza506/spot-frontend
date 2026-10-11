@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_BOOKINGS_MOCK?: string;
   /** "true" serves schedule exceptions from an in-browser mock until that endpoint exists (weekly hours are always real). */
   readonly VITE_SCHEDULE_MOCK?: string;
+  /** "true" serves Reseñas from an in-browser mock until spot-backend #70 lands. */
+  readonly VITE_REVIEWS_MOCK?: string;
 }
 
 interface ImportMeta {

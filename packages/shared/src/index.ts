@@ -48,6 +48,7 @@ export {
   type BookingAction,
   type BusinessBookingsFilter,
 } from './bookings';
+export { REVIEW_RATING_MAX, listBusinessReviews, type BusinessReviewsFilter } from './reviews';
 export {
   listBusinessHours,
   replaceBusinessHours,
