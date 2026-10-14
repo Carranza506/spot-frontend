@@ -27,7 +27,7 @@ export function ReviewRow({ review }: { review: Review }) {
           {dateFormat.format(new Date(review.createdAt))}
         </time>
       </div>
-      {review.comment ? (
+      {review.comment?.trim() ? (
         <p className={styles.comment}>{review.comment}</p>
       ) : (
         <p className={styles.noComment}>Sin comentario.</p>
