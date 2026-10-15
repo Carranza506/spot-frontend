@@ -7,6 +7,7 @@ type BusinessUpdateRequest = components['schemas']['BusinessUpdateRequest'];
 type BusinessContact = components['schemas']['BusinessContact'];
 type BusinessContactCreateRequest = components['schemas']['BusinessContactCreateRequest'];
 type PaginatedBusinessContacts = components['schemas']['PaginatedBusinessContacts'];
+type PaginatedPhotos = components['schemas']['PaginatedPhotos'];
 
 export { mapBusinessApiError, mapBusinessContactApiError } from './errors';
 export {
@@ -35,6 +36,22 @@ export function updateOwnBusiness(client: Pick<ApiClient, 'apiFetch'>, data: Bus
     method: 'PATCH',
     body: data,
   });
+}
+
+/** Any active business by id (public endpoint); throws ApiError 404 if it doesn't exist or is inactive. */
+export function getBusiness(client: Pick<ApiClient, 'apiFetch'>, businessId: string): Promise<Business> {
+  return client.apiFetch<Business>(`/business/businesses/${encodeURIComponent(businessId)}`);
+}
+
+/** A page of a business's photos (public endpoint), ordered by displayOrder. */
+export function listBusinessPhotos(
+  client: Pick<ApiClient, 'apiFetch'>,
+  businessId: string,
+  { page = 1, pageSize = 20 }: { page?: number; pageSize?: number } = {},
+): Promise<PaginatedPhotos> {
+  return client.apiFetch<PaginatedPhotos>(
+    `/business/businesses/${encodeURIComponent(businessId)}/photos?page=${page}&pageSize=${pageSize}`,
+  );
 }
 
 function contactsPath(businessId: string): string {
