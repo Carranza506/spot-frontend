@@ -1,39 +1,19 @@
-import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ApiError, color, getBusiness, type components } from '@spot/shared';
+import { ApiError, color, getBusiness } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { BusinessHeader } from '@/components/business/BusinessHeader';
+import { FavoriteButton } from '@/components/business/FavoriteButton';
+import { PhotosSection } from '@/components/business/PhotosSection';
+import { ReviewsSection } from '@/components/business/ReviewsSection';
+import { ServicesSection } from '@/components/business/ServicesSection';
 import { PrimaryButton } from '@/components/PrimaryButton';
-
-type Business = components['schemas']['Business'];
-
-type LoadState =
-  | { status: 'loading' }
-  | { status: 'loaded'; business: Business }
-  | { status: 'notFound' }
-  | { status: 'error' };
+import { useAsyncData } from '@/hooks/useAsyncData';
 
 export default function BusinessDetailScreen() {
   const { businessId } = useLocalSearchParams<{ businessId: string }>();
-  const [state, setState] = useState<LoadState>({ status: 'loading' });
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    // Ignores a response that arrives after leaving the screen or switching business.
-    let ignore = false;
-    setState({ status: 'loading' });
-    getBusiness(authClient, businessId)
-      .then((business) => !ignore && setState({ status: 'loaded', business }))
-      .catch((error: unknown) => {
-        if (ignore) return;
-        setState({ status: error instanceof ApiError && error.status === 404 ? 'notFound' : 'error' });
-      });
-    return () => {
-      ignore = true;
-    };
-  }, [businessId, attempt]);
+  const [state, reload] = useAsyncData(() => getBusiness(authClient, businessId), [businessId]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -48,18 +28,22 @@ export default function BusinessDetailScreen() {
 
       {state.status === 'loading' ? (
         <ActivityIndicator style={styles.centered} color={color.accentTeal} />
-      ) : state.status === 'notFound' ? (
+      ) : state.status === 'error' && state.error instanceof ApiError && state.error.status === 404 ? (
         <View style={styles.centered}>
           <Text style={styles.message}>Este negocio no existe o ya no está disponible.</Text>
         </View>
       ) : state.status === 'error' ? (
         <View style={styles.centered}>
           <Text style={styles.message}>No se pudo cargar el negocio. Revisá tu conexión.</Text>
-          <PrimaryButton title="Reintentar" onPress={() => setAttempt((n) => n + 1)} />
+          <PrimaryButton title="Reintentar" onPress={reload} />
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
-          <BusinessHeader business={state.business} />
+          <BusinessHeader business={state.data} />
+          <FavoriteButton businessId={businessId} />
+          <PhotosSection businessId={businessId} businessName={state.data.name} />
+          <ServicesSection businessId={businessId} />
+          <ReviewsSection businessId={businessId} />
         </ScrollView>
       )}
     </SafeAreaView>
@@ -95,6 +79,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingBottom: 32,
-    gap: 24,
+    gap: 28,
   },
 });
