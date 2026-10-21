@@ -549,7 +549,16 @@ export interface paths {
         };
         /**
          * List the services offered by a business
-         * @description Access: public (no JWT required).
+         * @description Access: public (no JWT required), but owner-aware — a JWT is optional and only widens
+         *     what the caller sees:
+         *       * **Public / non-owner** (no token, or a token that doesn't own this business): only
+         *         active services. `isActive` is ignored for them (even `isActive=false` returns active
+         *         only). An inactive business returns 404.
+         *       * **Owner** (a `BUSINESS` token whose account owns this business): all of its services,
+         *         and `isActive` filters freely — omitted = all, `true` = active only, `false` = inactive
+         *         only. The owner can list even while the business is inactive.
+         *
+         *     Results are ordered by `name`, then `id` (a stable tie-breaker, since names aren't unique).
          */
         get: operations["listBusinessServices"];
         put?: never;
@@ -575,7 +584,11 @@ export interface paths {
         };
         /**
          * Get a service's details
-         * @description Access: public (no JWT required).
+         * @description Access: public (no JWT required), but owner-aware — a JWT is optional:
+         *       * **Public / non-owner**: 404 if the service is inactive or its business is inactive;
+         *         only an active service of an active business is returned.
+         *       * **Owner** (a `BUSINESS` token whose account owns the service's business): sees their own
+         *         service even when it (or the business) is inactive.
          */
         get: operations["getService"];
         put?: never;
@@ -612,12 +625,24 @@ export interface paths {
         /**
          * List a business's photos
          * @description Access: public (no JWT required).
+         *
+         *     Sorted by `displayOrder` ascending, then by `createdAt` and `id`, so
+         *     pages are stable. An inactive business is reported as 404, same as
+         *     `GET /business/businesses/{businessId}`.
          */
         get: operations["listBusinessPhotos"];
         put?: never;
         /**
          * Upload a business photo
          * @description Required role: `BUSINESS` who owns the business.
+         *
+         *     Accepted images: JPEG, PNG or WebP, detected from the file content
+         *     (not from its name or declared content type), up to 5 MB and 40
+         *     megapixels. The image is re-encoded before it is stored, which removes
+         *     its metadata (EXIF, including GPS location).
+         *
+         *     A business can have up to 20 photos and at most one primary photo:
+         *     uploading with `isPrimary: true` unsets the previous primary photo.
          */
         post: operations["uploadBusinessPhoto"];
         delete?: never;
@@ -642,6 +667,9 @@ export interface paths {
         /**
          * Delete a business photo
          * @description Required role: `BUSINESS` who owns the business.
+         *
+         *     Hard delete: the stored image is removed too. A photo of a different
+         *     business is reported as 404.
          */
         delete: operations["deleteBusinessPhoto"];
         options?: never;
@@ -661,6 +689,10 @@ export interface paths {
         /**
          * List a service's photos
          * @description Access: public (no JWT required).
+         *
+         *     Sorted by `displayOrder` ascending, then by `createdAt` and `id`, so
+         *     pages are stable. An inactive service, or a service of an inactive
+         *     business, is reported as 404.
          */
         get: operations["listServicePhotos"];
         put?: never;
@@ -668,6 +700,13 @@ export interface paths {
          * Upload a service photo
          * @description Required role: `BUSINESS` who owns the business the service
          *     belongs to.
+         *
+         *     Accepted images: JPEG, PNG or WebP, detected from the file content
+         *     (not from its name or declared content type), up to 5 MB and 40
+         *     megapixels. The image is re-encoded before it is stored, which removes
+         *     its metadata (EXIF, including GPS location).
+         *
+         *     A service can have up to 10 photos.
          */
         post: operations["uploadServicePhoto"];
         delete?: never;
@@ -693,8 +732,219 @@ export interface paths {
          * Delete a service photo
          * @description Required role: `BUSINESS` who owns the business the service
          *     belongs to.
+         *
+         *     Hard delete: the stored image is removed too. A photo of a different
+         *     service is reported as 404.
          */
         delete: operations["deleteServicePhoto"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/business/media/photos/{fileName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Server-generated file name, as it appears at the end of `Photo.url`.
+                 *     Anything else is reported as 404.
+                 */
+                fileName: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Download a stored photo (business or service)
+         * @description Access: public (no JWT required). This is the URL returned in
+         *     `Photo.url`; clients use it as is (for example, as an `<img>` source)
+         *     and never build it themselves.
+         *
+         *     Stored files are immutable: every upload gets a new file name, so the
+         *     response is cacheable for a long time. A deleted photo returns 404.
+         *
+         *     Responses are sent with `X-Content-Type-Options: nosniff` and
+         *     `Content-Security-Policy: default-src 'none'; sandbox`, so a stored file
+         *     can never be interpreted as anything but an image.
+         */
+        get: operations["getPhotoFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/business/billing/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the available plans
+         * @description Access: public (no JWT required).
+         *
+         *     The active plans, cheapest first, with the features each one includes
+         *     (informational; see `PlanFeatures`). A business without a paid
+         *     subscription is on the `FREE` plan.
+         */
+        get: operations["listPlans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/business/billing/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the caller's current plan and subscription
+         * @description Required role: `BUSINESS`.
+         *
+         *     The caller's effective plan. A subscription counts only while it is
+         *     `ACTIVE` or `PAST_DUE` and its `currentPeriodEnd` hasn't passed;
+         *     otherwise (no subscription, or a canceled/expired one) the caller is on
+         *     `FREE`, and `id`, `status` and `currentPeriodEnd` are null.
+         *
+         *     A subscription only becomes active through a verified Stripe webhook,
+         *     never through the Checkout redirect, so right after paying it can take a
+         *     few seconds to show up here.
+         */
+        get: operations["getMySubscription"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/business/billing/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start a Stripe Checkout session to subscribe to a plan
+         * @description Required role: `BUSINESS`.
+         *
+         *     Creates a Stripe Checkout session (subscription mode) for a paid plan
+         *     and returns the URL of Stripe's hosted payment page; the client
+         *     redirects the user there. Card data never reaches Spot.
+         *
+         *     Returning to the success URL does **not** activate anything: the
+         *     subscription is created only when Stripe confirms the payment through
+         *     the webhook (`POST /business/billing/webhooks/stripe`). Poll
+         *     `GET /business/billing/subscription` afterwards.
+         *
+         *     `FREE`, or an unknown or inactive plan, is a 400. A caller that already
+         *     has an `ACTIVE` or `PAST_DUE` subscription to that plan gets 409
+         *     `ALREADY_SUBSCRIBED`.
+         */
+        post: operations["createCheckoutSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/business/billing/subscription/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel the caller's subscription at the end of the period
+         * @description Required role: `BUSINESS`.
+         *
+         *     Asks Stripe to cancel the caller's `ACTIVE`/`PAST_DUE` subscription at
+         *     the end of the current period: the plan's features stay available until
+         *     `currentPeriodEnd`, and the response has `cancelAtPeriodEnd: true`. The
+         *     subscription becomes `CANCELED` when Stripe ends it (webhook).
+         *
+         *     Idempotent: canceling a subscription that is already set to cancel
+         *     returns 200 with no further effect. 404 if the caller has no
+         *     `ACTIVE`/`PAST_DUE` subscription.
+         */
+        post: operations["cancelMySubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/business/billing/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the caller's subscription payments
+         * @description Required role: `BUSINESS`.
+         *
+         *     Payments of all of the caller's subscriptions, as reported by Stripe's
+         *     invoice webhooks. Paid ones come first, most recent first; failed
+         *     attempts (no `paidAt`) come last. A failed invoice that is paid later
+         *     on a retry appears once, as `PAID`.
+         */
+        get: operations["listMyPayments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/business/billing/webhooks/stripe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [Stripe] Receive subscription and payment events
+         * @description Called by Stripe only (in development, through `stripe listen`), never
+         *     by Spot clients. No JWT: the request is authenticated by verifying the
+         *     `Stripe-Signature` header against the raw body with the webhook signing
+         *     secret; a missing or invalid signature is a 400.
+         *
+         *     Handled events: `checkout.session.completed`, `invoice.paid`,
+         *     `invoice.payment_failed`, `customer.subscription.updated` and
+         *     `customer.subscription.deleted`. Any other verified event, or one that
+         *     doesn't belong to a Spot business account, is acknowledged with 200 and
+         *     ignored.
+         *
+         *     Idempotent: subscriptions are updated by their Stripe subscription id
+         *     and payments are recorded once per Stripe invoice, so receiving the
+         *     same event twice has no extra effect.
+         */
+        post: operations["stripeWebhook"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1261,6 +1511,14 @@ export interface components {
         NotificationType: "BOOKING_STATUS_CHANGED" | "GENERAL";
         /** @enum {string} */
         DevicePlatform: "ANDROID" | "IOS" | "WEB";
+        /** @enum {string} */
+        PlanCode: "FREE" | "PRO";
+        /** @enum {string} */
+        BillingInterval: "MONTHLY";
+        /** @enum {string} */
+        SubscriptionStatus: "ACTIVE" | "PAST_DUE" | "CANCELED" | "EXPIRED";
+        /** @enum {string} */
+        PaymentStatus: "PAID" | "FAILED";
         User: {
             /** Format: uuid */
             id: string;
@@ -1574,7 +1832,12 @@ export interface components {
         Photo: {
             /** Format: uuid */
             id: string;
-            /** Format: uri */
+            /**
+             * Format: uri
+             * @description Absolute URL of the image file (`GET /business/media/photos/{fileName}`,
+             *     public, through the API Gateway). Use it as is; no JWT is needed to
+             *     fetch it.
+             */
             url: string;
             /** @description Only applies to business photos; omitted/false on service photos. */
             isPrimary?: boolean;
@@ -1584,6 +1847,78 @@ export interface components {
         };
         PaginatedPhotos: {
             data: components["schemas"]["Photo"][];
+            pagination: components["schemas"]["PaginationMeta"];
+        };
+        /**
+         * @description What a plan includes. Informational only: these limits are not enforced
+         *     yet. `null` means the plan sets no limit; the general limits of each
+         *     endpoint (for example, 20 photos per business) always apply.
+         */
+        PlanFeatures: {
+            /** @description Maximum number of active services of the business. */
+            maxServices: number | null;
+            /** @description Maximum number of photos of the business itself. */
+            maxPhotosPerBusiness: number | null;
+            /** @description Maximum number of photos of each service. */
+            maxPhotosPerService: number | null;
+        };
+        Plan: {
+            code: components["schemas"]["PlanCode"];
+            name: string;
+            /**
+             * Format: double
+             * @description Price per billing interval in Costa Rican colones (CRC).
+             */
+            priceCrc: number;
+            interval: components["schemas"]["BillingInterval"];
+            features: components["schemas"]["PlanFeatures"];
+        };
+        Subscription: {
+            /**
+             * Format: uuid
+             * @description Null when the caller is on `FREE` without a subscription.
+             */
+            id: string | null;
+            plan: components["schemas"]["Plan"];
+            /** @description Null when the caller is on `FREE` without a subscription. */
+            status: components["schemas"]["SubscriptionStatus"] | null;
+            /**
+             * Format: date-time
+             * @description End of the period already paid for. Null on `FREE`.
+             */
+            currentPeriodEnd: string | null;
+            /** @description True once the subscription is set to end at `currentPeriodEnd` instead of renewing. */
+            cancelAtPeriodEnd: boolean;
+        };
+        CheckoutSessionRequest: {
+            planCode: components["schemas"]["PlanCode"];
+        };
+        CheckoutSessionResponse: {
+            /**
+             * Format: uri
+             * @description Stripe-hosted payment page to redirect the user to.
+             */
+            checkoutUrl: string;
+        };
+        SubscriptionPayment: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            subscriptionId: string;
+            /**
+             * Format: double
+             * @description Amount in Costa Rican colones (CRC) — paid, or attempted when `FAILED`.
+             */
+            amountCrc: number;
+            status: components["schemas"]["PaymentStatus"];
+            /**
+             * Format: date-time
+             * @description Null for a `FAILED` payment.
+             */
+            paidAt: string | null;
+        };
+        PaginatedSubscriptionPayments: {
+            data: components["schemas"]["SubscriptionPayment"][];
             pagination: components["schemas"]["PaginationMeta"];
         };
         AvailabilitySlot: {
@@ -1899,6 +2234,25 @@ export interface components {
                  * @example {
                  *       "code": "BOOKING_SLOT_OVERLAP",
                  *       "message": "Ese horario ya no está disponible para este negocio.",
+                 *       "timestamp": "2026-08-30T20:00:00Z"
+                 *     }
+                 */
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /**
+         * @description The request body exceeds the size limit of the endpoint (for example,
+         *     a photo larger than 5 MB).
+         */
+        PayloadTooLarge: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "code": "PAYLOAD_TOO_LARGE",
+                 *       "message": "La foto no puede pesar más de 5 MB.",
                  *       "timestamp": "2026-08-30T20:00:00Z"
                  *     }
                  */
@@ -2974,6 +3328,7 @@ export interface operations {
             query?: {
                 page?: components["parameters"]["PageParam"];
                 pageSize?: components["parameters"]["PageSizeParam"];
+                /** @description Filter by active state. Honored only for the owner; ignored for public callers. */
                 isActive?: boolean;
             };
             header?: never;
@@ -3016,6 +3371,7 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedServices"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["InternalServerError"];
         };
@@ -3200,6 +3556,23 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            /** @description The business already has the maximum number of photos (20). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": "PHOTO_LIMIT_REACHED",
+                     *       "message": "El negocio ya tiene el máximo de 20 fotos.",
+                     *       "timestamp": "2026-08-30T20:00:00Z"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            413: components["responses"]["PayloadTooLarge"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -3288,6 +3661,23 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            /** @description The service already has the maximum number of photos (10). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": "PHOTO_LIMIT_REACHED",
+                     *       "message": "El servicio ya tiene el máximo de 10 fotos.",
+                     *       "timestamp": "2026-08-30T20:00:00Z"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            413: components["responses"]["PayloadTooLarge"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -3313,6 +3703,279 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getPhotoFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Server-generated file name, as it appears at the end of `Photo.url`.
+                 *     Anything else is reported as 404.
+                 */
+                fileName: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The image, with the content type of its format. */
+            200: {
+                headers: {
+                    /** @example public, max-age=31536000, immutable */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                    "image/png": string;
+                    "image/webp": string;
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    listPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The active plans. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example [
+                     *       {
+                     *         "code": "FREE",
+                     *         "name": "Gratis",
+                     *         "priceCrc": 0,
+                     *         "interval": "MONTHLY",
+                     *         "features": {
+                     *           "maxServices": 5,
+                     *           "maxPhotosPerBusiness": 3,
+                     *           "maxPhotosPerService": 3
+                     *         }
+                     *       },
+                     *       {
+                     *         "code": "PRO",
+                     *         "name": "Pro",
+                     *         "priceCrc": 10000,
+                     *         "interval": "MONTHLY",
+                     *         "features": {
+                     *           "maxServices": null,
+                     *           "maxPhotosPerBusiness": null,
+                     *           "maxPhotosPerService": null
+                     *         }
+                     *       }
+                     *     ]
+                     */
+                    "application/json": components["schemas"]["Plan"][];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    getMySubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's effective plan. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
+                     *       "plan": {
+                     *         "code": "PRO",
+                     *         "name": "Pro",
+                     *         "priceCrc": 10000,
+                     *         "interval": "MONTHLY",
+                     *         "features": {
+                     *           "maxServices": null,
+                     *           "maxPhotosPerBusiness": null,
+                     *           "maxPhotosPerService": null
+                     *         }
+                     *       },
+                     *       "status": "ACTIVE",
+                     *       "currentPeriodEnd": "2026-11-19T18:00:00Z",
+                     *       "cancelAtPeriodEnd": false
+                     *     }
+                     */
+                    "application/json": components["schemas"]["Subscription"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    createCheckoutSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "planCode": "PRO"
+                 *     }
+                 */
+                "application/json": components["schemas"]["CheckoutSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Checkout session created. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "checkoutUrl": "https://checkout.stripe.com/c/pay/cs_test_a1b2c3"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["CheckoutSessionResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description The caller is already subscribed to that plan. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": "ALREADY_SUBSCRIBED",
+                     *       "message": "Ya tienes una suscripción activa a este plan.",
+                     *       "timestamp": "2026-08-30T20:00:00Z"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    cancelMySubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The subscription, set to cancel at the end of the period. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Subscription"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    listMyPayments: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                pageSize?: components["parameters"]["PageSizeParam"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Page of payments. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "data": [
+                     *         {
+                     *           "id": "9c0d1e2f-3a4b-4c5d-8e6f-7a8b9c0d1e2f",
+                     *           "subscriptionId": "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
+                     *           "amountCrc": 10000,
+                     *           "status": "PAID",
+                     *           "paidAt": "2026-10-19T18:00:00Z"
+                     *         }
+                     *       ],
+                     *       "pagination": {
+                     *         "page": 1,
+                     *         "pageSize": 20,
+                     *         "total": 1,
+                     *         "totalPages": 1
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["PaginatedSubscriptionPayments"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    stripeWebhook: {
+        parameters: {
+            query?: never;
+            header: {
+                "Stripe-Signature": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Event received (processed or ignored). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
             500: components["responses"]["InternalServerError"];
         };
     };

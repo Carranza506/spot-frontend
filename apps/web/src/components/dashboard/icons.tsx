@@ -109,6 +109,16 @@ export function ChatIcon({ size = 18 }: IconProps) {
   );
 }
 
+export function CardIcon({ size = 18 }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
+      <rect x="2.5" y="4.5" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M2.5 8.5h15" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M5.5 12.5h3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function LogoutIcon({ size = 18 }: IconProps) {
   return (
     <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
