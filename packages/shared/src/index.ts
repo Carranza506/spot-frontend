@@ -48,6 +48,14 @@ export {
   type BookingAction,
   type BusinessBookingsFilter,
 } from './bookings';
+export {
+  cancelMySubscription,
+  createCheckoutSession,
+  getMySubscription,
+  listMyPayments,
+  listPlans,
+  type BillingPaymentsFilter,
+} from './billing';
 export { REVIEW_RATING_MAX, listBusinessReviews, type BusinessReviewsFilter } from './reviews';
 export {
   listBusinessHours,

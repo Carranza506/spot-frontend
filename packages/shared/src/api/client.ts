@@ -28,6 +28,7 @@ const PUBLIC_GET_PATH_TEMPLATES = [
   '/business/services/{serviceId}/photos',
   '/booking/businesses/{businessId}/availability',
   '/booking/businesses/{businessId}/reviews',
+  '/business/billing/plans',
 ];
 
 // Authenticated literal paths that would otherwise match a public template above
