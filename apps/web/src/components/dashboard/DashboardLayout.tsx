@@ -4,6 +4,7 @@ import { authClient } from '../../api/client';
 import { useBusinessContext } from '../../routes/businessContext';
 import {
   CalendarIcon,
+  CardIcon,
   ChatIcon,
   ClockIcon,
   GearIcon,
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { path: '/schedule', label: 'Horarios', Icon: ClockIcon },
   { path: '/profile', label: 'Perfil', Icon: GearIcon },
   { path: '/reviews', label: 'Reseñas', Icon: ChatIcon },
+  { path: '/billing', label: 'Plan', Icon: CardIcon },
 ];
 
 function initials(name: string): string {
@@ -43,7 +45,10 @@ export function DashboardLayout() {
     navigate('/login', { replace: true });
   }
 
-  const activeItem = NAV_ITEMS.find((item) => item.path === location.pathname);
+  // Prefix match too, so sub-routes (e.g. /billing/success) keep their section's title, as NavLink does.
+  const activeItem = NAV_ITEMS.find(
+    (item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`),
+  );
   const title = activeItem?.label ?? 'Dashboard';
 
   return (

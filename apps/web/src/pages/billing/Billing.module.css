@@ -1,0 +1,287 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* The stack's gap already spaces its children. */
+.stack > p {
+  margin: 0;
+}
+
+/* Plan cards, side by side inside the Planes card. */
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.planCurrent {
+  border: 2px solid var(--color-accentTeal);
+  /* Keeps the content aligned with the other cards despite the thicker border. */
+  padding: calc(var(--spacing-lg) - 1px);
+}
+
+.planHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.planName {
+  font-size: var(--fontSize-md);
+  font-weight: 700;
+  color: var(--color-textPrimary);
+  margin: 0;
+}
+
+.price {
+  font-size: var(--fontSize-xl);
+  font-weight: 700;
+  color: var(--color-textPrimary);
+}
+
+.interval {
+  font-size: var(--fontSize-sm);
+  font-weight: 400;
+  color: var(--color-textSecondary);
+}
+
+.features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1 1 auto;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+}
+
+.featureIcon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--color-accentTeal);
+}
+
+/* Label/value pairs of Mi suscripción. */
+.details {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.detail dt {
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+}
+
+.detail dd {
+  margin: 0;
+  font-size: var(--fontSize-md);
+  font-weight: 600;
+  color: var(--color-textPrimary);
+  text-align: right;
+}
+
+.note,
+.pageInfo,
+.pendingText {
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+}
+
+/* Same as the Reservaciones .badge. */
+.badge {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-pill);
+  font-size: var(--fontSize-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeSuccess {
+  background: var(--color-successBg);
+  color: var(--color-success);
+}
+
+.badgeWarning {
+  background: var(--color-warningBg);
+  color: var(--color-warningText);
+}
+
+.badgeMuted {
+  background: var(--color-surfaceMuted);
+  color: var(--color-textSecondary);
+}
+
+/* Same tint as AuthForm's .generalError. */
+.badgeDanger {
+  background: rgba(209, 69, 59, 0.08);
+  color: var(--color-danger);
+}
+
+/* Same panel as the Reservaciones cancel form. */
+.confirmPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-surfaceMuted);
+  border-radius: var(--radius-md);
+}
+
+.confirmPanel p {
+  margin: 0;
+  font-size: var(--fontSize-sm);
+  color: var(--color-textPrimary);
+}
+
+.confirmActions,
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.pager {
+  justify-content: space-between;
+}
+
+/* Text buttons and links, same as the Reservaciones row actions. */
+.textButton,
+.dangerButton {
+  background: none;
+  border: none;
+  padding: var(--spacing-xs);
+  font-size: var(--fontSize-sm);
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-accentTeal);
+  text-decoration: none;
+}
+
+.dangerButton {
+  color: var(--color-danger);
+  align-self: flex-start;
+}
+
+.textButton:disabled,
+.dangerButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Historial de pagos. */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  font-size: var(--fontSize-xs);
+  font-weight: 600;
+  color: var(--color-textSecondary);
+  padding: 0 0 var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  font-size: var(--fontSize-sm);
+  color: var(--color-textPrimary);
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.table th:last-child,
+.table td:last-child {
+  text-align: right;
+}
+
+/* Return pages from Stripe Checkout: a centered message inside the card. */
+.result {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  text-align: center;
+}
+
+.result p {
+  margin: 0;
+  max-width: 420px;
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+}
+
+.resultTitle {
+  font-size: var(--fontSize-lg);
+  font-weight: 700;
+  color: var(--color-textPrimary);
+  margin: 0;
+}
+
+.resultIcon {
+  display: inline-flex;
+  color: var(--color-accentTeal);
+}
+
+.resultIconSuccess {
+  display: inline-flex;
+  color: var(--color-success);
+}
+
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 720px) {
+  .pager {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
