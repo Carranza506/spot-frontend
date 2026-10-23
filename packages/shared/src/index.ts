@@ -88,7 +88,6 @@ export {
   type BusinessServicesFilter,
 } from './services';
 export { formatPrice } from './format';
-export { listBusinessReviews } from './reviews';
 export {
   listFavoriteBusinesses,
   addFavoriteBusiness,

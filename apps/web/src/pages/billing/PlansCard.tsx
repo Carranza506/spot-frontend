@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { ApiError, type components } from '@spot/shared';
+import { ApiError, formatPrice, type components } from '@spot/shared';
 import { Button } from '../../components/Button';
 import { CheckCircleIcon } from '../../components/dashboard/icons';
-import { formatPrice } from '../bookings/format';
 import { INTERVAL_LABELS, featureLines } from './format';
 import { billingApi } from './billingApi';
 import formStyles from '../AuthForm.module.css';
