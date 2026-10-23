@@ -56,6 +56,12 @@ export {
   listPlans,
   type BillingPaymentsFilter,
 } from './billing';
+export {
+  addFavoriteBusiness,
+  listFavoriteBusinesses,
+  removeFavoriteBusiness,
+  type FavoriteBusinessesFilter,
+} from './favorites';
 export { REVIEW_RATING_MAX, listBusinessReviews, type BusinessReviewsFilter } from './reviews';
 export {
   listBusinessHours,
