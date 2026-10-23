@@ -44,6 +44,7 @@ export default function HomeScreen() {
           </Text>
         )}
         <View style={styles.actions}>
+          <PrimaryButton title="Buscar negocios" onPress={() => router.push('/search')} />
           <PrimaryButton title="Mis favoritos" onPress={() => router.push('/favorites')} />
           <PrimaryButton title="Cerrar sesión" onPress={handleLogout} loading={loggingOut} />
         </View>
