@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { color, getOwnProfile, logout, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { useFavorites } from '@/favorites/FavoritesProvider';
 
 type User = components['schemas']['User'];
 
@@ -12,6 +13,7 @@ export default function HomeScreen() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const favorites = useFavorites();
 
   useEffect(() => {
     getOwnProfile(authClient)
@@ -25,6 +27,8 @@ export default function HomeScreen() {
     try {
       await logout(authClient);
     } finally {
+      // The next account must not see this one's favorites.
+      favorites.reset();
       router.replace('/');
     }
   }
@@ -39,7 +43,11 @@ export default function HomeScreen() {
             Bienvenida/o {user?.firstName} {user?.lastName}
           </Text>
         )}
-        <PrimaryButton title="Cerrar sesión" onPress={handleLogout} loading={loggingOut} />
+        <View style={styles.actions}>
+          <PrimaryButton title="Buscar negocios" onPress={() => router.push('/search')} />
+          <PrimaryButton title="Mis favoritos" onPress={() => router.push('/favorites')} />
+          <PrimaryButton title="Cerrar sesión" onPress={handleLogout} loading={loggingOut} />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -56,6 +64,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     gap: 24,
+  },
+  // Full-width buttons (PrimaryButton has no horizontal padding of its own), capped on wide screens.
+  actions: {
+    width: '100%',
+    maxWidth: 320,
+    gap: 12,
   },
   welcome: {
     fontSize: 20,
