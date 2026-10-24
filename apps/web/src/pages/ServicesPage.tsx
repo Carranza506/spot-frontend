@@ -6,7 +6,7 @@ import { SelectField } from '../components/SelectField';
 import { useBusinessContext } from '../routes/businessContext';
 import { ServiceForm, type ServiceFormValues } from './services/ServiceForm';
 import { ServiceRow } from './services/ServiceRow';
-import { isServicesMock, servicesApi } from './services/servicesApi';
+import { servicesApi } from './services/servicesApi';
 import formStyles from './AuthForm.module.css';
 import pageStyles from './BusinessProfilePage.module.css';
 import styles from './services/Services.module.css';
@@ -158,13 +158,6 @@ export function ServicesPage() {
 
   return (
     <div className={styles.page}>
-      {isServicesMock && (
-        <p className={styles.mockNotice}>
-          Modo de prueba: los servicios y sus fotos son de ejemplo y se guardan solo en este navegador
-          (VITE_SERVICES_MOCK=true).
-        </p>
-      )}
-
       <article className={pageStyles.card}>
         <div className={styles.titleRow}>
           <h2 className={pageStyles.cardTitle}>Servicios</h2>

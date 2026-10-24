@@ -53,6 +53,11 @@ function matchesTemplate(template: string, pathname: string): boolean {
 export interface ApiFetchOptions extends Omit<RequestInit, 'body' | 'headers'> {
   body?: unknown;
   headers?: Record<string, string>;
+  /**
+   * Attach the session's token (if any) even on a public endpoint. For owner-aware public reads,
+   * where a token is optional and only widens what the owner sees (e.g. inactive services).
+   */
+  optionalAuth?: boolean;
 }
 
 /** Minimal shape the client needs from a stored session — platform storage may keep more. */
@@ -95,14 +100,18 @@ export function createApiClient({ baseUrl, storage }: ApiClientConfig): ApiClien
     return `${normalizedBaseUrl}${path.startsWith('/') ? path : `/${path}`}`;
   }
 
-  async function sendRequest(path: string, method: string, options: ApiFetchOptions): Promise<Response> {
+  async function sendRequest(
+    path: string,
+    method: string,
+    { optionalAuth, ...options }: ApiFetchOptions,
+  ): Promise<Response> {
     const headers = new Headers(options.headers);
     // multipart/form-data uploads (photos) go as-is: fetch sets the Content-Type with its boundary.
     const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     if (options.body !== undefined && !isFormData && !headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json');
     }
-    if (!isPublicApiPath(method, path)) {
+    if (optionalAuth || !isPublicApiPath(method, path)) {
       const tokens = await storage.getTokens();
       if (tokens) {
         headers.set('Authorization', `Bearer ${tokens.accessToken}`);

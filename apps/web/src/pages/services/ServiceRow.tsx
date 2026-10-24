@@ -58,8 +58,15 @@ export function ServiceRow({ service, busy, pending, onUpdate, onToggleActive }:
             <span className={styles.pendingText}>Guardando…</span>
           ) : (
             <>
-              <button type="button" className={styles.textButton} onClick={() => setPhotosOpen((open) => !open)}>
-                {photosOpen ? 'Ocultar fotos' : 'Fotos'}
+              {/* The API lists photos only for active services (owner included), so an inactive one can't open its gallery. */}
+              <button
+                type="button"
+                className={styles.textButton}
+                onClick={() => setPhotosOpen((open) => !open)}
+                disabled={!service.isActive}
+                title={service.isActive ? undefined : 'Reactivá el servicio para ver y gestionar sus fotos.'}
+              >
+                {photosOpen && service.isActive ? 'Ocultar fotos' : 'Fotos'}
               </button>
               <button type="button" className={styles.textButton} onClick={() => setEditing(true)} disabled={busy}>
                 Editar
@@ -77,7 +84,7 @@ export function ServiceRow({ service, busy, pending, onUpdate, onToggleActive }:
         </div>
       </div>
 
-      {photosOpen && <ServicePhotos serviceId={service.id} />}
+      {photosOpen && service.isActive && <ServicePhotos serviceId={service.id} />}
     </li>
   );
 }
