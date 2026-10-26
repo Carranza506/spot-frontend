@@ -88,3 +88,9 @@ export {
   SERVICE_PHOTO_TYPES,
   type BusinessServicesFilter,
 } from './services';
+export {
+  listOwnNotifications,
+  markNotificationRead,
+  registerDeviceToken,
+  type NotificationsFilter,
+} from './notifications';
