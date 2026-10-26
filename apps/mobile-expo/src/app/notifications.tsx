@@ -102,7 +102,9 @@ export default function NotificationsScreen() {
       ) : status === 'error' ? (
         <View style={styles.center}>
           <Text style={styles.message}>No se pudieron cargar tus notificaciones.</Text>
-          <PrimaryButton title="Reintentar" onPress={retry} />
+          <View style={styles.retry}>
+            <PrimaryButton title="Reintentar" onPress={retry} />
+          </View>
         </View>
       ) : (
         <FlatList
@@ -192,6 +194,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: color.textSecondary,
     textAlign: 'center',
+  },
+  // PrimaryButton has no horizontal padding of its own, so it needs a width inside a centered column.
+  retry: {
+    width: '100%',
+    maxWidth: 320,
   },
   emptyTitle: {
     fontSize: 18,
