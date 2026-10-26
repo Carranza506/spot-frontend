@@ -39,7 +39,10 @@ export default function HomeScreen() {
             Bienvenida/o {user?.firstName} {user?.lastName}
           </Text>
         )}
-        <PrimaryButton title="Cerrar sesión" onPress={handleLogout} loading={loggingOut} />
+        <View style={styles.actions}>
+          <PrimaryButton title="Notificaciones" onPress={() => router.push('/notifications')} />
+          <PrimaryButton title="Cerrar sesión" onPress={handleLogout} loading={loggingOut} />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -56,6 +59,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     gap: 24,
+  },
+  // Full-width buttons (PrimaryButton has no horizontal padding of its own), capped on wide screens.
+  actions: {
+    width: '100%',
+    maxWidth: 320,
+    gap: 12,
   },
   welcome: {
     fontSize: 20,
