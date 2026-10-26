@@ -1,20 +1,35 @@
 import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { color, validateHttpUrl, type components } from '@spot/shared';
+import { color, validateEmail, validateHttpUrl, type components } from '@spot/shared';
 
 type Business = components['schemas']['Business'];
 
 interface ContactRow {
   label: string;
   value: string;
-  url: string;
+  /** null: shown as text only, since no safe link can be built from it. */
+  url: string | null;
+}
+
+/** Only the main number ("+506 8888 1234 ext. 5" → "tel:+50688881234"); null if it has no digits. */
+export function phoneUrl(phone: string): string | null {
+  const main = phone.split(/ext|x/i)[0].trim();
+  const digits = main.replace(/\D/g, '');
+  return digits ? `tel:${main.startsWith('+') ? '+' : ''}${digits}` : null;
+}
+
+/** null unless it's a plain address: encoding stops "a@b.cr?bcc=…" from adding headers to the email. */
+export function emailUrl(email: string): string | null {
+  const address = email.trim();
+  return validateEmail(address) === null ? `mailto:${encodeURIComponent(address).replace('%40', '@')}` : null;
 }
 
 function contactRows({ phone, email, website }: Business): ContactRow[] {
   const rows: ContactRow[] = [];
-  if (phone) rows.push({ label: 'Teléfono', value: phone, url: `tel:${phone.replace(/[^\d+]/g, '')}` });
-  if (email) rows.push({ label: 'Correo', value: email, url: `mailto:${email}` });
+  if (phone) rows.push({ label: 'Teléfono', value: phone, url: phoneUrl(phone) });
+  if (email) rows.push({ label: 'Correo', value: email, url: emailUrl(email) });
   // Business-provided data: only open real http(s) links, never other schemes.
-  if (website && validateHttpUrl(website) === null) rows.push({ label: 'Sitio web', value: website, url: website });
+  const site = website?.trim();
+  if (site && validateHttpUrl(site) === null) rows.push({ label: 'Sitio web', value: site, url: site });
   return rows;
 }
 
@@ -36,8 +51,9 @@ export function BusinessHeader({ business }: { business: Business }) {
       {contactRows(business).map((row) => (
         <Pressable
           key={row.label}
-          onPress={() => Linking.openURL(row.url).catch(() => undefined)}
-          accessibilityRole="link"
+          onPress={() => row.url && Linking.openURL(row.url).catch(() => undefined)}
+          disabled={!row.url}
+          accessibilityRole={row.url ? 'link' : 'text'}
           accessibilityLabel={`${row.label}: ${row.value}`}
           style={styles.contactRow}
         >
