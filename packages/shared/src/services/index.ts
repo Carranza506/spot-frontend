@@ -33,6 +33,10 @@ function servicePath(serviceId: string): string {
  * A page of a business's services. Public and owner-aware: the session's token is sent when there
  * is one, so the owner gets all their services (and isActive filtering) while anyone else, signed
  * in or not, gets only active ones.
+ *
+ * Because the token is always sent, a screen that shows a business to the public (a client browsing,
+ * or the owner viewing their own business as a visitor) must pass `isActive: true`; otherwise the
+ * owner would see their inactive services there too.
  */
 export function listBusinessServices(
   client: Pick<ApiClient, 'apiFetch'>,
