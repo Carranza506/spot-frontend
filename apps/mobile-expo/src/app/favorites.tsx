@@ -11,10 +11,16 @@ type FavoriteBusiness = components['schemas']['FavoriteBusiness'];
 
 /** Mis favoritos: the client's saved businesses, newest first, with the heart to remove one. */
 export default function FavoritesScreen() {
-  const { status, favorites, actionError, ensureLoaded, reload } = useFavorites();
+  const { status, favorites, actionError, ensureLoaded, reload, clearActionError } = useFavorites();
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(ensureLoaded, [ensureLoaded]);
+
+  // An error from another screen isn't news here, and this screen's own error shouldn't follow the user out.
+  useEffect(() => {
+    clearActionError();
+    return clearActionError;
+  }, [clearActionError]);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -28,18 +34,30 @@ export default function FavoritesScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))} hitSlop={8}>
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+          style={styles.backButton}
+          role="button"
+          aria-label="Volver"
+        >
           <Text style={styles.back}>‹ Volver</Text>
         </Pressable>
-        <Text style={styles.title}>Mis favoritos</Text>
-        {status === 'ready' && favorites.length > 0 && (
-          <Text style={styles.count}>
-            {favorites.length} {favorites.length === 1 ? 'negocio guardado' : 'negocios guardados'}
-          </Text>
-        )}
+        <Text style={styles.title} role="heading" aria-level={1}>
+          Mis favoritos
+        </Text>
+        {/* Always mounted, only its text changes: a live region has to exist before its content does. */}
+        <Text style={styles.count} role="status" accessibilityLiveRegion="polite">
+          {status === 'ready' && favorites.length > 0
+            ? `${favorites.length} ${favorites.length === 1 ? 'negocio guardado' : 'negocios guardados'}`
+            : ''}
+        </Text>
       </View>
 
-      {actionError && <Text style={styles.actionError}>{actionError}</Text>}
+      {actionError && (
+        <Text style={styles.actionError} role="alert" accessibilityLiveRegion="assertive">
+          {actionError}
+        </Text>
+      )}
 
       {status === 'idle' || (status === 'loading' && !refreshing) ? (
         <View style={styles.center}>
@@ -66,7 +84,9 @@ export default function FavoritesScreen() {
           }
           ListEmptyComponent={
             <View style={styles.center}>
-              <Text style={styles.emptyTitle}>Todavía no tenés favoritos</Text>
+              <Text style={styles.emptyTitle} role="heading" aria-level={2}>
+                Todavía no tenés favoritos
+              </Text>
               <Text style={styles.message}>Tocá el corazón en un negocio para guardarlo aquí.</Text>
             </View>
           }
@@ -81,17 +101,19 @@ function FavoriteRow({ favorite }: { favorite: FavoriteBusiness }) {
   return (
     <View style={styles.card}>
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{business.name.trim().charAt(0).toUpperCase()}</Text>
+        {/* Array.from keeps an emoji or other surrogate pair whole; charAt would cut it in half. */}
+        <Text style={styles.avatarText}>{(Array.from(business.name.trim())[0] ?? '?').toUpperCase()}</Text>
       </View>
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
           {business.name}
         </Text>
-        {business.description && (
+        {/* A ternary, not `&&`: an empty string would render as a bare text node, which crashes on native. */}
+        {business.description ? (
           <Text style={styles.description} numberOfLines={2}>
             {business.description}
           </Text>
-        )}
+        ) : null}
       </View>
       <FavoriteButton business={business} />
     </View>
@@ -109,11 +131,18 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 4,
   },
+  // 44 x 44 on every platform, and not stretched across the header.
+  backButton: {
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
   back: {
     fontSize: 16,
     fontWeight: '600',
     color: color.accentTeal,
-    marginBottom: 8,
   },
   title: {
     fontSize: 26,
