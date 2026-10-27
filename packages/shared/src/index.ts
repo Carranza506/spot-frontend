@@ -43,9 +43,12 @@ export {
   allowedBookingActions,
   cancelBooking,
   completeBooking,
+  createBooking,
+  getBusinessAvailability,
   listBusinessBookings,
   markBookingNoShow,
   type BookingAction,
+  type BusinessAvailabilityFilter,
   type BusinessBookingsFilter,
 } from './bookings';
 export {
