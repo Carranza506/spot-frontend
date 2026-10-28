@@ -19,23 +19,32 @@ interface FavoriteButtonProps {
  * appears (favorites list, search results, business detail).
  */
 export function FavoriteButton({ business, size = 26 }: FavoriteButtonProps) {
-  const { ensureLoaded, isFavorite, isPending, toggle } = useFavorites();
+  const { status, ensureLoaded, isFavorite, isPending, toggle } = useFavorites();
   const favorite = isFavorite(business.id);
   const pending = isPending(business.id);
+  // Until the favorites are loaded the heart can't know whether this business is one, so a tap
+  // would add one that is already saved: it stays disabled.
+  const ready = status === 'ready';
+  const disabled = pending || !ready;
 
   useEffect(ensureLoaded, [ensureLoaded]);
 
   return (
     <Pressable
       onPress={() => void toggle(business)}
-      disabled={pending}
-      hitSlop={8}
-      accessibilityRole="button"
-      accessibilityState={{ selected: favorite, busy: pending }}
-      accessibilityLabel={favorite ? `Quitar ${business.name} de favoritos` : `Agregar ${business.name} a favoritos`}
-      style={({ pressed }) => [styles.button, (pressed || pending) && styles.dimmed]}
+      disabled={disabled}
+      hitSlop={4}
+      // An on/off setting: a switch whose label stays the same while its state changes, so a screen
+      // reader says "Favorito: Spa, switch, on" instead of an action that flips with the state.
+      accessible
+      role="switch"
+      aria-checked={favorite}
+      aria-busy={pending}
+      aria-disabled={disabled}
+      aria-label={`Favorito: ${business.name}`}
+      style={({ pressed }) => [styles.button, (pressed || disabled) && styles.dimmed]}
     >
-      <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
         <Path
           d={HEART_PATH}
           fill={favorite ? color.danger : 'none'}
@@ -49,8 +58,12 @@ export function FavoriteButton({ business, size = 26 }: FavoriteButtonProps) {
 }
 
 const styles = StyleSheet.create({
+  // 44 x 44 on every platform (hitSlop doesn't enlarge the element on web).
   button: {
-    padding: 4,
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dimmed: {
     opacity: 0.5,
