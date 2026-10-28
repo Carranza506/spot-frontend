@@ -36,7 +36,15 @@ interface ResultsPage {
 type Results =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'ready'; businesses: Business[]; pagination: Pagination; criteria?: AiSearchCriteria; loadingMore: boolean }
+  | {
+      status: 'ready';
+      businesses: Business[];
+      pagination: Pagination;
+      criteria?: AiSearchCriteria;
+      loadingMore: boolean;
+      /** A failed "Cargar más": shown under the list, which stays on screen. */
+      loadMoreError: string | null;
+    }
   | { status: 'error'; message: string };
 
 const PAGE_SIZE = 20;
@@ -86,7 +94,9 @@ export default function SearchScreen() {
       return '';
     }
     if (error instanceof ApiError && error.status === 422) {
-      return 'No pudimos entender la búsqueda. Probá describirla con otras palabras.';
+      // The backend needs a service, a category or a location to search with (date, time, budget
+      // and a place name alone aren't enough), so point to the two ways of adding one.
+      return 'No pudimos entender la búsqueda. Mencioná el servicio que buscás, activá "Cerca de mí" o probá con Filtros.';
     }
     // The gateway/service is down or the endpoint isn't deployed: its message isn't for end users.
     if (error instanceof ApiError && (error.status === 404 || error.status >= 500)) {
@@ -104,7 +114,7 @@ export default function SearchScreen() {
     try {
       const page = await fetchPage(1);
       if (id !== searchId.current) return;
-      setResults({ status: 'ready', ...page, loadingMore: false });
+      setResults({ status: 'ready', ...page, loadingMore: false, loadMoreError: null });
     } catch (error) {
       if (id === searchId.current) setResults({ status: 'error', message: handleError(error) });
     }
@@ -114,17 +124,24 @@ export default function SearchScreen() {
     if (results.status !== 'ready' || results.loadingMore || !fetchPageRef.current) return;
     const id = searchId.current;
     const nextPage = results.pagination.page + 1;
-    setResults({ ...results, loadingMore: true });
+    setResults({ ...results, loadingMore: true, loadMoreError: null });
     try {
       const page = await fetchPageRef.current(nextPage);
       if (id !== searchId.current) return;
-      setResults((current) =>
-        current.status === 'ready'
-          ? { ...current, businesses: [...current.businesses, ...page.businesses], pagination: page.pagination, loadingMore: false }
-          : current,
-      );
+      setResults((current) => {
+        if (current.status !== 'ready') return current;
+        // Pages can overlap if a business was added meanwhile; keep each one once (unique keys).
+        const seen = new Set(current.businesses.map((b) => b.id));
+        const added = page.businesses.filter((b) => !seen.has(b.id));
+        return { ...current, businesses: [...current.businesses, ...added], pagination: page.pagination, loadingMore: false };
+      });
     } catch (error) {
-      if (id === searchId.current) setResults({ status: 'error', message: handleError(error) });
+      if (id !== searchId.current) return;
+      const message = handleError(error);
+      // Keep what's already listed; the error goes under it and "Cargar más" can be tapped again.
+      setResults((current) =>
+        current.status === 'ready' ? { ...current, loadingMore: false, loadMoreError: message || null } : current,
+      );
     }
   }
 
@@ -249,6 +266,7 @@ export default function SearchScreen() {
               {results.pagination.page < results.pagination.totalPages && (
                 <PrimaryButton title="Cargar más" onPress={loadMore} loading={results.loadingMore} />
               )}
+              {results.loadMoreError && <Text style={styles.error}>{results.loadMoreError}</Text>}
             </>
           )}
         </View>

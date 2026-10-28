@@ -34,7 +34,8 @@ export function searchBusinesses(
   if (categoryId) query.set('categoryId', categoryId);
   if (city?.trim()) query.set('city', city.trim());
   if (province?.trim()) query.set('province', province.trim());
-  if (lat !== undefined && lng !== undefined && radiusKm !== undefined) {
+  // The backend's range check lets NaN through, so only real numbers make up the proximity trio.
+  if (Number.isFinite(lat) && Number.isFinite(lng) && Number.isFinite(radiusKm)) {
     query.set('lat', String(lat));
     query.set('lng', String(lng));
     query.set('radiusKm', String(radiusKm));
