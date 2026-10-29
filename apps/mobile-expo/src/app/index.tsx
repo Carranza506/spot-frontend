@@ -7,8 +7,10 @@ import { AuthScreen } from '@/components/AuthScreen';
 import { TextField } from '@/components/TextField';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { authFormStyles } from '@/components/authFormStyles';
+import { useFavorites } from '@/favorites/FavoritesProvider';
 
 export default function LoginScreen() {
+  const favorites = useFavorites();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -33,6 +35,8 @@ export default function LoginScreen() {
     setSubmitting(true);
     try {
       await login(authClient, { email, password });
+      // Another account may have been signed in on this screen: it must not see their favorites.
+      favorites.reset();
       router.replace('/home');
     } catch (error) {
       if (error instanceof ApiError) {

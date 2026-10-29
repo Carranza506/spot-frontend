@@ -9,7 +9,16 @@ interface PrimaryButtonProps extends Omit<PressableProps, 'style'> {
 export function PrimaryButton({ title, loading, disabled, ...props }: PrimaryButtonProps) {
   const isDisabled = disabled || loading;
   return (
-    <Pressable style={[styles.button, isDisabled && styles.disabled]} disabled={isDisabled} {...props}>
+    <Pressable
+      {...props}
+      role="button"
+      aria-busy={!!loading}
+      aria-disabled={!!isDisabled}
+      // The visible title is the name; while loading it is replaced by a spinner, so say what is going on.
+      accessibilityLabel={loading ? `${title}, cargando` : undefined}
+      style={[styles.button, isDisabled && styles.disabled]}
+      disabled={isDisabled}
+    >
       {loading ? <ActivityIndicator color={color.onPanelDark} /> : <Text style={styles.text}>{title}</Text>}
     </Pressable>
   );

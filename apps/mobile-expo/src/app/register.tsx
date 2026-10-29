@@ -7,8 +7,10 @@ import { AuthScreen } from '@/components/AuthScreen';
 import { TextField } from '@/components/TextField';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { authFormStyles } from '@/components/authFormStyles';
+import { useFavorites } from '@/favorites/FavoritesProvider';
 
 export default function RegisterScreen() {
+  const favorites = useFavorites();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -47,6 +49,8 @@ export default function RegisterScreen() {
         lastName,
         ...(phone.trim() ? { phone: phone.trim() } : {}),
       });
+      // A new account starts with no favorites, whoever was signed in on this device before.
+      favorites.reset();
       router.replace('/home');
     } catch (error) {
       if (error instanceof ApiError) {
