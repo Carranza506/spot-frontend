@@ -20,6 +20,7 @@ interface ServiceRowProps {
 export function ServiceRow({ service, busy, pending, onUpdate, onToggleActive }: ServiceRowProps) {
   const [editing, setEditing] = useState(false);
   const [photosOpen, setPhotosOpen] = useState(false);
+  const photosHintId = `service-photos-hint-${service.id}`;
 
   if (editing) {
     return (
@@ -51,6 +52,11 @@ export function ServiceRow({ service, busy, pending, onUpdate, onToggleActive }:
             {service.durationMinutes} min · {formatPrice(service.price)}
           </span>
           {service.description && <span className={styles.description}>{service.description}</span>}
+          {!service.isActive && (
+            <span id={photosHintId} className={styles.meta}>
+              Reactivá el servicio para ver y gestionar sus fotos.
+            </span>
+          )}
         </div>
 
         <div className={styles.actions}>
@@ -58,8 +64,19 @@ export function ServiceRow({ service, busy, pending, onUpdate, onToggleActive }:
             <span className={styles.pendingText}>Guardando…</span>
           ) : (
             <>
-              <button type="button" className={styles.textButton} onClick={() => setPhotosOpen((open) => !open)}>
-                {photosOpen ? 'Ocultar fotos' : 'Fotos'}
+              {/* The API lists photos only for active services (owner included), so an inactive one can't open its gallery. */}
+              {/* aria-disabled, not disabled: it stays in the tab order, and the visible hint above says why. */}
+              <button
+                type="button"
+                className={styles.textButton}
+                onClick={() => {
+                  if (service.isActive) setPhotosOpen((open) => !open);
+                }}
+                aria-disabled={!service.isActive}
+                aria-expanded={service.isActive && photosOpen}
+                aria-describedby={service.isActive ? undefined : photosHintId}
+              >
+                {photosOpen && service.isActive ? 'Ocultar fotos' : 'Fotos'}
               </button>
               <button type="button" className={styles.textButton} onClick={() => setEditing(true)} disabled={busy}>
                 Editar
@@ -77,7 +94,7 @@ export function ServiceRow({ service, busy, pending, onUpdate, onToggleActive }:
         </div>
       </div>
 
-      {photosOpen && <ServicePhotos serviceId={service.id} />}
+      {photosOpen && service.isActive && <ServicePhotos serviceId={service.id} />}
     </li>
   );
 }

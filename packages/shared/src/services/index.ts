@@ -21,7 +21,7 @@ export {
 export interface BusinessServicesFilter {
   page?: number;
   pageSize?: number;
-  /** Omitted lists active and inactive services alike. */
+  /** Only honored for the business's owner (omitted = active and inactive); everyone else always gets active ones. */
   isActive?: boolean;
 }
 
@@ -29,7 +29,15 @@ function servicePath(serviceId: string): string {
   return `/business/services/${encodeURIComponent(serviceId)}`;
 }
 
-/** A page of a business's services (public endpoint). */
+/**
+ * A page of a business's services. Public and owner-aware: the session's token is sent when there
+ * is one, so the owner gets all their services (and isActive filtering) while anyone else, signed
+ * in or not, gets only active ones.
+ *
+ * Because the token is always sent, a screen that shows a business to the public (a client browsing,
+ * or the owner viewing their own business as a visitor) must pass `isActive: true`; otherwise the
+ * owner would see their inactive services there too.
+ */
 export function listBusinessServices(
   client: Pick<ApiClient, 'apiFetch'>,
   businessId: string,
@@ -37,7 +45,10 @@ export function listBusinessServices(
 ): Promise<PaginatedServices> {
   const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   if (isActive !== undefined) query.set('isActive', String(isActive));
-  return client.apiFetch<PaginatedServices>(`/business/businesses/${encodeURIComponent(businessId)}/services?${query}`);
+  return client.apiFetch<PaginatedServices>(
+    `/business/businesses/${encodeURIComponent(businessId)}/services?${query}`,
+    { optionalAuth: true },
+  );
 }
 
 /** Adds a service to a business the authenticated BUSINESS account owns. */
