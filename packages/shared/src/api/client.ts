@@ -50,9 +50,35 @@ function matchesTemplate(template: string, pathname: string): boolean {
   return templateSegments.every((segment, i) => segment.startsWith('{') || segment === pathSegments[i]);
 }
 
+// An access token that expires within this long is renewed before an `optionalAuth` call.
+const REFRESH_LEEWAY_MS = 10_000;
+
+/**
+ * The `exp` claim of a JWT in milliseconds since the epoch, or null when it can't be read. It only
+ * decides when to ask for a new token; it never makes the token trusted (the server does that).
+ */
+function readJwtExpiry(token: string): number | null {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload || typeof atob !== 'function') return null;
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payload.length / 4) * 4, '=');
+    const exp = (JSON.parse(atob(base64)) as { exp?: unknown }).exp;
+    return typeof exp === 'number' ? exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
 export interface ApiFetchOptions extends Omit<RequestInit, 'body' | 'headers'> {
   body?: unknown;
   headers?: Record<string, string>;
+  /**
+   * Attach the session's token (if any) even on a public endpoint. For owner-aware public reads,
+   * where a token is optional and only widens what the owner sees (e.g. inactive services).
+   * An expired token is renewed first, and a 401 is retried after a refresh, but a failed refresh
+   * never clears the session on such a call.
+   */
+  optionalAuth?: boolean;
 }
 
 /** Minimal shape the client needs from a stored session — platform storage may keep more. */
@@ -95,14 +121,18 @@ export function createApiClient({ baseUrl, storage }: ApiClientConfig): ApiClien
     return `${normalizedBaseUrl}${path.startsWith('/') ? path : `/${path}`}`;
   }
 
-  async function sendRequest(path: string, method: string, options: ApiFetchOptions): Promise<Response> {
+  async function sendRequest(
+    path: string,
+    method: string,
+    { optionalAuth, ...options }: ApiFetchOptions,
+  ): Promise<Response> {
     const headers = new Headers(options.headers);
     // multipart/form-data uploads (photos) go as-is: fetch sets the Content-Type with its boundary.
     const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     if (options.body !== undefined && !isFormData && !headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json');
     }
-    if (!isPublicApiPath(method, path)) {
+    if (optionalAuth || !isPublicApiPath(method, path)) {
       const tokens = await storage.getTokens();
       if (tokens) {
         headers.set('Authorization', `Bearer ${tokens.accessToken}`);
@@ -166,7 +196,12 @@ export function createApiClient({ baseUrl, storage }: ApiClientConfig): ApiClien
     return handleResponse<AuthTokens>(response);
   }
 
-  async function tryRefreshSession(): Promise<boolean> {
+  /**
+   * Renews the session. When the refresh fails the stored session is cleared, unless
+   * `clearOnFailure` is false: a public call that merely carries an optional token must never log
+   * the user out because of a failed refresh.
+   */
+  async function tryRefreshSession(clearOnFailure = true): Promise<boolean> {
     const tokens = await storage.getTokens();
     if (!tokens) return false;
     try {
@@ -174,21 +209,43 @@ export function createApiClient({ baseUrl, storage }: ApiClientConfig): ApiClien
       await storage.setTokens(newTokens);
       return true;
     } catch {
-      await storage.clearTokens();
+      if (clearOnFailure) await storage.clearTokens();
       return false;
     }
   }
 
+  /**
+   * Before an `optionalAuth` call, renews an access token whose `exp` has passed. A public
+   * endpoint reads an expired token as "anonymous" and answers 200 with the public view, so no 401
+   * would ever make the client refresh and the owner would silently get the wrong data.
+   */
+  async function refreshIfExpired(): Promise<void> {
+    const tokens = await storage.getTokens();
+    if (!tokens) return;
+    const expiresAt = readJwtExpiry(tokens.accessToken);
+    if (expiresAt === null || expiresAt - REFRESH_LEEWAY_MS > Date.now()) return;
+    // A failed refresh keeps the session: the call goes out as it is (the public view), and the
+    // next authenticated call decides whether the session is really over.
+    await tryRefreshSession(false);
+  }
+
   async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
     const method = (options.method ?? 'GET').toUpperCase();
+    const isPublic = isPublicApiPath(method, path);
+    const optionalAuth = options.optionalAuth === true && isPublic;
+    if (optionalAuth) await refreshIfExpired();
     const response = await sendRequest(path, method, options);
 
-    if (response.status === 401 && !isPublicApiPath(method, path)) {
+    if (response.status === 401 && !isPublic) {
       const refreshed = await tryRefreshSession();
       if (refreshed) {
         const retryResponse = await sendRequest(path, method, options);
         return handleResponse<T>(retryResponse);
       }
+    } else if (response.status === 401 && optionalAuth && (await tryRefreshSession(false))) {
+      // The public call carried a token and was refused: same as an authenticated call, retried once.
+      const retryResponse = await sendRequest(path, method, options);
+      return handleResponse<T>(retryResponse);
     }
 
     return handleResponse<T>(response);
