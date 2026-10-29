@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { color, formatPrice, listBusinessServices } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { useAsyncData } from '@/hooks/useAsyncData';
@@ -27,6 +28,14 @@ export function ServicesSection({ businessId }: { businessId: string }) {
             <Text style={styles.meta}>
               {service.durationMinutes} min · {formatPrice(service.price)}
             </Text>
+            <Pressable
+              onPress={() => router.push({ pathname: '/book/[businessId]', params: { businessId, serviceId: service.id } })}
+              accessibilityRole="button"
+              accessibilityLabel={`Reservar ${service.name}`}
+              style={styles.book}
+            >
+              <Text style={styles.bookText}>Reservar</Text>
+            </Pressable>
           </View>
         ))
       }
@@ -55,6 +64,17 @@ const styles = StyleSheet.create({
   meta: {
     fontSize: 14,
     fontWeight: '600',
+    color: color.accentTeal,
+  },
+  // A 44 px touch target, aligned with the card's text.
+  book: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  bookText: {
+    fontSize: 15,
+    fontWeight: '700',
     color: color.accentTeal,
   },
 });

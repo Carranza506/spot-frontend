@@ -14,7 +14,8 @@ export function PhotosSection({ businessId, businessName }: { businessId: string
       state={state}
       errorMessage="No se pudieron cargar las fotos."
       emptyMessage="Este negocio todavía no tiene fotos."
-      isEmpty={(page) => page.data.length === 0}
+      // Checked on the photos that will actually show, so invalid URLs can't leave a blank gallery.
+      isEmpty={(page) => !page.data.some((photo) => validateHttpUrl(photo.url) === null)}
     >
       {(page) => (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>

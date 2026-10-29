@@ -6,8 +6,12 @@ import { Section } from './Section';
 
 const dateFormat = new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short', year: 'numeric' });
 
-function stars(rating: number): string {
-  const filled = Math.max(0, Math.min(5, Math.round(rating)));
+// Clamped once, so the stars and their screen-reader label always agree (never "7 de 5").
+function filledStars(rating: number): number {
+  return Math.max(0, Math.min(5, Math.round(rating) || 0));
+}
+
+function stars(filled: number): string {
   return '★'.repeat(filled) + '☆'.repeat(5 - filled);
 }
 
@@ -28,12 +32,13 @@ export function ReviewsSection({ businessId }: { businessId: string }) {
         page.data.map((review) => (
           <View key={review.id} style={styles.card}>
             <View style={styles.headerRow}>
-              <Text style={styles.stars} accessibilityLabel={`${review.rating} de 5 estrellas`}>
-                {stars(review.rating)}
+              <Text style={styles.stars} accessibilityLabel={`${filledStars(review.rating)} de 5 estrellas`}>
+                {stars(filledStars(review.rating))}
               </Text>
               <Text style={styles.date}>{dateFormat.format(new Date(review.createdAt))}</Text>
             </View>
-            {review.comment?.trim() ? <Text style={styles.comment}>{review.comment}</Text> : null}
+            {/* Same as web's ReviewRow. */}
+            <Text style={styles.comment}>{review.comment?.trim() || 'Sin comentario.'}</Text>
           </View>
         ))
       }
