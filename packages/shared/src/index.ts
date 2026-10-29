@@ -45,9 +45,12 @@ export {
   allowedBookingActions,
   cancelBooking,
   completeBooking,
+  createBooking,
+  getBusinessAvailability,
   listBusinessBookings,
   markBookingNoShow,
   type BookingAction,
+  type BusinessAvailabilityFilter,
   type BusinessBookingsFilter,
 } from './bookings';
 export {
@@ -58,6 +61,12 @@ export {
   listPlans,
   type BillingPaymentsFilter,
 } from './billing';
+export {
+  addFavoriteBusiness,
+  listFavoriteBusinesses,
+  removeFavoriteBusiness,
+  type FavoriteBusinessesFilter,
+} from './favorites';
 export { REVIEW_RATING_MAX, listBusinessReviews, type BusinessReviewsFilter } from './reviews';
 export {
   listBusinessHours,
@@ -88,9 +97,3 @@ export {
   type BusinessServicesFilter,
 } from './services';
 export { formatPrice } from './format';
-export {
-  listFavoriteBusinesses,
-  addFavoriteBusiness,
-  removeFavoriteBusiness,
-  isFavoriteBusiness,
-} from './favorites';

@@ -1,19 +1,25 @@
+import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ApiError, color, getBusiness } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { BusinessHeader } from '@/components/business/BusinessHeader';
-import { FavoriteButton } from '@/components/business/FavoriteButton';
 import { PhotosSection } from '@/components/business/PhotosSection';
 import { ReviewsSection } from '@/components/business/ReviewsSection';
 import { ServicesSection } from '@/components/business/ServicesSection';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { FavoriteButton } from '@/favorites/FavoriteButton';
+import { useFavorites } from '@/favorites/FavoritesProvider';
 import { useAsyncData } from '@/hooks/useAsyncData';
 
 export default function BusinessDetailScreen() {
   const { businessId } = useLocalSearchParams<{ businessId: string }>();
   const [state, reload] = useAsyncData(() => getBusiness(authClient, businessId), [businessId]);
+  const favorites = useFavorites();
+
+  // The heart only mounts once the favorites are ready, so the screen has to start loading them.
+  useEffect(favorites.ensureLoaded, [favorites.ensureLoaded]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -40,7 +46,8 @@ export default function BusinessDetailScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
           <BusinessHeader business={state.data} />
-          <FavoriteButton businessId={businessId} />
+          {/* Not a CLIENT (403) or not loaded: no heart, since it couldn't tell whether this one is saved. */}
+          {favorites.status === 'ready' && <FavoriteButton business={state.data} />}
           <PhotosSection businessId={businessId} businessName={state.data.name} />
           <ServicesSection businessId={businessId} />
           <ReviewsSection businessId={businessId} />

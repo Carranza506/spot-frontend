@@ -10,7 +10,6 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '../../api/client';
-import { mockServicesApi } from './mockServicesApi';
 
 type Service = components['schemas']['Service'];
 type ServiceCreateRequest = components['schemas']['ServiceCreateRequest'];
@@ -32,7 +31,7 @@ export interface ServicesApi {
 // The contract's max pageSize; a service has a handful of photos, so one page is all of them.
 const PHOTOS_PAGE_SIZE = 100;
 
-const remoteServicesApi: ServicesApi = {
+export const servicesApi: ServicesApi = {
   list: (businessId, filter) => listBusinessServices(authClient, businessId, filter),
   create: (businessId, data) => createService(authClient, businessId, data),
   update: (serviceId, data) => updateService(authClient, serviceId, data),
@@ -42,8 +41,3 @@ const remoteServicesApi: ServicesApi = {
   uploadPhoto: (serviceId, file, displayOrder) => uploadServicePhoto(authClient, serviceId, file, displayOrder),
   deletePhoto: (serviceId, photoId) => deleteServicePhoto(authClient, serviceId, photoId),
 };
-
-/** True when VITE_SERVICES_MOCK=true — see mockServicesApi. */
-export const isServicesMock = import.meta.env.VITE_SERVICES_MOCK === 'true';
-
-export const servicesApi: ServicesApi = isServicesMock ? mockServicesApi : remoteServicesApi;
