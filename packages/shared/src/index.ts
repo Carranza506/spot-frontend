@@ -98,5 +98,6 @@ export {
   listOwnNotifications,
   markNotificationRead,
   registerDeviceToken,
+  removeDeviceToken,
   type NotificationsFilter,
 } from './notifications';

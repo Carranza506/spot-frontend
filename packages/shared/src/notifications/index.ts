@@ -21,6 +21,13 @@ export function registerDeviceToken(
   return client.apiFetch<DeviceToken>('/notifications/device-tokens', { method: 'POST', body: data });
 }
 
+/** Removes one of the caller's device push tokens (204). 404 if it doesn't exist, 403 if it isn't theirs. */
+export function removeDeviceToken(client: Pick<ApiClient, 'apiFetch'>, deviceTokenId: string): Promise<void> {
+  return client.apiFetch<void>(`/notifications/device-tokens/${encodeURIComponent(deviceTokenId)}`, {
+    method: 'DELETE',
+  });
+}
+
 /** A page of the caller's own notifications. */
 export function listOwnNotifications(
   client: Pick<ApiClient, 'apiFetch'>,

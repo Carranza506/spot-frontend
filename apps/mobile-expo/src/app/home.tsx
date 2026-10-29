@@ -6,6 +6,7 @@ import { color, getOwnProfile, logout, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
+import { registerForPush, unregisterPush } from '@/notifications/push';
 
 type User = components['schemas']['User'];
 
@@ -20,11 +21,14 @@ export default function HomeScreen() {
       .then(setUser)
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
+    // Login and register both land here, so this is where the device gets its push token registered.
+    void registerForPush();
   }, []);
 
   async function handleLogout() {
     setLoggingOut(true);
     try {
+      await unregisterPush();
       await logout(authClient);
     } finally {
       // The next account must not see this one's favorites.
