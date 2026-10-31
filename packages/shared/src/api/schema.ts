@@ -997,7 +997,9 @@ export interface paths {
          * List the authenticated client's own bookings
          * @description Required role: `CLIENT` (or another authenticated role querying its own
          *     history). Only returns bookings where `bookings.user_id` is the
-         *     authenticated user.
+         *     authenticated user, ordered by `startAt` descending (most recent first).
+         *     An invalid `page`/`pageSize` or a `status` that isn't one of the
+         *     uppercase `BookingStatus` values responds `400`.
          */
         get: operations["listOwnBookings"];
         put?: never;
@@ -1164,7 +1166,13 @@ export interface paths {
         };
         /**
          * List a business's bookings
-         * @description Required role: `BUSINESS` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business (also when the business
+         *     is inactive, so its past bookings stay readable). Ordered by `startAt`
+         *     ascending (earliest first). `from`/`to` are optional and inclusive, and
+         *     refer to calendar days in the business's time zone (America/Costa_Rica)
+         *     matched against `startAt`. A malformed date, `from` after `to`, an invalid
+         *     `page`/`pageSize` or a `status` that isn't one of the uppercase
+         *     `BookingStatus` values responds `400`.
          */
         get: operations["listBusinessBookings"];
         put?: never;
@@ -4062,6 +4070,7 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedBookings"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             500: components["responses"]["InternalServerError"];
         };
@@ -4283,6 +4292,7 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedBookings"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
