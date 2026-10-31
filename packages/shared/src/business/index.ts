@@ -24,6 +24,11 @@ export function createBusiness(client: Pick<ApiClient, 'apiFetch'>, data: Busine
   });
 }
 
+/** Any business's public details (no JWT needed); throws ApiError 404 if it doesn't exist. */
+export function getBusiness(client: Pick<ApiClient, 'apiFetch'>, businessId: string): Promise<Business> {
+  return client.apiFetch<Business>(`/business/businesses/${encodeURIComponent(businessId)}`);
+}
+
 /** The authenticated BUSINESS account's own business; throws ApiError 404 if it has none yet. */
 export function getMyBusiness(client: Pick<ApiClient, 'apiFetch'>): Promise<Business> {
   return client.apiFetch<Business>('/business/businesses/me');

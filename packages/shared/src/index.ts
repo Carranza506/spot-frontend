@@ -26,6 +26,7 @@ export {
 } from './auth';
 export {
   createBusiness,
+  getBusiness,
   getMyBusiness,
   updateOwnBusiness,
   mapBusinessApiError,
@@ -46,10 +47,12 @@ export {
   createBooking,
   getBusinessAvailability,
   listBusinessBookings,
+  listOwnBookings,
   markBookingNoShow,
   type BookingAction,
   type BusinessAvailabilityFilter,
   type BusinessBookingsFilter,
+  type OwnBookingsFilter,
 } from './bookings';
 export {
   cancelMySubscription,
