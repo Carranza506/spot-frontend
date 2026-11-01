@@ -997,7 +997,9 @@ export interface paths {
          * List the authenticated client's own bookings
          * @description Required role: `CLIENT` (or another authenticated role querying its own
          *     history). Only returns bookings where `bookings.user_id` is the
-         *     authenticated user.
+         *     authenticated user, ordered by `startAt` descending (most recent first).
+         *     An invalid `page`/`pageSize` or a `status` that isn't one of the
+         *     uppercase `BookingStatus` values responds `400`.
          */
         get: operations["listOwnBookings"];
         put?: never;
@@ -1137,12 +1139,17 @@ export interface paths {
         put?: never;
         /**
          * Leave a review for a completed booking
-         * @description Creates a row in `reviews` for the booking. The `trg_validate_review`
-         *     trigger requires that the booking exists, is in `COMPLETED` status, and
-         *     that the review's user and business match those of the booking;
-         *     violating any of these rules responds `422`. Since `reviews.booking_id`
-         *     is unique, attempting to review a booking that already has a review
-         *     responds `409`.
+         * @description Creates a row in `reviews` for the booking. The review's user and
+         *     business are always taken from the booking, never from the body. The
+         *     checks run in this order, so a caller who doesn't own the booking can't
+         *     learn its status:
+         *
+         *     - The booking doesn't exist: `404`.
+         *     - The caller isn't the booking's client: `403`.
+         *     - The booking isn't `COMPLETED` (enforced by the `trg_validate_review`
+         *       trigger): `422` with code `REVIEW_BOOKING_NOT_COMPLETED`.
+         *     - The booking already has a review (`reviews.booking_id` is unique):
+         *       `409` with code `REVIEW_ALREADY_EXISTS`.
          *
          *     Required role: `CLIENT` who owns the booking.
          */
@@ -1164,7 +1171,13 @@ export interface paths {
         };
         /**
          * List a business's bookings
-         * @description Required role: `BUSINESS` who owns the business.
+         * @description Required role: `BUSINESS` who owns the business (also when the business
+         *     is inactive, so its past bookings stay readable). Ordered by `startAt`
+         *     ascending (earliest first). `from`/`to` are optional and inclusive, and
+         *     refer to calendar days in the business's time zone (America/Costa_Rica)
+         *     matched against `startAt`. A malformed date, `from` after `to`, an invalid
+         *     `page`/`pageSize` or a `status` that isn't one of the uppercase
+         *     `BookingStatus` values responds `400`.
          */
         get: operations["listBusinessBookings"];
         put?: never;
@@ -1186,7 +1199,12 @@ export interface paths {
         };
         /**
          * List a business's reviews
-         * @description Access: public (no JWT required).
+         * @description Newest first (`createdAt` descending, then `id`). A business that
+         *     doesn't exist or is inactive responds `404`, same as
+         *     `GET /business/businesses/{businessId}`. An invalid `page`/`pageSize`
+         *     responds `400`.
+         *
+         *     Access: public (no JWT required).
          */
         get: operations["listBusinessReviews"];
         put?: never;
@@ -4062,6 +4080,7 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedBookings"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             500: components["responses"]["InternalServerError"];
         };
@@ -4283,6 +4302,7 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedBookings"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
@@ -4334,6 +4354,7 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedReviews"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["InternalServerError"];
         };
