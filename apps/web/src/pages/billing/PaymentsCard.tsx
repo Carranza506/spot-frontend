@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { components } from '@spot/shared';
+import { formatPrice, type components } from '@spot/shared';
 import { Button } from '../../components/Button';
-import { formatPrice } from '../bookings/format';
 import { PAYMENT_STATUS_LABELS, formatDate } from './format';
 import { billingApi } from './billingApi';
 import formStyles from '../AuthForm.module.css';
