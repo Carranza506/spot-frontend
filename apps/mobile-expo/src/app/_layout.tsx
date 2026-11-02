@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Slot, router } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { onSessionCleared } from '@/api/session-events';
 import { FavoritesProvider } from '@/favorites/FavoritesProvider';
@@ -14,7 +14,8 @@ export default function RootLayout() {
   return (
     <FavoritesProvider>
       <SessionGuard />
-      <Slot />
+      {/* A Stack, not a Slot: previous screens stay mounted, so going back keeps a search and its results. */}
+      <Stack screenOptions={{ headerShown: false }} />
       <StatusBar style="auto" />
     </FavoritesProvider>
   );
