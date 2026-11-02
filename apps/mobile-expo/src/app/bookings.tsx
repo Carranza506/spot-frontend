@@ -123,6 +123,11 @@ export default function BookingsScreen() {
 
   // Bumped per load, so a slow response for an older filter can't overwrite a newer one.
   const loadId = useRef(0);
+  // The filter on screen right now: a cancel that ends after a chip was tapped must reload that one.
+  const currentFilter = useRef(filter);
+  // A cancel shifted the server's page offsets and the list wasn't reloaded yet: until it is, the
+  // next page would skip bookings.
+  const pagesShifted = useRef(false);
   // Each business is asked for once, whatever page or filter brought it in.
   const requestedBusinessIds = useRef(new Set<string>());
 
@@ -154,10 +159,19 @@ export default function BookingsScreen() {
       try {
         const page = await listOwnBookings(authClient, { page: 1, pageSize: PAGE_SIZE, status: status ?? undefined });
         if (id !== loadId.current) return;
+        pagesShifted.current = false;
         setList({ status: 'ready', bookings: page.data, pagination: page.pagination, loadingMore: false, loadMoreError: null });
         loadBusinessNames(page.data);
       } catch (error) {
-        if (id === loadId.current) setList({ status: 'error', message: handleListError(error) });
+        if (id !== loadId.current) return;
+        const message = handleListError(error);
+        if (!keepList) {
+          setList({ status: 'error', message });
+          return;
+        }
+        // Keep what's already listed, like a failed "Cargar más". A reason already on screen (why a cancel failed) stays.
+        setList((current) => (current.status === 'ready' ? { ...current, loadingMore: false } : { status: 'error', message }));
+        setActionError((current) => current ?? (message || null));
       }
     },
     [handleListError, loadBusinessNames],
@@ -169,6 +183,7 @@ export default function BookingsScreen() {
 
   function selectFilter(status: BookingStatus | null) {
     setActionError(null);
+    currentFilter.current = status;
     setFilter(status);
   }
 
@@ -187,6 +202,10 @@ export default function BookingsScreen() {
     const id = loadId.current;
     const nextPage = list.pagination.page + 1;
     setList({ ...list, loadingMore: true, loadMoreError: null });
+    if (pagesShifted.current) {
+      await loadFirstPage(filter, { keepList: true });
+      return;
+    }
     try {
       const page = await listOwnBookings(authClient, { page: nextPage, pageSize: PAGE_SIZE, status: filter ?? undefined });
       if (id !== loadId.current) return;
@@ -213,13 +232,18 @@ export default function BookingsScreen() {
     setCancellingId(booking.id);
     try {
       const cancelled = await cancelBooking(authClient, booking.id);
-      // Shown as Cancelada in place, even under another filter, so the user sees it worked.
       setList((current) =>
         current.status === 'ready'
           ? { ...current, bookings: current.bookings.map((b) => (b.id === cancelled.id ? cancelled : b)) }
           : current,
       );
       setConfirmingId(null);
+      // Under a status filter it no longer belongs to the list, and every later booking moved up a
+      // place on the server: the next page would skip one of them. "Todas" keeps it where it was.
+      if (currentFilter.current) {
+        pagesShifted.current = true;
+        void loadFirstPage(currentFilter.current, { keepList: true });
+      }
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         router.replace('/');
@@ -228,7 +252,8 @@ export default function BookingsScreen() {
       setActionError(cancelErrorMessage(error));
       // The list is stale: the booking is gone or already changed status (e.g. the business cancelled it).
       if (error instanceof ApiError && (error.status === 404 || error.status === 422)) {
-        void loadFirstPage(filter, { keepList: true });
+        pagesShifted.current = true;
+        void loadFirstPage(currentFilter.current, { keepList: true });
       }
     } finally {
       setCancellingId(null);
