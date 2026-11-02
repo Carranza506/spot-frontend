@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Tex
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { color, type components } from '@spot/shared';
+import { BusinessLinkArea } from '@/components/business/BusinessLinkArea';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
@@ -100,21 +101,23 @@ function FavoriteRow({ favorite }: { favorite: FavoriteBusiness }) {
   const { business } = favorite;
   return (
     <View style={styles.card}>
-      <View style={styles.avatar}>
-        {/* Array.from keeps an emoji or other surrogate pair whole; charAt would cut it in half. */}
-        <Text style={styles.avatarText}>{(Array.from(business.name.trim())[0] ?? '?').toUpperCase()}</Text>
-      </View>
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>
-          {business.name}
-        </Text>
-        {/* A ternary, not `&&`: an empty string would render as a bare text node, which crashes on native. */}
-        {business.description ? (
-          <Text style={styles.description} numberOfLines={2}>
-            {business.description}
+      <BusinessLinkArea businessId={business.id} businessName={business.name}>
+        <View style={styles.avatar}>
+          {/* Array.from keeps an emoji or other surrogate pair whole; charAt would cut it in half. */}
+          <Text style={styles.avatarText}>{(Array.from(business.name.trim())[0] ?? '?').toUpperCase()}</Text>
+        </View>
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={1}>
+            {business.name}
           </Text>
-        ) : null}
-      </View>
+          {/* A ternary, not `&&`: an empty string would render as a bare text node, which crashes on native. */}
+          {business.description ? (
+            <Text style={styles.description} numberOfLines={2}>
+              {business.description}
+            </Text>
+          ) : null}
+        </View>
+      </BusinessLinkArea>
       <FavoriteButton business={business} />
     </View>
   );
