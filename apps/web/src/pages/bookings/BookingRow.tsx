@@ -1,8 +1,14 @@
 import { useState, type FormEvent } from 'react';
-import { BOOKING_CANCEL_REASON_MAX_LENGTH, allowedBookingActions, type BookingAction, type components } from '@spot/shared';
+import {
+  BOOKING_CANCEL_REASON_MAX_LENGTH,
+  allowedBookingActions,
+  formatPrice,
+  type BookingAction,
+  type components,
+} from '@spot/shared';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
-import { ACTION_LABELS, STATUS_LABELS, formatDay, formatPrice, formatTimeRange } from './format';
+import { ACTION_LABELS, STATUS_LABELS, formatDay, formatTimeRange } from './format';
 import styles from './Bookings.module.css';
 
 type Booking = components['schemas']['Booking'];

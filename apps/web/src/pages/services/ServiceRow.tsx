@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import type { components } from '@spot/shared';
-import { formatPrice } from '../bookings/format';
+import { formatPrice, type components } from '@spot/shared';
 import { ServiceForm, type ServiceFormValues } from './ServiceForm';
 import { ServicePhotos } from './ServicePhotos';
 import styles from './Services.module.css';
