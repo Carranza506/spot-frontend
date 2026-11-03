@@ -10,6 +10,8 @@ import { registerForPush, unregisterPush } from '@/notifications/push';
 
 type User = components['schemas']['User'];
 
+const LOGOUT_PUSH_WAIT_MS = 3000;
+
 export default function HomeScreen() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,8 @@ export default function HomeScreen() {
   async function handleLogout() {
     setLoggingOut(true);
     try {
-      await unregisterPush();
+      // Best effort: a slow or unreachable notifications service must not keep the user signed in.
+      await Promise.race([unregisterPush(), new Promise((resolve) => setTimeout(resolve, LOGOUT_PUSH_WAIT_MS))]);
       await logout(authClient);
     } finally {
       // The next account must not see this one's favorites.
