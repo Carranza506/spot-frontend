@@ -55,7 +55,7 @@ export async function registerForPush(): Promise<void> {
 /**
  * Removes this device's token before logging out, so it stops getting the account's pushes. Must run
  * while the session is still valid. Best effort: the id is only forgotten once the token is gone (or
- * was already gone, 404), so a failed removal is retried on the next logout from this device.
+ * was already gone, 404, or belongs to another account, 403), so a failed removal is retried on the next logout from this device.
  */
 export async function unregisterPush(): Promise<void> {
   try {
@@ -64,7 +64,8 @@ export async function unregisterPush(): Promise<void> {
     try {
       await removeDeviceToken(authClient, deviceTokenId);
     } catch (error) {
-      if (!(error instanceof ApiError && error.status === 404)) throw error;
+      // 404: already gone. 403: another account claimed the token since, so it's no longer ours to remove.
+      if (!(error instanceof ApiError && (error.status === 404 || error.status === 403))) throw error;
     }
     await AsyncStorage.removeItem(DEVICE_TOKEN_ID_KEY);
   } catch (error) {

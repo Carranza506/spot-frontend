@@ -11,13 +11,35 @@ type Notification = components['schemas']['Notification'];
 // shortcut: shows the latest 50 only; add paging (onEndReached) once users accumulate more.
 const PAGE_SIZE = 50;
 
-const dateFormat = new Intl.DateTimeFormat('es-CR', {
-  day: 'numeric',
-  month: 'short',
-  hour: 'numeric',
-  minute: '2-digit',
-  timeZone: 'America/Costa_Rica',
-});
+// Costa Rica has had no daylight saving time since 1992: the fallback below relies on it.
+const BUSINESS_UTC_OFFSET_HOURS = -6;
+let dateFormat: Intl.DateTimeFormat | null | undefined;
+
+/**
+ * Built on first use, not when the module loads: an engine without time zone support (Hermes on some
+ * Android builds) throws here, and that must cost the formatting, not the whole screen.
+ */
+function formatDate(iso: string): string {
+  if (dateFormat === undefined) {
+    try {
+      dateFormat = new Intl.DateTimeFormat('es-CR', {
+        day: 'numeric',
+        month: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone: 'America/Costa_Rica',
+      });
+    } catch {
+      dateFormat = null;
+    }
+  }
+  const date = new Date(iso);
+  if (dateFormat) return dateFormat.format(date);
+  // No Intl time zones: shift to Costa Rica by hand and read the result as UTC.
+  const local = new Date(date.getTime() + BUSINESS_UTC_OFFSET_HOURS * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(local.getUTCDate())}/${pad(local.getUTCMonth() + 1)} ${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`;
+}
 
 /** Notificaciones: the user's notifications, newest first; tapping an unread one marks it read. */
 export default function NotificationsScreen() {
@@ -27,14 +49,26 @@ export default function NotificationsScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   // One PATCH per notification at a time, so a double tap can't send two.
   const pending = useRef(new Set<string>());
+  // Marked read on this screen. A load that was already in flight predates the PATCH and would
+  // bring them back as unread; a read never becomes unread again, so keeping them is safe.
+  const readLocally = useRef(new Set<string>());
+  // Bumped per load, so a slower older response can't overwrite a newer one.
+  const loadId = useRef(0);
+  // A list is on screen: a failed refresh keeps it and shows the error inline instead.
+  const hasList = useRef(false);
 
   const load = useCallback(async () => {
+    const id = ++loadId.current;
     try {
       const page = await listOwnNotifications(authClient, { pageSize: PAGE_SIZE });
-      setNotifications(page.data);
+      if (id !== loadId.current) return;
+      setNotifications(page.data.map((n) => (readLocally.current.has(n.id) ? { ...n, isRead: true } : n)));
+      hasList.current = true;
       setStatus('ready');
     } catch {
-      setStatus('error');
+      if (id !== loadId.current) return;
+      if (hasList.current) setActionError('No se pudieron actualizar tus notificaciones. Intentá de nuevo.');
+      else setStatus('error');
     }
   }, []);
 
@@ -44,6 +78,7 @@ export default function NotificationsScreen() {
 
   async function handleRefresh() {
     setRefreshing(true);
+    setActionError(null);
     try {
       await load();
     } finally {
@@ -63,9 +98,11 @@ export default function NotificationsScreen() {
     const setRead = (isRead: boolean) =>
       setNotifications((now) => now.map((n) => (n.id === notification.id ? { ...n, isRead } : n)));
     setRead(true); // optimistic
+    readLocally.current.add(notification.id);
     try {
       await markNotificationRead(authClient, notification.id);
     } catch {
+      readLocally.current.delete(notification.id);
       setRead(false);
       setActionError('No se pudo marcar como leída. Intentá de nuevo.');
     } finally {
@@ -93,7 +130,11 @@ export default function NotificationsScreen() {
         )}
       </View>
 
-      {actionError && <Text style={styles.actionError}>{actionError}</Text>}
+      {actionError && (
+        <Text style={styles.actionError} role="alert" accessibilityLiveRegion="assertive">
+          {actionError}
+        </Text>
+      )}
 
       {status === 'loading' ? (
         <View style={styles.center}>
@@ -146,7 +187,7 @@ function NotificationRow({ notification, onPress }: { notification: Notification
         </Text>
       </View>
       <Text style={styles.body}>{body}</Text>
-      <Text style={styles.date}>{dateFormat.format(new Date(createdAt))}</Text>
+      <Text style={styles.date}>{formatDate(createdAt)}</Text>
     </Pressable>
   );
 }
