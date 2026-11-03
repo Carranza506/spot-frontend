@@ -104,4 +104,11 @@ export {
   SERVICE_PHOTO_TYPES,
   type BusinessServicesFilter,
 } from './services';
+export {
+  listOwnNotifications,
+  markNotificationRead,
+  registerDeviceToken,
+  removeDeviceToken,
+  type NotificationsFilter,
+} from './notifications';
 export { formatPrice } from './format';

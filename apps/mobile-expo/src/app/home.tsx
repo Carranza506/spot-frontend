@@ -6,8 +6,11 @@ import { color, getOwnProfile, logout, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
+import { registerForPush, unregisterPush } from '@/notifications/push';
 
 type User = components['schemas']['User'];
+
+const LOGOUT_PUSH_WAIT_MS = 3000;
 
 export default function HomeScreen() {
   const [user, setUser] = useState<User | null>(null);
@@ -20,11 +23,15 @@ export default function HomeScreen() {
       .then(setUser)
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
+    // Login and register both land here, so this is where the device gets its push token registered.
+    void registerForPush();
   }, []);
 
   async function handleLogout() {
     setLoggingOut(true);
     try {
+      // Best effort: a slow or unreachable notifications service must not keep the user signed in.
+      await Promise.race([unregisterPush(), new Promise((resolve) => setTimeout(resolve, LOGOUT_PUSH_WAIT_MS))]);
       await logout(authClient);
     } finally {
       // The next account must not see this one's favorites.
@@ -46,6 +53,7 @@ export default function HomeScreen() {
         <View style={styles.actions}>
           <PrimaryButton title="Buscar negocios" onPress={() => router.push('/search')} />
           <PrimaryButton title="Mis favoritos" onPress={() => router.push('/favorites')} />
+          <PrimaryButton title="Notificaciones" onPress={() => router.push('/notifications')} />
           <PrimaryButton title="Cerrar sesión" onPress={handleLogout} loading={loggingOut} />
         </View>
       </View>
