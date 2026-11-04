@@ -1,14 +1,4 @@
-import type { BookingAction, components } from '@spot/shared';
-
-type BookingStatus = components['schemas']['BookingStatus'];
-
-export const STATUS_LABELS: Record<BookingStatus, string> = {
-  PENDING: 'Pendiente',
-  CONFIRMED: 'Confirmada',
-  COMPLETED: 'Completada',
-  CANCELLED: 'Cancelada',
-  NO_SHOW: 'No asistió',
-};
+import type { BookingAction } from '@spot/shared';
 
 export const ACTION_LABELS: Record<BookingAction, string> = {
   cancel: 'Cancelar',
