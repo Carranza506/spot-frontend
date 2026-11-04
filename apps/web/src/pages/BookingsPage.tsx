@@ -6,7 +6,7 @@ import { SelectField } from '../components/SelectField';
 import { TextField } from '../components/TextField';
 import { useBusinessContext } from '../routes/businessContext';
 import { BookingRow } from './bookings/BookingRow';
-import { bookingsApi, isBookingsMock } from './bookings/bookingsApi';
+import { bookingsApi } from './bookings/bookingsApi';
 import { ACTION_VERBS, STATUS_LABELS, localIsoDate } from './bookings/format';
 import formStyles from './AuthForm.module.css';
 import pageStyles from './BusinessProfilePage.module.css';
@@ -150,12 +150,6 @@ export function BookingsPage() {
 
   return (
     <div className={styles.page}>
-      {isBookingsMock && (
-        <p className={styles.mockNotice}>
-          Modo de prueba: las reservaciones son de ejemplo y se guardan solo en este navegador (VITE_BOOKINGS_MOCK=true).
-        </p>
-      )}
-
       <article className={pageStyles.card}>
         <h2 className={pageStyles.cardTitle}>Reservaciones</h2>
 
