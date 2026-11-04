@@ -1,19 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { color, listBusinessReviews } from '@spot/shared';
+import { REVIEW_RATING_MAX, color, listBusinessReviews } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { useAsyncData } from '@/hooks/useAsyncData';
+import { filledStars, stars } from '@/reviews/stars';
 import { Section } from './Section';
 
 const dateFormat = new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short', year: 'numeric' });
-
-// Clamped once, so the stars and their screen-reader label always agree (never "7 de 5").
-function filledStars(rating: number): number {
-  return Math.max(0, Math.min(5, Math.round(rating) || 0));
-}
-
-function stars(filled: number): string {
-  return '★'.repeat(filled) + '☆'.repeat(5 - filled);
-}
 
 export function ReviewsSection({ businessId }: { businessId: string }) {
   // shortcut: shows the latest 10 reviews only; add "ver más" paging once the reviews endpoint exists.
@@ -32,7 +24,7 @@ export function ReviewsSection({ businessId }: { businessId: string }) {
         page.data.map((review) => (
           <View key={review.id} style={styles.card}>
             <View style={styles.headerRow}>
-              <Text style={styles.stars} accessibilityLabel={`${filledStars(review.rating)} de 5 estrellas`}>
+              <Text style={styles.stars} accessibilityLabel={`${filledStars(review.rating)} de ${REVIEW_RATING_MAX} estrellas`}>
                 {stars(filledStars(review.rating))}
               </Text>
               <Text style={styles.date}>{dateFormat.format(new Date(review.createdAt))}</Text>
