@@ -4,15 +4,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
   ApiError,
+  REVIEW_RATING_MAX,
   allowedBookingActions,
   cancelBooking,
   color,
+  createBookingReview,
   getBusiness,
   listOwnBookings,
   type components,
 } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { ReviewForm } from '@/reviews/ReviewForm';
+import { getReviewedBookings, markBookingReviewed } from '@/reviews/reviewedBookings';
 import { Chip } from '@/search/Chip';
 
 type Booking = components['schemas']['Booking'];
@@ -111,6 +115,18 @@ function cancelErrorMessage(error: unknown): string {
   return 'No se pudo cancelar la reserva. Intentá de nuevo.';
 }
 
+/** The message for a failed review, by the API's status (409 is handled before this: it's a success for the card). */
+function reviewErrorMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) return NETWORK_ERROR;
+  if (error.status === 400) return 'Revisá la calificación e intentá de nuevo.';
+  if (error.status === 403) return 'No podés reseñar esta reserva.';
+  if (error.status === 404) return 'Esta reserva ya no existe.';
+  if (error.code === 'REVIEW_BOOKING_NOT_COMPLETED' || error.status === 422) {
+    return 'Solo podés reseñar una reserva completada.';
+  }
+  return 'No se pudo enviar la reseña. Intentá de nuevo.';
+}
+
 /** Mis reservas: the client's own bookings, newest first, filtered by status, with cancel where it applies (#26). */
 export default function BookingsScreen() {
   const [filter, setFilter] = useState<BookingStatus | null>(null);
@@ -120,6 +136,13 @@ export default function BookingsScreen() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  // One review form open at a time; its draft lives in ReviewForm.
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [reviewSubmittingId, setReviewSubmittingId] = useState<string | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  // A copy of the session's reviewed bookings, so a new review re-renders the card.
+  const [reviewed, setReviewed] = useState(() => new Map(getReviewedBookings()));
+  const reviewInFlight = useRef(false);
 
   // Bumped per load, so a slow response for an older filter can't overwrite a newer one.
   const loadId = useRef(0);
@@ -183,6 +206,8 @@ export default function BookingsScreen() {
 
   function selectFilter(status: BookingStatus | null) {
     setActionError(null);
+    // The new filter's load unmounts the list, and the form's draft with it: don't bring it back empty.
+    setReviewingId(null);
     currentFilter.current = status;
     setFilter(status);
   }
@@ -260,6 +285,60 @@ export default function BookingsScreen() {
     }
   }
 
+  function openReview(bookingId: string) {
+    // A submit still in flight closes its form when it ends: it must not close this one instead.
+    if (reviewInFlight.current) return;
+    setActionError(null);
+    setReviewError(null);
+    setReviewingId(bookingId);
+  }
+
+  function markReviewed(bookingId: string, rating: number | null) {
+    markBookingReviewed(bookingId, rating);
+    setReviewed(new Map(getReviewedBookings()));
+  }
+
+  async function handleReview(booking: Booking, rating: number, comment: string | undefined) {
+    // One submit at a time. A ref, not the state: a double tap fires both presses before React
+    // re-renders, and the second POST would answer 409 right after the first one's 201.
+    if (reviewInFlight.current) return;
+    reviewInFlight.current = true;
+    setReviewError(null);
+    setReviewSubmittingId(booking.id);
+    try {
+      await createBookingReview(authClient, booking.id, { rating, comment });
+      markReviewed(booking.id, rating);
+      setReviewingId(null);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        router.replace('/');
+        return;
+      }
+      // Already reviewed (another device, or before a restart): the card says so instead of offering it again.
+      if (error instanceof ApiError && (error.code === 'REVIEW_ALREADY_EXISTS' || error.status === 409)) {
+        markReviewed(booking.id, null);
+        setReviewingId(null);
+        setActionError('Esta reserva ya tenía una reseña, así que no se envió otra.');
+        return;
+      }
+      // Not something a retry fixes: the form closes and the reason goes to the screen's message.
+      if (error instanceof ApiError && (error.status === 403 || error.status === 404 || error.status === 422)) {
+        setReviewingId(null);
+        setActionError(reviewErrorMessage(error));
+        // The list is stale: the booking is gone or isn't COMPLETED anymore.
+        if (error.status !== 403) {
+          pagesShifted.current = true;
+          void loadFirstPage(currentFilter.current, { keepList: true });
+        }
+        return;
+      }
+      setReviewError(reviewErrorMessage(error));
+    } finally {
+      reviewInFlight.current = false;
+      setReviewSubmittingId(null);
+    }
+  }
+
   const now = Date.now();
   const activeFilter = FILTERS.find((f) => f.status === filter) ?? FILTERS[0];
 
@@ -325,9 +404,20 @@ export default function BookingsScreen() {
               }}
               onKeep={() => setConfirmingId(null)}
               onConfirmCancel={() => void handleCancel(item)}
+              reviewable={item.status === 'COMPLETED' && !reviewed.has(item.id)}
+              reviewed={reviewed.has(item.id)}
+              reviewRating={reviewed.get(item.id) ?? null}
+              reviewing={reviewingId === item.id}
+              reviewSubmitting={reviewSubmittingId === item.id}
+              reviewError={reviewingId === item.id ? reviewError : null}
+              onAskReview={() => openReview(item.id)}
+              onCancelReview={() => setReviewingId(null)}
+              onSubmitReview={(rating, comment) => void handleReview(item, rating, comment)}
             />
           )}
           contentContainerStyle={list.bookings.length === 0 ? styles.emptyContainer : styles.listContent}
+          // With the review comment's keyboard up, the first tap on "Enviar reseña" must submit, not just close it.
+          keyboardShouldPersistTaps="handled"
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={color.accentTeal} />
@@ -369,6 +459,17 @@ interface BookingCardProps {
   onAskCancel: () => void;
   onKeep: () => void;
   onConfirmCancel: () => void;
+  /** COMPLETED and not known to be reviewed: "Dejar reseña" is offered (#29). */
+  reviewable: boolean;
+  reviewed: boolean;
+  /** The rating left on this device, or null when only the API's 409 told us it was reviewed. */
+  reviewRating: number | null;
+  reviewing: boolean;
+  reviewSubmitting: boolean;
+  reviewError: string | null;
+  onAskReview: () => void;
+  onCancelReview: () => void;
+  onSubmitReview: (rating: number, comment: string | undefined) => void;
 }
 
 function BookingCard({
@@ -380,6 +481,15 @@ function BookingCard({
   onAskCancel,
   onKeep,
   onConfirmCancel,
+  reviewable,
+  reviewed,
+  reviewRating,
+  reviewing,
+  reviewSubmitting,
+  reviewError,
+  onAskReview,
+  onCancelReview,
+  onSubmitReview,
 }: BookingCardProps) {
   return (
     <View style={styles.card}>
@@ -398,7 +508,32 @@ function BookingCard({
       <Text style={styles.cardText}>{formatBookingStart(booking.startAt)}</Text>
       <Text style={styles.cardMeta}>{booking.serviceDurationMinutes} min</Text>
 
-      {/* #29 (Jeremy): the "Reseñar" button for COMPLETED bookings without a review goes here. */}
+      {reviewed ? (
+        <Text
+          style={styles.reviewedText}
+          role="status"
+          // Screen readers say the star characters one by one (or skip them): give the number instead.
+          accessibilityLabel={reviewRating ? `Tu reseña: ${reviewRating} de ${REVIEW_RATING_MAX} estrellas` : undefined}
+        >
+          {reviewRating
+            ? `Tu reseña: ${'★'.repeat(reviewRating)}${'☆'.repeat(REVIEW_RATING_MAX - reviewRating)}`
+            : 'Ya dejaste una reseña.'}
+        </Text>
+      ) : null}
+      {reviewable && !reviewing ? (
+        <Pressable onPress={onAskReview} style={styles.reviewButton} role="button">
+          <Text style={styles.reviewText}>Dejar reseña</Text>
+        </Pressable>
+      ) : null}
+      {reviewable && reviewing ? (
+        <ReviewForm
+          bookingId={booking.id}
+          submitting={reviewSubmitting}
+          error={reviewError}
+          onSubmit={onSubmitReview}
+          onCancel={onCancelReview}
+        />
+      ) : null}
 
       {cancellable && !confirming ? (
         <Pressable onPress={onAskCancel} style={styles.cancelButton} role="button">
@@ -570,6 +705,24 @@ const styles = StyleSheet.create({
   confirm: {
     marginTop: 8,
     gap: 4,
+  },
+  // Same shape as the cancel button.
+  reviewButton: {
+    minHeight: 44,
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  reviewText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: color.accentTeal,
+  },
+  reviewedText: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: '600',
+    color: color.textSecondary,
   },
   keepButton: {
     minHeight: 44,
