@@ -13,8 +13,11 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { NETWORK_ERROR, isUnauthorized } from '@/api/errors';
 import { formatBusinessDateTime } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { BookingReview, type BookingReviewProps } from '@/reviews/BookingReview';
+import { useBookingReview } from '@/reviews/useBookingReview';
 import { Chip } from '@/search/Chip';
 
 type Booking = components['schemas']['Booking'];
@@ -34,7 +37,6 @@ type ListState =
   | { status: 'error'; message: string };
 
 const PAGE_SIZE = 20;
-const NETWORK_ERROR = 'No se pudo conectar con el servidor. Intentá de nuevo.';
 
 const FILTERS: { label: string; status: BookingStatus | null; empty: string }[] = [
   { label: 'Todas', status: null, empty: 'Todavía no tenés reservas' },
@@ -94,7 +96,7 @@ export default function BookingsScreen() {
   }, []);
 
   const handleListError = useCallback((error: unknown): string => {
-    if (error instanceof ApiError && error.status === 401) {
+    if (isUnauthorized(error)) {
       router.replace('/');
       return '';
     }
@@ -131,8 +133,18 @@ export default function BookingsScreen() {
     void loadFirstPage(filter);
   }, [filter, loadFirstPage]);
 
+  const review = useBookingReview({
+    onMessage: setActionError,
+    onStale: () => {
+      pagesShifted.current = true;
+      void loadFirstPage(currentFilter.current, { keepList: true });
+    },
+  });
+
   function selectFilter(status: BookingStatus | null) {
     setActionError(null);
+    // The new filter's load unmounts the list, and the form's draft with it: don't bring it back empty.
+    review.close();
     currentFilter.current = status;
     setFilter(status);
   }
@@ -195,7 +207,7 @@ export default function BookingsScreen() {
         void loadFirstPage(currentFilter.current, { keepList: true });
       }
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
+      if (isUnauthorized(error)) {
         router.replace('/');
         return;
       }
@@ -275,9 +287,12 @@ export default function BookingsScreen() {
               }}
               onKeep={() => setConfirmingId(null)}
               onConfirmCancel={() => void handleCancel(item)}
+              review={review.propsFor(item)}
             />
           )}
           contentContainerStyle={list.bookings.length === 0 ? styles.emptyContainer : styles.listContent}
+          // With the review comment's keyboard up, the first tap on "Enviar reseña" must submit, not just close it.
+          keyboardShouldPersistTaps="handled"
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={color.accentTeal} />
@@ -319,6 +334,8 @@ interface BookingCardProps {
   onAskCancel: () => void;
   onKeep: () => void;
   onConfirmCancel: () => void;
+  /** The review part of the card (#29), from `useBookingReview`. */
+  review: BookingReviewProps;
 }
 
 function BookingCard({
@@ -330,6 +347,7 @@ function BookingCard({
   onAskCancel,
   onKeep,
   onConfirmCancel,
+  review,
 }: BookingCardProps) {
   return (
     <View style={styles.card}>
@@ -348,7 +366,7 @@ function BookingCard({
       <Text style={styles.cardText}>{formatBusinessDateTime(booking.startAt)}</Text>
       <Text style={styles.cardMeta}>{booking.serviceDurationMinutes} min</Text>
 
-      {/* #29 (Jeremy): the "Reseñar" button for COMPLETED bookings without a review goes here. */}
+      <BookingReview {...review} />
 
       {cancellable && !confirming ? (
         <Pressable onPress={onAskCancel} style={styles.cancelButton} role="button">

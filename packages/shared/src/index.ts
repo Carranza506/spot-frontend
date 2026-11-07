@@ -78,7 +78,7 @@ export {
   searchBusinesses,
   type BusinessSearchFilter,
 } from './search';
-export { REVIEW_RATING_MAX, listBusinessReviews, type BusinessReviewsFilter } from './reviews';
+export { REVIEW_RATING_MAX, createBookingReview, listBusinessReviews, type BusinessReviewsFilter } from './reviews';
 export {
   listBusinessHours,
   replaceBusinessHours,
