@@ -14,7 +14,12 @@ export type BusinessAvailabilityFilter = Pick<
   'from' | 'to' | 'serviceId'
 >;
 
-export { BOOKING_CANCEL_REASON_MAX_LENGTH, allowedBookingActions, type BookingAction } from './transitions';
+export {
+  BOOKING_CANCEL_REASON_MAX_LENGTH,
+  BOOKING_STATUS_LABELS,
+  allowedBookingActions,
+  type BookingAction,
+} from './transitions';
 
 export interface BusinessBookingsFilter {
   page?: number;

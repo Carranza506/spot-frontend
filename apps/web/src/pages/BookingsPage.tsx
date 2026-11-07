@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ApiError, type BookingAction, type components } from '@spot/shared';
+import { ApiError, BOOKING_STATUS_LABELS, type BookingAction, type components } from '@spot/shared';
 import { Button } from '../components/Button';
 import { SelectField } from '../components/SelectField';
 import { TextField } from '../components/TextField';
 import { useBusinessContext } from '../routes/businessContext';
 import { BookingRow } from './bookings/BookingRow';
 import { bookingsApi } from './bookings/bookingsApi';
-import { ACTION_VERBS, STATUS_LABELS, localIsoDate } from './bookings/format';
+import { ACTION_VERBS, localIsoDate } from './bookings/format';
 import formStyles from './AuthForm.module.css';
 import pageStyles from './BusinessProfilePage.module.css';
 import styles from './bookings/Bookings.module.css';
@@ -161,9 +161,9 @@ export function BookingsPage() {
             onChange={(e) => updateFilters({ status: e.target.value as BookingStatus | '' })}
           >
             <option value="">Todos</option>
-            {(Object.keys(STATUS_LABELS) as BookingStatus[]).map((status) => (
+            {(Object.keys(BOOKING_STATUS_LABELS) as BookingStatus[]).map((status) => (
               <option key={status} value={status}>
-                {STATUS_LABELS[status]}
+                {BOOKING_STATUS_LABELS[status]}
               </option>
             ))}
           </SelectField>

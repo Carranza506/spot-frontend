@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
   ApiError,
+  BOOKING_STATUS_LABELS,
   allowedBookingActions,
   cancelBooking,
   color,
@@ -13,6 +14,7 @@ import {
 } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { NETWORK_ERROR, isUnauthorized } from '@/api/errors';
+import { formatBusinessDateTime } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { BookingReview, type BookingReviewProps } from '@/reviews/BookingReview';
 import { useBookingReview } from '@/reviews/useBookingReview';
@@ -36,14 +38,6 @@ type ListState =
 
 const PAGE_SIZE = 20;
 
-const STATUS_LABEL: Record<BookingStatus, string> = {
-  PENDING: 'Pendiente',
-  CONFIRMED: 'Confirmada',
-  COMPLETED: 'Completada',
-  CANCELLED: 'Cancelada',
-  NO_SHOW: 'No asistió',
-};
-
 const FILTERS: { label: string; status: BookingStatus | null; empty: string }[] = [
   { label: 'Todas', status: null, empty: 'Todavía no tenés reservas' },
   { label: 'Pendientes', status: 'PENDING', empty: 'No tenés reservas pendientes' },
@@ -52,50 +46,6 @@ const FILTERS: { label: string; status: BookingStatus | null; empty: string }[] 
   { label: 'Canceladas', status: 'CANCELLED', empty: 'No tenés reservas canceladas' },
   { label: 'No asistió', status: 'NO_SHOW', empty: 'No tenés reservas en las que no asististe' },
 ];
-
-// Every business's schedule is in Costa Rica time (see Spot.Booking.Api's BusinessTimeZone), so a
-// booking's date and time are shown in that zone, whatever zone the phone is set to.
-const BUSINESS_TIME_ZONE = 'America/Costa_Rica';
-// Costa Rica has had no daylight saving time since 1992: the fallback below relies on it.
-const BUSINESS_UTC_OFFSET_HOURS = -6;
-
-type DateFormatters = { day: Intl.DateTimeFormat; time: Intl.DateTimeFormat } | null;
-let dateFormatters: DateFormatters | undefined;
-
-/**
- * Built on first use, not when the module loads: an engine without time zone support (Hermes on some
- * Android builds) throws here, and that must cost the formatting, not the whole screen.
- */
-function getDateFormatters(): DateFormatters {
-  if (dateFormatters === undefined) {
-    try {
-      dateFormatters = {
-        day: new Intl.DateTimeFormat('es-CR', {
-          timeZone: BUSINESS_TIME_ZONE,
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        }),
-        time: new Intl.DateTimeFormat('es-CR', { timeZone: BUSINESS_TIME_ZONE, hour: 'numeric', minute: '2-digit' }),
-      };
-    } catch {
-      dateFormatters = null;
-    }
-  }
-  return dateFormatters;
-}
-
-/** "viernes, 31 de octubre de 2026 a las 9:00 a. m.", in Costa Rica time. */
-function formatBookingStart(startAt: string): string {
-  const date = new Date(startAt);
-  const formatters = getDateFormatters();
-  if (formatters) return `${formatters.day.format(date)} a las ${formatters.time.format(date)}`;
-  // No Intl time zones: shift to Costa Rica by hand and read the result as UTC.
-  const local = new Date(date.getTime() + BUSINESS_UTC_OFFSET_HOURS * 60 * 60 * 1000);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(local.getUTCDate())}/${pad(local.getUTCMonth() + 1)}/${local.getUTCFullYear()} a las ${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`;
-}
 
 /** Cancel only where the backend allows it, and not once the booking's time has passed. */
 function canCancel(booking: Booking, now: number): boolean {
@@ -413,7 +363,7 @@ function BookingCard({
           {businessName}
         </Text>
       ) : null}
-      <Text style={styles.cardText}>{formatBookingStart(booking.startAt)}</Text>
+      <Text style={styles.cardText}>{formatBusinessDateTime(booking.startAt)}</Text>
       <Text style={styles.cardMeta}>{booking.serviceDurationMinutes} min</Text>
 
       <BookingReview {...review} />
@@ -449,7 +399,7 @@ function StatusBadge({ status }: { status: BookingStatus }) {
   const colors = BADGE_COLORS[status];
   return (
     <View style={[styles.badge, { backgroundColor: colors.background }]}>
-      <Text style={[styles.badgeText, { color: colors.text }]}>{STATUS_LABEL[status]}</Text>
+      <Text style={[styles.badgeText, { color: colors.text }]}>{BOOKING_STATUS_LABELS[status]}</Text>
     </View>
   );
 }
