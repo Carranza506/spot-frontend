@@ -4,6 +4,15 @@ type BookingStatus = components['schemas']['BookingStatus'];
 
 export type BookingAction = 'cancel' | 'complete' | 'noShow';
 
+/** How each status reads to a user, on every screen that shows one. */
+export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
+  PENDING: 'Pendiente',
+  CONFIRMED: 'Confirmada',
+  COMPLETED: 'Completada',
+  CANCELLED: 'Cancelada',
+  NO_SHOW: 'No asistió',
+};
+
 /** Mirrors the cancel request's `reason` maxLength in contracts/spot-api.yaml. */
 export const BOOKING_CANCEL_REASON_MAX_LENGTH = 255;
 

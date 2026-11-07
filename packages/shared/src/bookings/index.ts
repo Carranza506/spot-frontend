@@ -14,7 +14,12 @@ export type BusinessAvailabilityFilter = Pick<
   'from' | 'to' | 'serviceId'
 >;
 
-export { BOOKING_CANCEL_REASON_MAX_LENGTH, allowedBookingActions, type BookingAction } from './transitions';
+export {
+  BOOKING_CANCEL_REASON_MAX_LENGTH,
+  BOOKING_STATUS_LABELS,
+  allowedBookingActions,
+  type BookingAction,
+} from './transitions';
 
 export interface BusinessBookingsFilter {
   page?: number;
@@ -26,8 +31,20 @@ export interface BusinessBookingsFilter {
   to?: string;
 }
 
+export type OwnBookingsFilter = Pick<BusinessBookingsFilter, 'page' | 'pageSize' | 'status'>;
+
 function bookingPath(bookingId: string): string {
   return `/booking/bookings/${encodeURIComponent(bookingId)}`;
+}
+
+/** A page of the authenticated user's own bookings, newest start first, optionally filtered by one status. */
+export function listOwnBookings(
+  client: Pick<ApiClient, 'apiFetch'>,
+  { page = 1, pageSize = 20, status }: OwnBookingsFilter = {},
+): Promise<PaginatedBookings> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (status) query.set('status', status);
+  return client.apiFetch<PaginatedBookings>(`/booking/bookings?${query}`);
 }
 
 /** A page of the bookings of a business the authenticated BUSINESS account owns, optionally filtered. */

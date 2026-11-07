@@ -4,42 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { color, listOwnNotifications, markNotificationRead, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { formatBusinessShortDateTime } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
 
 type Notification = components['schemas']['Notification'];
 
 // shortcut: shows the latest 50 only; add paging (onEndReached) once users accumulate more.
 const PAGE_SIZE = 50;
-
-// Costa Rica has had no daylight saving time since 1992: the fallback below relies on it.
-const BUSINESS_UTC_OFFSET_HOURS = -6;
-let dateFormat: Intl.DateTimeFormat | null | undefined;
-
-/**
- * Built on first use, not when the module loads: an engine without time zone support (Hermes on some
- * Android builds) throws here, and that must cost the formatting, not the whole screen.
- */
-function formatDate(iso: string): string {
-  if (dateFormat === undefined) {
-    try {
-      dateFormat = new Intl.DateTimeFormat('es-CR', {
-        day: 'numeric',
-        month: 'short',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZone: 'America/Costa_Rica',
-      });
-    } catch {
-      dateFormat = null;
-    }
-  }
-  const date = new Date(iso);
-  if (dateFormat) return dateFormat.format(date);
-  // No Intl time zones: shift to Costa Rica by hand and read the result as UTC.
-  const local = new Date(date.getTime() + BUSINESS_UTC_OFFSET_HOURS * 60 * 60 * 1000);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(local.getUTCDate())}/${pad(local.getUTCMonth() + 1)} ${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`;
-}
 
 /** Notificaciones: the user's notifications, newest first; tapping an unread one marks it read. */
 export default function NotificationsScreen() {
@@ -187,7 +158,7 @@ function NotificationRow({ notification, onPress }: { notification: Notification
         </Text>
       </View>
       <Text style={styles.body}>{body}</Text>
-      <Text style={styles.date}>{formatDate(createdAt)}</Text>
+      <Text style={styles.date}>{formatBusinessShortDateTime(createdAt)}</Text>
     </Pressable>
   );
 }

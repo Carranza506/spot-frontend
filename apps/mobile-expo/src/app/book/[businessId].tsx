@@ -4,6 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ApiError, color, createBooking, getBusinessAvailability, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
+import {
+  formatBusinessDay,
+  formatBusinessTime,
+  formatDayChip,
+  formatLongDate,
+  todayInBusinessTimeZone,
+} from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
 
 type AvailabilityDay = components['schemas']['AvailabilityDay'];
@@ -12,43 +19,12 @@ type Booking = components['schemas']['Booking'];
 
 type LoadState = { status: 'loading' } | { status: 'loaded'; days: AvailabilityDay[] } | { status: 'error'; error: unknown };
 
-// Every business's schedule is in Costa Rica time (see Spot.Booking.Api's BusinessTimeZone), so
-// "today" and the slot times are always shown in that zone, whatever zone the phone is set to.
-const BUSINESS_TIME_ZONE = 'America/Costa_Rica';
 const DAYS_SHOWN = 7;
-
-const todayFormat = new Intl.DateTimeFormat('en-US', {
-  timeZone: BUSINESS_TIME_ZONE,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
-const timeFormat = new Intl.DateTimeFormat('es-CR', { timeZone: BUSINESS_TIME_ZONE, hour: 'numeric', minute: '2-digit' });
-const bookingDateFormat = new Intl.DateTimeFormat('es-CR', {
-  timeZone: BUSINESS_TIME_ZONE,
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-});
-// Availability dates are already the business's local dates (YYYY-MM-DD): formatted at UTC noon in
-// UTC so the device's own zone can never shift them to the previous or next day.
-const dayChipFormat = new Intl.DateTimeFormat('es-CR', { timeZone: 'UTC', weekday: 'short', day: 'numeric' });
-const longDateFormat = new Intl.DateTimeFormat('es-CR', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' });
-
-/** Today's date in Costa Rica as YYYY-MM-DD. */
-function todayInBusinessTimeZone(): string {
-  const parts = Object.fromEntries(todayFormat.formatToParts(new Date()).map((part) => [part.type, part.value]));
-  return `${parts.year}-${parts.month}-${parts.day}`;
-}
 
 /** Adds whole days to a YYYY-MM-DD date, without involving any time zone. */
 function addDays(date: string, days: number): string {
   const [year, month, day] = date.split('-').map(Number);
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
-}
-
-function dateAtNoonUtc(date: string): Date {
-  return new Date(`${date}T12:00:00Z`);
 }
 
 /** The message for a failed booking, by the API's error code where it tells the user what to do. */
@@ -137,7 +113,7 @@ export default function BookingScreen() {
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{booking.serviceName}</Text>
             <Text style={styles.cardText}>
-              {bookingDateFormat.format(new Date(booking.startAt))} a las {timeFormat.format(new Date(booking.startAt))}
+              {formatBusinessDay(booking.startAt)} a las {formatBusinessTime(booking.startAt)}
             </Text>
             <Text style={styles.cardMeta}>{booking.serviceDurationMinutes} min</Text>
           </View>
@@ -181,7 +157,7 @@ export default function BookingScreen() {
                     style={[styles.chip, isSelected && styles.chipActive]}
                   >
                     <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
-                      {dayChipFormat.format(dateAtNoonUtc(day.date))}
+                      {formatDayChip(day.date)}
                     </Text>
                   </Pressable>
                 );
@@ -213,7 +189,7 @@ export default function BookingScreen() {
                       style={[styles.chip, isSelected && styles.chipActive]}
                     >
                       <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
-                        {timeFormat.format(new Date(slot.startAt))}
+                        {formatBusinessTime(slot.startAt)}
                       </Text>
                     </Pressable>
                   );
@@ -225,8 +201,8 @@ export default function BookingScreen() {
           {selectedSlot && selectedDay ? (
             <View style={styles.card}>
               <Text style={styles.cardText}>
-                ¿Confirmar tu reserva el {longDateFormat.format(dateAtNoonUtc(selectedDay.date))} a las{' '}
-                {timeFormat.format(new Date(selectedSlot.startAt))}?
+                ¿Confirmar tu reserva el {formatLongDate(selectedDay.date)} a las{' '}
+                {formatBusinessTime(selectedSlot.startAt)}?
               </Text>
               <PrimaryButton title="Confirmar reserva" onPress={handleConfirm} loading={submitting} />
             </View>

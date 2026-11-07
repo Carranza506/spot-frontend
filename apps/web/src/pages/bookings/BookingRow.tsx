@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import {
   BOOKING_CANCEL_REASON_MAX_LENGTH,
+  BOOKING_STATUS_LABELS,
   allowedBookingActions,
   formatPrice,
   type BookingAction,
@@ -8,7 +9,7 @@ import {
 } from '@spot/shared';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
-import { ACTION_LABELS, STATUS_LABELS, formatDay, formatTimeRange } from './format';
+import { ACTION_LABELS, formatDay, formatTimeRange } from './format';
 import styles from './Bookings.module.css';
 
 type Booking = components['schemas']['Booking'];
@@ -69,7 +70,7 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
         {booking.notes && <span className={styles.notes}>“{booking.notes}”</span>}
       </div>
 
-      <span className={`${styles.badge} ${STATUS_BADGE[booking.status]}`}>{STATUS_LABELS[booking.status]}</span>
+      <span className={`${styles.badge} ${STATUS_BADGE[booking.status]}`}>{BOOKING_STATUS_LABELS[booking.status]}</span>
 
       <div className={styles.actions}>
         {pending ? (
