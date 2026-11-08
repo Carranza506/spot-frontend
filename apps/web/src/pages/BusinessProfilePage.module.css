@@ -68,7 +68,7 @@
   margin: 0;
 }
 
-/* Empty/loading text inside a card (Ubicación placeholder, Contactos states). */
+/* Hint, empty and loading text inside a card (Ubicación, Contactos, Categorías). */
 .placeholder {
   font-size: var(--fontSize-sm);
   color: var(--color-textSecondary);

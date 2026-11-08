@@ -3,7 +3,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { CompleteBusinessProfilePage } from './pages/CompleteBusinessProfilePage';
 import { DashboardPage } from './pages/DashboardPage';
-import { ComingSoonPage } from './pages/ComingSoonPage';
+import { CategoriesPage } from './pages/CategoriesPage';
 import { BusinessProfilePage } from './pages/BusinessProfilePage';
 import { ServicesPage } from './pages/ServicesPage';
 import { BookingsPage } from './pages/BookingsPage';
@@ -29,7 +29,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/reservations" element={<BookingsPage />} />
             <Route path="/services" element={<ServicesPage />} />
-            <Route path="/categories" element={<ComingSoonPage title="Categorías" />} />
+            <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/schedule" element={<SchedulePage />} />
             <Route path="/profile" element={<BusinessProfilePage />} />
             <Route path="/reviews" element={<ReviewsPage />} />
