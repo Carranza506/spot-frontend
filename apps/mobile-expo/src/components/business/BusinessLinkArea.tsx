@@ -1,26 +1,16 @@
-import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import { color, type components } from '@spot/shared';
+import { BusinessAvatar } from './BusinessAvatar';
+import { useOpenBusiness } from './useOpenBusiness';
 
 type Business = components['schemas']['Business'];
 
-const DOUBLE_TAP_MS = 600;
-
 /**
- * The part of a business card that opens its detail screen: the avatar, name and description. The
+ * The part of a business row that opens its detail screen: the avatar, name and description. The
  * favorite heart stays a sibling control instead of a button nested inside a link.
  */
 export function BusinessLinkArea({ business }: { business: Business }) {
-  const lastPressAt = useRef(0);
-
-  function open() {
-    // A quick double tap would stack the screen twice, and "Volver" would land on the same business.
-    const now = Date.now();
-    if (now - lastPressAt.current < DOUBLE_TAP_MS) return;
-    lastPressAt.current = now;
-    router.push({ pathname: '/business/[businessId]', params: { businessId: business.id } });
-  }
+  const open = useOpenBusiness(business.id);
 
   return (
     <Pressable
@@ -31,10 +21,7 @@ export function BusinessLinkArea({ business }: { business: Business }) {
       accessibilityLabel={`Ver ${business.name}`}
       style={({ pressed }) => [styles.area, pressed && styles.pressed]}
     >
-      <View style={styles.avatar}>
-        {/* Array.from keeps an emoji or other surrogate pair whole; charAt would cut it in half. */}
-        <Text style={styles.avatarText}>{(Array.from(business.name.trim())[0] ?? '?').toUpperCase()}</Text>
-      </View>
+      <BusinessAvatar business={business} size={48} />
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
           {business.name}
@@ -59,19 +46,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: color.panelDark,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: color.onPanelDark,
   },
   info: {
     flex: 1,
