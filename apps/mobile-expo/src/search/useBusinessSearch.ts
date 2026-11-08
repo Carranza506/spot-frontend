@@ -6,7 +6,7 @@ type Pagination = components['schemas']['PaginationMeta'];
 type AiSearchCriteria = components['schemas']['AiSearchCriteria'];
 
 /** A page of results plus, for the AI mode, the criteria it extracted. */
-export interface ResultsPage {
+interface ResultsPage {
   businesses: Business[];
   pagination: Pagination;
   criteria?: AiSearchCriteria;
@@ -26,9 +26,9 @@ export type SearchResults =
     }
   | { status: 'error'; message: string };
 
-export type PageFetcher = (page: number) => Promise<ResultsPage>;
+type PageFetcher = (page: number) => Promise<ResultsPage>;
 /** Turns a failed request into the message to show; '' shows nothing (e.g. it already navigated away). */
-export type ErrorDescriber = (error: unknown) => string;
+type ErrorDescriber = (error: unknown) => string;
 
 /**
  * One paginated business search at a time: `run` starts a search, `loadMore` appends its next page.

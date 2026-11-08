@@ -31,11 +31,11 @@ import { Logo } from '@/components/Logo';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LogoutIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
 import { useFavorites } from '@/favorites/FavoritesProvider';
-import { BusinessCard } from '@/home/BusinessCard';
+import { BusinessCard } from '@/components/business/BusinessCard';
 import { QuickActions } from '@/home/QuickActions';
 import { registerForPush, unregisterPush } from '@/notifications/push';
 import { Chip } from '@/search/Chip';
-import { CriteriaSummary, FilterGroup, NearbyToggle, PROVINCES } from '@/search/SearchFilters';
+import { CriteriaSummary, FilterGroup, FilterLabel, NearbyToggle, PROVINCES } from '@/search/SearchFilters';
 import { useBusinessSearch, type SearchResults } from '@/search/useBusinessSearch';
 import { useCurrentLocation } from '@/search/useCurrentLocation';
 
@@ -360,23 +360,27 @@ export default function HomeScreen() {
                       <Chip key={name} label={name} selected={province === name} onPress={() => setProvince(province === name ? null : name)} />
                     ))}
                   </FilterGroup>
-                  <Text style={styles.panelLabel}>Ciudad</Text>
-                  <TextInput
-                    value={city}
-                    onChangeText={setCity}
-                    placeholder="Ej.: Heredia"
-                    placeholderTextColor={color.placeholder}
-                    accessibilityLabel="Ciudad"
-                    style={styles.cityInput}
-                  />
-                  <Text style={styles.panelLabel}>Distancia</Text>
-                  <NearbyToggle
-                    location={location}
-                    radiusKm={radiusKm}
-                    onRadiusChange={setRadiusKm}
-                    onEnable={enableLocation}
-                    onDisable={disableLocation}
-                  />
+                  <View style={[styles.panelField, styles.panelFieldSpaced]}>
+                    <FilterLabel>Ciudad</FilterLabel>
+                    <TextInput
+                      value={city}
+                      onChangeText={setCity}
+                      placeholder="Ej.: Heredia"
+                      placeholderTextColor={color.placeholder}
+                      accessibilityLabel="Ciudad"
+                      style={styles.cityInput}
+                    />
+                  </View>
+                  <View style={styles.panelField}>
+                    <FilterLabel>Distancia</FilterLabel>
+                    <NearbyToggle
+                      location={location}
+                      radiusKm={radiusKm}
+                      onRadiusChange={setRadiusKm}
+                      onEnable={enableLocation}
+                      onDisable={disableLocation}
+                    />
+                  </View>
                   {hasAnyFilter && (
                     <Pressable onPress={clearFilters} accessibilityRole="button" style={styles.clearFilters}>
                       <Text style={styles.clearFiltersText}>Limpiar filtros</Text>
@@ -730,13 +734,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
-  panelLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-    color: color.textSecondary,
-    marginBottom: 8,
+  panelField: {
+    gap: 8,
+  },
+  panelFieldSpaced: {
+    marginBottom: 16,
   },
   cityInput: {
     borderWidth: 1,
@@ -747,7 +749,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: color.textPrimary,
     backgroundColor: color.surface,
-    marginBottom: 16,
   },
   clearFilters: {
     alignSelf: 'flex-start',
