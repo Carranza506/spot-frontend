@@ -46,6 +46,7 @@ export {
   allowedBookingActions,
   cancelBooking,
   completeBooking,
+  confirmBooking,
   createBooking,
   getBusinessAvailability,
   listBusinessBookings,

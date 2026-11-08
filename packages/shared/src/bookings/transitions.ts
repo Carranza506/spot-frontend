@@ -2,7 +2,7 @@ import type { components } from '../api/schema';
 
 type BookingStatus = components['schemas']['BookingStatus'];
 
-export type BookingAction = 'cancel' | 'complete' | 'noShow';
+export type BookingAction = 'confirm' | 'cancel' | 'complete' | 'noShow';
 
 /** How each status reads to a user, on every screen that shows one. */
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
@@ -16,10 +16,10 @@ export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
 /** Mirrors the cancel request's `reason` maxLength in contracts/spot-api.yaml. */
 export const BOOKING_CANCEL_REASON_MAX_LENGTH = 255;
 
-// The contract's valid source states per transition: cancel from PENDING or CONFIRMED,
-// complete and no-show only from CONFIRMED. Any other combination is a 422.
+// The contract's valid source states per transition: confirm only from PENDING, cancel from PENDING
+// or CONFIRMED, complete and no-show only from CONFIRMED. Any other combination is a 422.
 const ACTIONS_BY_STATUS: Record<BookingStatus, BookingAction[]> = {
-  PENDING: ['cancel'],
+  PENDING: ['confirm', 'cancel'],
   CONFIRMED: ['cancel', 'complete', 'noShow'],
   COMPLETED: [],
   CANCELLED: [],

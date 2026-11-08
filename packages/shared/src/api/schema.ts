@@ -1015,7 +1015,9 @@ export interface paths {
          *     `CONFIRMED`) for the same business cannot coexist with overlapping time
          *     ranges — attempting to book an already-taken slot responds `409`.
          *     Booking outside the business's hours (per `business_hours` /
-         *     `business_schedule_exceptions`) responds `422`.
+         *     `business_schedule_exceptions`) responds `422`. The booking is created
+         *     `PENDING`; the business owner moves it to `CONFIRMED` with
+         *     `confirmBooking`.
          *
          *     Required role: `CLIENT`.
          */
@@ -1076,6 +1078,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/booking/bookings/{bookingId}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: components["parameters"]["BookingIdParam"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a booking
+         * @description Transitions `status` to `CONFIRMED`. Only valid from `PENDING`;
+         *     otherwise responds `422` (`BOOKING_INVALID_STATUS_TRANSITION`).
+         *     Enables completing it or marking it as no-show once its start time
+         *     has arrived.
+         *
+         *     Required role: `BUSINESS` who owns the booking's business.
+         */
+        post: operations["confirmBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/booking/bookings/{bookingId}/complete": {
         parameters: {
             query?: never;
@@ -1090,7 +1119,9 @@ export interface paths {
         /**
          * Mark a booking as completed
          * @description Transitions `status` to `COMPLETED`. Only valid from `CONFIRMED`;
-         *     otherwise responds `422`. Enables the client to leave a review.
+         *     otherwise responds `422` (`BOOKING_INVALID_STATUS_TRANSITION`). Before
+         *     the booking's `startAt` it also responds `422` (`BOOKING_NOT_STARTED`).
+         *     Enables the client to leave a review.
          *
          *     Required role: `BUSINESS` who owns the booking's business.
          */
@@ -1115,7 +1146,8 @@ export interface paths {
         /**
          * Mark a booking as no-show
          * @description Transitions `status` to `NO_SHOW`. Only valid from `CONFIRMED`;
-         *     otherwise responds `422`.
+         *     otherwise responds `422` (`BOOKING_INVALID_STATUS_TRANSITION`). Before
+         *     the booking's `startAt` it also responds `422` (`BOOKING_NOT_STARTED`).
          *
          *     Required role: `BUSINESS` who owns the booking's business.
          */
@@ -4168,6 +4200,33 @@ export interface operations {
         };
         responses: {
             /** @description Booking cancelled. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Booking"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    confirmBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: components["parameters"]["BookingIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Booking confirmed. */
             200: {
                 headers: {
                     [name: string]: unknown;

@@ -20,6 +20,7 @@ const PAGE_SIZE = 20;
 const NETWORK_ERROR = 'No se pudo conectar con el servidor. Intentá de nuevo.';
 
 const SUCCESS_MESSAGES: Record<BookingAction, string> = {
+  confirm: 'Reservación confirmada.',
   cancel: 'Reservación cancelada.',
   complete: 'Reservación marcada como completada.',
   noShow: 'Reservación marcada como no asistida.',
@@ -114,12 +115,13 @@ export function BookingsPage() {
     setSuccess(null);
     setPendingId(booking.id);
     try {
-      const updated =
-        action === 'cancel'
-          ? await bookingsApi.cancel(booking.id, reason)
-          : action === 'complete'
-            ? await bookingsApi.complete(booking.id)
-            : await bookingsApi.markNoShow(booking.id);
+      const run: Record<BookingAction, () => Promise<Booking>> = {
+        confirm: () => bookingsApi.confirm(booking.id),
+        cancel: () => bookingsApi.cancel(booking.id, reason),
+        complete: () => bookingsApi.complete(booking.id),
+        noShow: () => bookingsApi.markNoShow(booking.id),
+      };
+      const updated = await run[action]();
       setSuccess(SUCCESS_MESSAGES[action]);
       // The new status may no longer match the status filter, so re-read instead of patching in place.
       if (filters.status && updated.status !== filters.status) reload();
@@ -131,7 +133,11 @@ export function BookingsPage() {
         );
     } catch (error) {
       if (handleAuthError(error)) return;
-      if (error instanceof ApiError && error.status === 422) {
+      if (error instanceof ApiError && error.code === 'BOOKING_NOT_STARTED') {
+        // The row hides these until startAt, so this only happens with a device clock ahead of the server's.
+        // Nothing changed on the server, so there's nothing to reload.
+        setActionError(`Solo podés ${ACTION_VERBS[action]} la reservación cuando ya llegó su hora.`);
+      } else if (error instanceof ApiError && error.status === 422) {
         // Invalid transition: the booking changed state since the list was loaded (another tab, the client).
         setActionError(
           `No se pudo ${ACTION_VERBS[action]} la reservación porque ya cambió de estado. Actualizamos la lista con su estado actual.`,
