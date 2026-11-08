@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { color, getOwnProfile, logout, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { resetTo } from '@/navigation/resetTo';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { registerForPush, unregisterPush } from '@/notifications/push';
 
@@ -36,7 +37,7 @@ export default function HomeScreen() {
     } finally {
       // The next account must not see this one's favorites.
       favorites.reset();
-      router.replace('/');
+      resetTo('/');
     }
   }
 

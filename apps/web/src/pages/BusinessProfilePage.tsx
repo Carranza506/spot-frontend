@@ -15,6 +15,7 @@ import {
 } from '@spot/shared';
 import { authClient } from '../api/client';
 import { Button } from '../components/Button';
+import { useFeedback } from '../components/feedback/feedbackContext';
 import { TextField } from '../components/TextField';
 import { useBusinessContext } from '../routes/businessContext';
 import { ContactsCard } from './profile/ContactsCard';
@@ -64,12 +65,12 @@ function validate(values: FormValues): Partial<Record<FormField, string>> {
 
 export function BusinessProfilePage() {
   const navigate = useNavigate();
+  const { showToast } = useFeedback();
   const { business, setBusiness } = useBusinessContext();
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' });
   const [values, setValues] = useState<FormValues>(() => toFormValues(business));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Reads the business fresh when the view opens, so the form reflects the persisted state
@@ -97,12 +98,10 @@ export function BusinessProfilePage() {
 
   function updateField(field: FormField, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setSaved(false);
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setSaved(false);
 
     const errors = validate(values);
     if (Object.keys(errors).length > 0) {
@@ -126,7 +125,7 @@ export function BusinessProfilePage() {
       });
       setBusiness(updated);
       setValues(toFormValues(updated));
-      setSaved(true);
+      showToast('Los cambios se guardaron correctamente.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
@@ -161,7 +160,6 @@ export function BusinessProfilePage() {
         {loadState.status === 'ready' && (
           <form className={styles.form} onSubmit={handleSubmit} noValidate>
             {generalError && <p className={`${formStyles.generalError} ${styles.fullRow}`}>{generalError}</p>}
-            {saved && <p className={`${styles.success} ${styles.fullRow}`}>Los cambios se guardaron correctamente.</p>}
             <TextField
               id="name"
               label="Nombre del negocio"

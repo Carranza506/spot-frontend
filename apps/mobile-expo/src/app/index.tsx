@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Text } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { ApiError, login, mapAuthApiError, validateEmail, validatePassword } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { AuthScreen } from '@/components/AuthScreen';
+import { ErrorMessage } from '@/components/ErrorMessage';
 import { TextField } from '@/components/TextField';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { authFormStyles } from '@/components/authFormStyles';
 import { useFavorites } from '@/favorites/FavoritesProvider';
+import { resetTo } from '@/navigation/resetTo';
 
 export default function LoginScreen() {
   const favorites = useFavorites();
@@ -37,7 +39,7 @@ export default function LoginScreen() {
       await login(authClient, { email, password });
       // Another account may have been signed in on this screen: it must not see their favorites.
       favorites.reset();
-      router.replace('/home');
+      resetTo('/home');
     } catch (error) {
       if (error instanceof ApiError) {
         const mapped = mapAuthApiError(error);
@@ -54,7 +56,7 @@ export default function LoginScreen() {
   return (
     <AuthScreen>
       <Text style={authFormStyles.title}>Iniciar sesión</Text>
-      {generalError && <Text style={authFormStyles.generalError}>{generalError}</Text>}
+      {generalError && <ErrorMessage style={authFormStyles.generalError}>{generalError}</ErrorMessage>}
 
       <TextField
         label="Correo"

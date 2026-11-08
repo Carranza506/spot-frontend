@@ -9,6 +9,7 @@ import {
 } from '@spot/shared';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
+import { useFeedback, type ConfirmOptions } from '../../components/feedback/feedbackContext';
 import { ACTION_LABELS, formatDay, formatTimeRange } from './format';
 import styles from './Bookings.module.css';
 
@@ -23,9 +24,18 @@ const STATUS_BADGE: Record<BookingStatus, string> = {
   NO_SHOW: styles.badgeClosed,
 };
 
-const CONFIRM_MESSAGES: Record<Exclude<BookingAction, 'cancel'>, string> = {
-  complete: '¿Marcar esta reservación como completada?',
-  noShow: '¿Marcar que el cliente no asistió a esta reservación?',
+const CONFIRM_OPTIONS: Record<Exclude<BookingAction, 'cancel'>, ConfirmOptions> = {
+  complete: {
+    title: 'Marcar como completada',
+    message: '¿Marcar esta reservación como completada?',
+    confirmLabel: 'Marcar completada',
+  },
+  noShow: {
+    title: 'Marcar como no asistió',
+    message: '¿Marcar que el cliente no asistió a esta reservación?',
+    confirmLabel: 'Marcar no asistió',
+    danger: true,
+  },
 };
 
 interface BookingRowProps {
@@ -38,16 +48,17 @@ interface BookingRowProps {
 }
 
 export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps) {
+  const { confirm } = useFeedback();
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
   const actions = allowedBookingActions(booking.status);
 
-  function handleAction(action: BookingAction) {
+  async function handleAction(action: BookingAction) {
     if (action === 'cancel') {
       setCancelOpen(true);
       return;
     }
-    if (window.confirm(CONFIRM_MESSAGES[action])) onAction(booking, action);
+    if (await confirm(CONFIRM_OPTIONS[action])) onAction(booking, action);
   }
 
   function handleCancelSubmit(event: FormEvent) {
@@ -80,7 +91,7 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
             <button
               key={action}
               type="button"
-              className={action === 'cancel' ? styles.dangerAction : styles.action}
+              className={action === 'complete' ? styles.action : styles.dangerAction}
               onClick={() => handleAction(action)}
               disabled={busy || cancelOpen}
             >
@@ -103,7 +114,7 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
             <button type="button" className={styles.action} onClick={() => setCancelOpen(false)} disabled={busy}>
               Volver
             </button>
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" variant="danger" disabled={busy}>
               Cancelar reservación
             </Button>
           </div>

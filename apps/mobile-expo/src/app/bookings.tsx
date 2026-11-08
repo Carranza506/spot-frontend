@@ -15,7 +15,10 @@ import {
 import { authClient } from '@/api/client';
 import { NETWORK_ERROR, isUnauthorized } from '@/api/errors';
 import { formatBusinessDateTime } from '@/bookings/format';
+import { ErrorMessage } from '@/components/ErrorMessage';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { useToast } from '@/components/Toast';
+import { resetTo } from '@/navigation/resetTo';
 import { BookingReview, type BookingReviewProps } from '@/reviews/BookingReview';
 import { useBookingReview } from '@/reviews/useBookingReview';
 import { Chip } from '@/search/Chip';
@@ -65,6 +68,7 @@ function cancelErrorMessage(error: unknown): string {
 
 /** Mis reservas: the client's own bookings, newest first, filtered by status, with cancel where it applies (#26). */
 export default function BookingsScreen() {
+  const showToast = useToast();
   const [filter, setFilter] = useState<BookingStatus | null>(null);
   const [list, setList] = useState<ListState>({ status: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
@@ -97,7 +101,7 @@ export default function BookingsScreen() {
 
   const handleListError = useCallback((error: unknown): string => {
     if (isUnauthorized(error)) {
-      router.replace('/');
+      resetTo('/');
       return '';
     }
     return error instanceof ApiError ? 'No se pudieron cargar tus reservas.' : NETWORK_ERROR;
@@ -200,6 +204,7 @@ export default function BookingsScreen() {
           : current,
       );
       setConfirmingId(null);
+      showToast('Reserva cancelada.');
       // Under a status filter it no longer belongs to the list, and every later booking moved up a
       // place on the server: the next page would skip one of them. "Todas" keeps it where it was.
       if (currentFilter.current) {
@@ -208,7 +213,7 @@ export default function BookingsScreen() {
       }
     } catch (error) {
       if (isUnauthorized(error)) {
-        router.replace('/');
+        resetTo('/');
         return;
       }
       setActionError(cancelErrorMessage(error));
@@ -255,11 +260,7 @@ export default function BookingsScreen() {
         </ScrollView>
       </View>
 
-      {actionError && (
-        <Text style={styles.actionError} role="alert" accessibilityLiveRegion="assertive">
-          {actionError}
-        </Text>
-      )}
+      {actionError && <ErrorMessage style={styles.actionError}>{actionError}</ErrorMessage>}
 
       {list.status === 'loading' ? (
         <View style={styles.center}>
@@ -310,11 +311,7 @@ export default function BookingsScreen() {
           ListFooterComponent={
             list.pagination.page < list.pagination.totalPages || list.loadMoreError ? (
               <View style={styles.footer}>
-                {list.loadMoreError ? (
-                  <Text style={styles.actionError} role="alert">
-                    {list.loadMoreError}
-                  </Text>
-                ) : null}
+                {list.loadMoreError ? <ErrorMessage style={styles.actionError}>{list.loadMoreError}</ErrorMessage> : null}
                 <PrimaryButton title="Cargar más" onPress={() => void loadMore()} loading={list.loadingMore} />
               </View>
             ) : null
@@ -377,10 +374,14 @@ function BookingCard({
       {cancellable && confirming ? (
         <View style={styles.confirm}>
           <Text style={styles.cardText}>¿Cancelar esta reserva? No se puede deshacer.</Text>
-          <PrimaryButton title="Sí, cancelar" onPress={onConfirmCancel} loading={cancelling} />
-          <Pressable onPress={onKeep} disabled={cancelling} style={styles.keepButton} role="button">
-            <Text style={styles.keepText}>No, mantenerla</Text>
-          </Pressable>
+          <View style={styles.confirmActions}>
+            <View style={styles.confirmAction}>
+              <PrimaryButton title="No, mantenerla" variant="secondary" compact onPress={onKeep} disabled={cancelling} />
+            </View>
+            <View style={styles.confirmAction}>
+              <PrimaryButton title="Sí, cancelar" variant="danger" compact onPress={onConfirmCancel} loading={cancelling} />
+            </View>
+          </View>
         </View>
       ) : null}
     </View>
@@ -445,8 +446,6 @@ const styles = StyleSheet.create({
   actionError: {
     marginHorizontal: 24,
     marginBottom: 8,
-    fontSize: 14,
-    color: color.danger,
   },
   center: {
     flex: 1,
@@ -537,16 +536,16 @@ const styles = StyleSheet.create({
   },
   confirm: {
     marginTop: 8,
-    gap: 4,
+    gap: 12,
   },
-  keepButton: {
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+  confirmActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  keepText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: color.accentTeal,
+  // Side by side; on a very narrow screen they stack instead of cutting a label.
+  confirmAction: {
+    flexGrow: 1,
+    flexBasis: 120,
   },
 });

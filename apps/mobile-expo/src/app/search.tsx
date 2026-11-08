@@ -13,11 +13,13 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { ErrorMessage } from '@/components/ErrorMessage';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { TextField } from '@/components/TextField';
 import { BusinessResultCard } from '@/search/BusinessResultCard';
 import { Chip } from '@/search/Chip';
 import { useCurrentLocation, type LocationState } from '@/search/useCurrentLocation';
+import { resetTo } from '@/navigation/resetTo';
 
 type Business = components['schemas']['Business'];
 type Category = components['schemas']['Category'];
@@ -90,7 +92,7 @@ export default function SearchScreen() {
 
   function handleError(error: unknown): string {
     if (error instanceof ApiError && error.status === 401) {
-      router.replace('/');
+      resetTo('/');
       return '';
     }
     if (error instanceof ApiError && error.status === 422) {
@@ -251,7 +253,7 @@ export default function SearchScreen() {
 
         <View style={styles.results}>
           {results.status === 'loading' && <ActivityIndicator color={color.accentTeal} />}
-          {results.status === 'error' && results.message !== '' && <Text style={styles.error}>{results.message}</Text>}
+          {results.status === 'error' && results.message !== '' && <ErrorMessage>{results.message}</ErrorMessage>}
           {results.status === 'ready' && (
             <>
               {results.criteria && <CriteriaSummary criteria={results.criteria} />}
@@ -266,7 +268,7 @@ export default function SearchScreen() {
               {results.pagination.page < results.pagination.totalPages && (
                 <PrimaryButton title="Cargar más" onPress={loadMore} loading={results.loadingMore} />
               )}
-              {results.loadMoreError && <Text style={styles.error}>{results.loadMoreError}</Text>}
+              {results.loadMoreError && <ErrorMessage>{results.loadMoreError}</ErrorMessage>}
             </>
           )}
         </View>
@@ -428,9 +430,5 @@ const styles = StyleSheet.create({
   count: {
     fontSize: 14,
     color: color.textSecondary,
-  },
-  error: {
-    fontSize: 14,
-    color: color.danger,
   },
 });

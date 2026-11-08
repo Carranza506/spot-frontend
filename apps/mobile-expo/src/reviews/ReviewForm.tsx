@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { REVIEW_RATING_MAX, color } from '@spot/shared';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { ErrorMessage } from '@/components/ErrorMessage';
 import { TextField } from '@/components/TextField';
 
 interface ReviewFormProps {
@@ -63,11 +64,7 @@ export function ReviewForm({ bookingId, submitting, error, onSubmit, onCancel }:
         style={styles.comment}
       />
 
-      {error ? (
-        <Text style={styles.error} role="alert" accessibilityLiveRegion="assertive">
-          {error}
-        </Text>
-      ) : null}
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       <PrimaryButton
         title="Enviar reseña"
         onPress={submit}
@@ -118,10 +115,6 @@ const styles = StyleSheet.create({
   comment: {
     minHeight: 88,
     textAlignVertical: 'top',
-  },
-  error: {
-    fontSize: 14,
-    color: color.danger,
   },
   cancelButton: {
     minHeight: 44,

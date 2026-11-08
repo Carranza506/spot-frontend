@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiError, SERVICE_PHOTO_TYPES, validateServicePhoto, type components } from '@spot/shared';
+import { useFeedback } from '../../components/feedback/feedbackContext';
 import formStyles from '../AuthForm.module.css';
 import { servicesApi } from './servicesApi';
 import styles from './Services.module.css';
@@ -14,6 +15,7 @@ type ListState = { status: 'loading' } | { status: 'ready'; photos: Photo[] } | 
 /** A service's photo gallery: lists, uploads (one file at a time) and deletes photos. */
 export function ServicePhotos({ serviceId }: { serviceId: string }) {
   const navigate = useNavigate();
+  const { confirm, showToast } = useFeedback();
   const inputRef = useRef<HTMLInputElement>(null);
   const [list, setList] = useState<ListState>({ status: 'loading' });
   const [uploading, setUploading] = useState(false);
@@ -54,6 +56,7 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
       const nextOrder = list.photos.reduce((max, p) => Math.max(max, p.displayOrder + 1), 0);
       const photo = await servicesApi.uploadPhoto(serviceId, file, nextOrder);
       setList((current) => (current.status === 'ready' ? { ...current, photos: [...current.photos, photo] } : current));
+      showToast('Foto agregada.');
     } catch (error) {
       handleError(error);
     } finally {
@@ -62,7 +65,7 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
   }
 
   async function handleDelete(photo: Photo) {
-    if (!window.confirm('¿Eliminar esta foto?')) return;
+    if (!(await confirm({ title: 'Eliminar foto', message: '¿Eliminar esta foto?', confirmLabel: 'Eliminar', danger: true }))) return;
     setActionError(null);
     setDeletingId(photo.id);
     try {
@@ -70,6 +73,7 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
       setList((current) =>
         current.status === 'ready' ? { ...current, photos: current.photos.filter((p) => p.id !== photo.id) } : current,
       );
+      showToast('Foto eliminada.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) fetchPhotos();
       else handleError(error);

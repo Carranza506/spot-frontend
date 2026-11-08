@@ -11,6 +11,7 @@ import {
 } from '@spot/shared';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
+import { useFeedback } from '../../components/feedback/feedbackContext';
 import fieldStyles from '../../components/TextField.module.css';
 import formStyles from '../AuthForm.module.css';
 import pageStyles from '../BusinessProfilePage.module.css';
@@ -49,6 +50,7 @@ interface ScheduleExceptionsCardProps {
 
 export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardProps) {
   const navigate = useNavigate();
+  const { confirm, showToast } = useFeedback();
   const [list, setList] = useState<ListState>({ status: 'loading' });
   const [actionError, setActionError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -133,6 +135,7 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
       });
       closeForm();
       fetchExceptions();
+      showToast('Excepción agregada.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
@@ -153,13 +156,20 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
   }
 
   async function handleDelete(exception: BusinessScheduleException) {
-    if (!window.confirm(`¿Eliminar la excepción del ${formatIsoDate(exception.exceptionDate)}?`)) return;
+    const confirmed = await confirm({
+      title: 'Eliminar excepción',
+      message: `¿Eliminar la excepción del ${formatIsoDate(exception.exceptionDate)}?`,
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) return;
 
     setActionError(null);
     setDeletingId(exception.id);
     try {
       await scheduleApi.deleteException(businessId, exception.id);
       fetchExceptions();
+      showToast('Excepción eliminada.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
