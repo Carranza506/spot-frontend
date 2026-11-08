@@ -6,17 +6,22 @@ import type { LocationState } from './useCurrentLocation';
 
 type AiSearchCriteria = components['schemas']['AiSearchCriteria'];
 
-export const RADIUS_OPTIONS_KM = [5, 10, 25];
+const RADIUS_OPTIONS_KM = [5, 10, 25];
 export const PROVINCES = ['San José', 'Alajuela', 'Cartago', 'Heredia', 'Guanacaste', 'Puntarenas', 'Limón'];
 
 const dateFormat = new Intl.DateTimeFormat('es-CR', { weekday: 'short', day: 'numeric', month: 'short' });
 // Colones, like the web dashboard's formatPrice (not in @spot/shared yet).
 const priceFormat = new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', maximumFractionDigits: 0 });
 
+/** The small uppercase heading above a filter (chips, a text field, the distance toggle). */
+export function FilterLabel({ children }: { children: string }) {
+  return <Text style={styles.label}>{children}</Text>;
+}
+
 export function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
     <View style={styles.group}>
-      <Text style={styles.label}>{label}</Text>
+      <FilterLabel>{label}</FilterLabel>
       <View style={styles.chips}>{children}</View>
     </View>
   );

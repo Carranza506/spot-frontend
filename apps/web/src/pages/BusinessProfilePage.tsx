@@ -19,6 +19,7 @@ import { useFeedback } from '../components/feedback/feedbackContext';
 import { TextField } from '../components/TextField';
 import { useBusinessContext } from '../routes/businessContext';
 import { ContactsCard } from './profile/ContactsCard';
+import { LocationCard } from './profile/LocationCard';
 import formStyles from './AuthForm.module.css';
 import styles from './BusinessProfilePage.module.css';
 
@@ -239,12 +240,8 @@ export function BusinessProfilePage() {
         )}
       </article>
 
-      {/* Ubicación stays a placeholder until the location endpoint exists in contracts/spot-api.yaml. */}
       <div className={styles.sideColumn}>
-        <article className={styles.card}>
-          <h2 className={styles.cardTitle}>Ubicación</h2>
-          <p className={styles.placeholder}>Próximamente vas a poder indicar dónde se encuentra tu negocio.</p>
-        </article>
+        <LocationCard businessId={business.id} />
         <ContactsCard businessId={business.id} />
       </div>
     </div>

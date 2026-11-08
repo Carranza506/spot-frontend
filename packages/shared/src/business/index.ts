@@ -8,12 +8,22 @@ type BusinessContact = components['schemas']['BusinessContact'];
 type BusinessContactCreateRequest = components['schemas']['BusinessContactCreateRequest'];
 type PaginatedBusinessContacts = components['schemas']['PaginatedBusinessContacts'];
 type PaginatedPhotos = components['schemas']['PaginatedPhotos'];
+type BusinessLocation = components['schemas']['BusinessLocation'];
+type BusinessLocationUpsertRequest = components['schemas']['BusinessLocationUpsertRequest'];
+type Category = components['schemas']['Category'];
+type PaginatedCategories = components['schemas']['PaginatedCategories'];
 
-export { mapBusinessApiError, mapBusinessContactApiError } from './errors';
+export { mapBusinessApiError, mapBusinessContactApiError, mapBusinessLocationApiError } from './errors';
 export {
   BUSINESS_NAME_MAX_LENGTH,
   BUSINESS_LEGAL_NAME_MAX_LENGTH,
   BUSINESS_PHONE_MAX_LENGTH,
+  BUSINESS_LOCATION_CITY_MAX_LENGTH,
+  BUSINESS_LOCATION_PROVINCE_MAX_LENGTH,
+  BUSINESS_LOCATION_POSTAL_CODE_MAX_LENGTH,
+  COSTA_RICA_PROVINCES,
+  parseCoordinate,
+  validateCoordinate,
   validateHttpUrl,
 } from './validators';
 
@@ -88,4 +98,47 @@ export function deleteBusinessContact(
   return client.apiFetch<void>(`${contactsPath(businessId)}/${encodeURIComponent(contactId)}`, {
     method: 'DELETE',
   });
+}
+
+function businessPath(businessId: string): string {
+  return `/business/businesses/${encodeURIComponent(businessId)}`;
+}
+
+/** A business's location (public endpoint); throws ApiError 404 if it has none yet. */
+export function getBusinessLocation(client: Pick<ApiClient, 'apiFetch'>, businessId: string): Promise<BusinessLocation> {
+  return client.apiFetch<BusinessLocation>(`${businessPath(businessId)}/location`);
+}
+
+/** Creates or replaces the location of a business the authenticated BUSINESS account owns (one per business). */
+export function upsertBusinessLocation(
+  client: Pick<ApiClient, 'apiFetch'>,
+  businessId: string,
+  data: BusinessLocationUpsertRequest,
+): Promise<BusinessLocation> {
+  return client.apiFetch<BusinessLocation>(`${businessPath(businessId)}/location`, {
+    method: 'PUT',
+    body: data,
+  });
+}
+
+/** A page of the categories assigned to a business (public endpoint). */
+export function listBusinessCategories(
+  client: Pick<ApiClient, 'apiFetch'>,
+  businessId: string,
+  { page = 1, pageSize = 100 }: { page?: number; pageSize?: number } = {},
+): Promise<PaginatedCategories> {
+  return client.apiFetch<PaginatedCategories>(`${businessPath(businessId)}/categories?page=${page}&pageSize=${pageSize}`);
+}
+
+/** Replaces the whole set of a business's categories (at least one); returns the new set. */
+export async function replaceBusinessCategories(
+  client: Pick<ApiClient, 'apiFetch'>,
+  businessId: string,
+  categoryIds: string[],
+): Promise<Category[]> {
+  const result = await client.apiFetch<{ data?: Category[] }>(`${businessPath(businessId)}/categories`, {
+    method: 'PUT',
+    body: { categoryIds },
+  });
+  return result.data ?? [];
 }

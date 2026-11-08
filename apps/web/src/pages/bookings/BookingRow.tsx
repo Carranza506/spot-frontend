@@ -80,6 +80,7 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
       <div className={styles.info}>
         <span className={styles.service}>{booking.serviceName}</span>
         <span className={styles.meta}>
+          {booking.clientName ? `${booking.clientName} · ` : ''}
           {booking.serviceDurationMinutes} min · {formatPrice(booking.servicePrice)}
         </span>
         {booking.notes && <span className={styles.notes}>“{booking.notes}”</span>}

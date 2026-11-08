@@ -7,6 +7,9 @@ const BUSINESS_FIELDS = new Set(['name', 'description', 'legalName', 'email', 'p
 // BusinessContactCreateRequest fields.
 const CONTACT_FIELDS = new Set(['type', 'value', 'isPrimary']);
 
+// BusinessLocationUpsertRequest's text fields (coordinate errors stay general).
+const LOCATION_FIELDS = new Set(['address', 'city', 'province', 'country', 'postalCode']);
+
 /**
  * Maps a business ApiError to a field-level error when a 400 identifies the offending
  * field, otherwise to a general error. Unlike mapAuthApiError, a 409 is not an email
@@ -27,4 +30,9 @@ export function mapBusinessApiError(error: ApiError, fields: ReadonlySet<string>
 /** mapBusinessApiError for the business contact create form. */
 export function mapBusinessContactApiError(error: ApiError): AuthFormErrors {
   return mapBusinessApiError(error, CONTACT_FIELDS);
+}
+
+/** mapBusinessApiError for the business location form. */
+export function mapBusinessLocationApiError(error: ApiError): AuthFormErrors {
+  return mapBusinessApiError(error, LOCATION_FIELDS);
 }

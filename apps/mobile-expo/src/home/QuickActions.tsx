@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, type Href } from 'expo-router';
 import { color } from '@spot/shared';
+import { TEAL_TINT } from '@/components/business/businessDisplay';
 import { BellIcon, CalendarIcon, HeartIcon } from '@/components/icons';
 
 interface QuickAction {
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#e1efec',
+    backgroundColor: TEAL_TINT,
     alignItems: 'center',
     justifyContent: 'center',
   },
