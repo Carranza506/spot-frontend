@@ -24,6 +24,7 @@ const STATUS_BADGE: Record<BookingStatus, string> = {
 };
 
 const CONFIRM_MESSAGES: Record<Exclude<BookingAction, 'cancel'>, string> = {
+  confirm: '¿Confirmar esta reservación? El cliente recibirá una notificación.',
   complete: '¿Marcar esta reservación como completada?',
   noShow: '¿Marcar que el cliente no asistió a esta reservación?',
 };
@@ -40,7 +41,14 @@ interface BookingRowProps {
 export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
-  const actions = allowedBookingActions(booking.status);
+  // Read once per row, not on every render (render must stay pure). A row left open past startAt keeps the
+  // buttons hidden until the list reloads, which is the safe side.
+  const [renderedAt] = useState(Date.now);
+  // The backend only allows complete / no-show once the booking's start time has arrived (BOOKING_NOT_STARTED).
+  const started = new Date(booking.startAt).getTime() <= renderedAt;
+  const actions = allowedBookingActions(booking.status).filter(
+    (action) => started || (action !== 'complete' && action !== 'noShow'),
+  );
 
   function handleAction(action: BookingAction) {
     if (action === 'cancel') {
