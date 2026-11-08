@@ -1,23 +1,51 @@
+import { useEffect, useState } from 'react';
+import { BOOKING_STATUS_LABELS, formatPrice } from '@spot/shared';
+import { Button } from '../components/Button';
 import { CalendarIcon, CheckCircleIcon, ClockIcon, DollarIcon } from '../components/dashboard/icons';
-import { dashboardStats, reservationsByDay, upcomingAppointments } from './dashboard/mockDashboard';
+import { useBusinessContext } from '../routes/businessContext';
+import { formatDay, formatTimeRange } from './bookings/format';
+import { loadDashboard, type DashboardData } from './dashboard/dashboardData';
+import formStyles from './AuthForm.module.css';
+import pageStyles from './BusinessProfilePage.module.css';
 import styles from './DashboardPage.module.css';
 
-function formatColones(amount: number): string {
-  return `₡${Math.round(amount).toLocaleString('en-US').replace(/,/g, ' ')}`;
-}
-
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return `${parts[0]?.charAt(0) ?? ''}${parts[1]?.charAt(0) ?? ''}`.toUpperCase();
-}
-
-const STATUS_LABEL: Record<'confirmed' | 'pending', string> = {
-  confirmed: 'Confirmada',
-  pending: 'Pendiente',
-};
+type DashboardState = { key: string; status: 'ready'; data: DashboardData } | { key: string; status: 'error' };
 
 export function DashboardPage() {
-  const maxDayValue = Math.max(...reservationsByDay.map((day) => day.value));
+  const { business } = useBusinessContext();
+  const [reloadKey, setReloadKey] = useState(0);
+  const [loaded, setLoaded] = useState<DashboardState | null>(null);
+
+  // A response for an older business or reload is ignored, so the page reads as loading until its own arrives.
+  const key = `${business.id}:${reloadKey}`;
+  const state = loaded?.key === key ? loaded : null;
+
+  useEffect(() => {
+    let ignore = false;
+    loadDashboard(business.id)
+      .then((data) => !ignore && setLoaded({ key, status: 'ready', data }))
+      .catch(() => !ignore && setLoaded({ key, status: 'error' }));
+    return () => {
+      ignore = true;
+    };
+  }, [business.id, key]);
+
+  if (!state) return <p className={pageStyles.placeholder}>Cargando…</p>;
+
+  if (state.status === 'error') {
+    return (
+      <div className={styles.page}>
+        <p className={formStyles.generalError}>No se pudo cargar el resumen de tu negocio.</p>
+        <Button type="button" onClick={() => setReloadKey((k) => k + 1)}>
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
+
+  const { data } = state;
+  // At least 1, so an empty week draws flat bars instead of dividing by zero.
+  const maxDayValue = Math.max(1, ...data.week.map((day) => day.value));
 
   return (
     <div className={styles.page}>
@@ -29,7 +57,7 @@ export function DashboardPage() {
               <CalendarIcon />
             </span>
           </div>
-          <span className={styles.statValue}>{dashboardStats.totalReservations}</span>
+          <span className={styles.statValue}>{data.total}</span>
         </article>
         <article className={styles.statCard}>
           <div className={styles.statHeader}>
@@ -38,7 +66,7 @@ export function DashboardPage() {
               <ClockIcon />
             </span>
           </div>
-          <span className={styles.statValue}>{dashboardStats.pending}</span>
+          <span className={styles.statValue}>{data.pending}</span>
         </article>
         <article className={styles.statCard}>
           <div className={styles.statHeader}>
@@ -47,7 +75,7 @@ export function DashboardPage() {
               <CheckCircleIcon />
             </span>
           </div>
-          <span className={styles.statValue}>{dashboardStats.confirmed}</span>
+          <span className={styles.statValue}>{data.confirmed}</span>
         </article>
         <article className={styles.statCard}>
           <div className={styles.statHeader}>
@@ -56,20 +84,17 @@ export function DashboardPage() {
               <DollarIcon />
             </span>
           </div>
-          <span className={styles.statValue}>{formatColones(dashboardStats.revenueColones)}</span>
+          <span className={styles.statValue}>{formatPrice(data.revenue)}</span>
         </article>
       </section>
 
       <section className={styles.contentGrid}>
         <article className={styles.card}>
-          <h2 className={styles.cardTitle}>Reservaciones por día</h2>
+          <h2 className={styles.cardTitle}>Reservaciones esta semana</h2>
           <div className={styles.chart}>
-            {reservationsByDay.map((day) => (
-              <div key={day.label} className={styles.chartColumn}>
-                <div
-                  className={styles.chartBar}
-                  style={{ height: `${(day.value / maxDayValue) * 100}%` }}
-                />
+            {data.week.map((day) => (
+              <div key={day.date} className={styles.chartColumn} title={`${day.value} el ${formatDay(`${day.date}T12:00:00`)}`}>
+                <div className={styles.chartBar} style={{ height: `${(day.value / maxDayValue) * 100}%` }} />
                 <span className={styles.chartLabel}>{day.label}</span>
               </div>
             ))}
@@ -78,28 +103,46 @@ export function DashboardPage() {
 
         <article className={styles.card}>
           <h2 className={styles.cardTitle}>Próximas citas</h2>
-          <ul className={styles.appointmentList}>
-            {upcomingAppointments.map((appointment) => (
-              <li key={appointment.id} className={styles.appointmentRow}>
-                <span className={`${styles.appointmentAvatar} ${styles[`avatar${capitalize(appointment.avatarColor)}`]}`}>
-                  {initialsFromName(appointment.name)}
-                </span>
-                <div className={styles.appointmentInfo}>
-                  <span className={styles.appointmentName}>{appointment.name}</span>
-                  <span className={styles.appointmentService}>{appointment.service}</span>
-                </div>
-                <span className={`${styles.badge} ${styles[`badge${capitalize(appointment.status)}`]}`}>
-                  {STATUS_LABEL[appointment.status]}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {data.upcoming.length === 0 ? (
+            <p className={pageStyles.placeholder}>No tenés citas pendientes ni confirmadas próximamente.</p>
+          ) : (
+            <ul className={styles.appointmentList}>
+              {data.upcoming.map((booking) => {
+                const pending = booking.status === 'PENDING';
+                // An account without a name (clientName null) still gets a readable row.
+                const clientName = booking.clientName ?? 'Cliente';
+                return (
+                  <li key={booking.id} className={styles.appointmentRow}>
+                    <span className={`${styles.appointmentAvatar} ${pending ? styles.avatarAmber : styles.avatarTeal}`}>
+                      {initials(clientName)}
+                    </span>
+                    <div className={styles.appointmentInfo}>
+                      <span className={styles.appointmentName}>{clientName}</span>
+                      <span className={styles.appointmentService}>
+                        {booking.serviceName} · {formatDay(booking.startAt)} · {formatTimeRange(booking.startAt, booking.endAt)}
+                      </span>
+                    </div>
+                    <span className={`${styles.badge} ${pending ? styles.badgePending : styles.badgeConfirmed}`}>
+                      {BOOKING_STATUS_LABELS[booking.status]}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </article>
       </section>
     </div>
   );
 }
 
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+/** "María Rodríguez" → "MR". Array.from keeps an emoji or other surrogate pair whole. */
+function initials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => Array.from(part)[0] ?? '')
+    .join('')
+    .toUpperCase();
 }

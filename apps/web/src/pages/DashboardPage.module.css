@@ -149,10 +149,6 @@
   background: var(--color-accentAmber);
 }
 
-.avatarDark {
-  background: var(--color-panelDark);
-}
-
 .appointmentInfo {
   flex: 1 1 auto;
   min-width: 0;
