@@ -1,6 +1,7 @@
 import {
   cancelBooking,
   completeBooking,
+  confirmBooking,
   listBusinessBookings,
   markBookingNoShow,
   type BusinessBookingsFilter,
@@ -14,6 +15,7 @@ type PaginatedBookings = components['schemas']['PaginatedBookings'];
 /** What the Reservaciones view needs from the booking endpoints. */
 export interface BookingsApi {
   list(businessId: string, filter: BusinessBookingsFilter): Promise<PaginatedBookings>;
+  confirm(bookingId: string): Promise<Booking>;
   cancel(bookingId: string, reason?: string): Promise<Booking>;
   complete(bookingId: string): Promise<Booking>;
   markNoShow(bookingId: string): Promise<Booking>;
@@ -21,6 +23,7 @@ export interface BookingsApi {
 
 export const bookingsApi: BookingsApi = {
   list: (businessId, filter) => listBusinessBookings(authClient, businessId, filter),
+  confirm: (bookingId) => confirmBooking(authClient, bookingId),
   cancel: (bookingId, reason) => cancelBooking(authClient, bookingId, reason ? { reason } : {}),
   complete: (bookingId) => completeBooking(authClient, bookingId),
   markNoShow: (bookingId) => markBookingNoShow(authClient, bookingId),

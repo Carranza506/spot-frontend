@@ -1,6 +1,7 @@
 import type { BookingAction } from '@spot/shared';
 
 export const ACTION_LABELS: Record<BookingAction, string> = {
+  confirm: 'Confirmar',
   cancel: 'Cancelar',
   complete: 'Completar',
   noShow: 'No asistió',
@@ -8,6 +9,7 @@ export const ACTION_LABELS: Record<BookingAction, string> = {
 
 /** Infinitive used in messages: "No se pudo {verb} la reservación". */
 export const ACTION_VERBS: Record<BookingAction, string> = {
+  confirm: 'confirmar',
   cancel: 'cancelar',
   complete: 'completar',
   noShow: 'marcar como no asistida',

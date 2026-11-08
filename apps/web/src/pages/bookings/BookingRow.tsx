@@ -25,6 +25,11 @@ const STATUS_BADGE: Record<BookingStatus, string> = {
 };
 
 const CONFIRM_OPTIONS: Record<Exclude<BookingAction, 'cancel'>, ConfirmOptions> = {
+  confirm: {
+    title: 'Confirmar reservación',
+    message: '¿Confirmar esta reservación? El cliente recibirá una notificación.',
+    confirmLabel: 'Confirmar',
+  },
   complete: {
     title: 'Marcar como completada',
     message: '¿Marcar esta reservación como completada?',
@@ -51,7 +56,14 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
   const { confirm } = useFeedback();
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
-  const actions = allowedBookingActions(booking.status);
+  // Read once per row, not on every render (render must stay pure). A row left open past startAt keeps the
+  // buttons hidden until the list reloads, which is the safe side.
+  const [renderedAt] = useState(Date.now);
+  // The backend only allows complete / no-show once the booking's start time has arrived (BOOKING_NOT_STARTED).
+  const started = new Date(booking.startAt).getTime() <= renderedAt;
+  const actions = allowedBookingActions(booking.status).filter(
+    (action) => started || (action !== 'complete' && action !== 'noShow'),
+  );
 
   async function handleAction(action: BookingAction) {
     if (action === 'cancel') {
@@ -91,7 +103,7 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
             <button
               key={action}
               type="button"
-              className={action === 'complete' ? styles.action : styles.dangerAction}
+              className={action === 'cancel' || action === 'noShow' ? styles.dangerAction : styles.action}
               onClick={() => handleAction(action)}
               disabled={busy || cancelOpen}
             >

@@ -71,12 +71,17 @@ export function cancelBooking(
   return client.apiFetch<Booking>(`${bookingPath(bookingId)}/cancel`, { method: 'POST', body: data });
 }
 
-/** CONFIRMED → COMPLETED (422 from any other status). Business owner only. */
+/** PENDING → CONFIRMED (422 from any other status). Business owner only. */
+export function confirmBooking(client: Pick<ApiClient, 'apiFetch'>, bookingId: string): Promise<Booking> {
+  return client.apiFetch<Booking>(`${bookingPath(bookingId)}/confirm`, { method: 'POST' });
+}
+
+/** CONFIRMED → COMPLETED (422 from any other status, or BOOKING_NOT_STARTED before startAt). Business owner only. */
 export function completeBooking(client: Pick<ApiClient, 'apiFetch'>, bookingId: string): Promise<Booking> {
   return client.apiFetch<Booking>(`${bookingPath(bookingId)}/complete`, { method: 'POST' });
 }
 
-/** CONFIRMED → NO_SHOW (422 from any other status). Business owner only. */
+/** CONFIRMED → NO_SHOW (422 from any other status, or BOOKING_NOT_STARTED before startAt). Business owner only. */
 export function markBookingNoShow(client: Pick<ApiClient, 'apiFetch'>, bookingId: string): Promise<Booking> {
   return client.apiFetch<Booking>(`${bookingPath(bookingId)}/no-show`, { method: 'POST' });
 }
