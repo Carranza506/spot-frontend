@@ -149,8 +149,7 @@
   color: var(--color-warningText);
 }
 
-.deleteButton,
-.cancelButton {
+.deleteButton {
   flex: 0 0 auto;
   background: none;
   border: none;
@@ -164,12 +163,7 @@
   color: var(--color-danger);
 }
 
-.cancelButton {
-  color: var(--color-textSecondary);
-}
-
-.deleteButton:disabled,
-.cancelButton:disabled {
+.deleteButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -199,13 +193,6 @@
 
 .checkbox input {
   accent-color: var(--color-accentTeal);
-}
-
-.formActions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--spacing-md);
 }
 
 @media (max-width: 720px) {

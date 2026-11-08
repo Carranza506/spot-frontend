@@ -15,6 +15,7 @@ import {
 import { authClient } from '@/api/client';
 import { NETWORK_ERROR, isUnauthorized } from '@/api/errors';
 import { formatBusinessDateTime } from '@/bookings/format';
+import { ActionButtons } from '@/components/ActionButtons';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { useToast } from '@/components/Toast';
@@ -374,14 +375,10 @@ function BookingCard({
       {cancellable && confirming ? (
         <View style={styles.confirm}>
           <Text style={styles.cardText}>¿Cancelar esta reserva? No se puede deshacer.</Text>
-          <View style={styles.confirmActions}>
-            <View style={styles.confirmAction}>
-              <PrimaryButton title="No, mantenerla" variant="secondary" compact onPress={onKeep} disabled={cancelling} />
-            </View>
-            <View style={styles.confirmAction}>
-              <PrimaryButton title="Sí, cancelar" variant="danger" compact onPress={onConfirmCancel} loading={cancelling} />
-            </View>
-          </View>
+          <ActionButtons>
+            <PrimaryButton title="No, mantenerla" variant="secondary" compact onPress={onKeep} disabled={cancelling} />
+            <PrimaryButton title="Sí, cancelar" variant="danger" compact onPress={onConfirmCancel} loading={cancelling} />
+          </ActionButtons>
         </View>
       ) : null}
     </View>
@@ -537,15 +534,5 @@ const styles = StyleSheet.create({
   confirm: {
     marginTop: 8,
     gap: 12,
-  },
-  confirmActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  // Side by side; on a very narrow screen they stack instead of cutting a label.
-  confirmAction: {
-    flexGrow: 1,
-    flexBasis: 120,
   },
 });

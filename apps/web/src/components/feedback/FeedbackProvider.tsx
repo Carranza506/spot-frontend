@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type SyntheticEvent } from 'react';
+import { ActionButtons } from '../ActionButtons';
 import { Button } from '../Button';
 import { FeedbackContext, type ConfirmOptions } from './feedbackContext';
 import styles from './Feedback.module.css';
@@ -63,7 +64,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               {request.title}
             </h2>
             <p className={styles.message}>{request.message}</p>
-            <div className={styles.actions}>
+            <ActionButtons className={styles.actions}>
               {/* First in the DOM, so it takes the initial focus: Enter must not confirm by accident. */}
               <Button type="button" variant="secondary" compact onClick={() => settle(false)}>
                 Volver
@@ -71,7 +72,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               <Button type="button" variant={request.danger ? 'danger' : 'primary'} compact onClick={() => settle(true)}>
                 {request.confirmLabel}
               </Button>
-            </div>
+            </ActionButtons>
           </>
         )}
       </dialog>

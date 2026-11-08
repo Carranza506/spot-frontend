@@ -152,7 +152,6 @@
   border-radius: var(--radius-md);
 }
 
-.cancelActions,
 .pager {
   display: flex;
   justify-content: flex-end;

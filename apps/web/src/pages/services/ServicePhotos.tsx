@@ -86,7 +86,7 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
   if (list.status === 'error') {
     return (
       <div className={styles.photosMessage}>
-        <span>No se pudieron cargar las fotos.</span>
+        <p className={formStyles.generalError}>No se pudieron cargar las fotos.</p>
         <button
           type="button"
           className={styles.textButton}

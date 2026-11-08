@@ -26,24 +26,8 @@
   color: var(--color-textSecondary);
 }
 
-/* Equal columns: both buttons take the width of the longer label. */
 .actions {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  justify-content: end;
-  gap: var(--spacing-sm);
   margin-top: var(--spacing-xl);
-}
-
-.actions > button {
-  min-width: 120px;
-  font-family: inherit;
-}
-
-.actions > button:focus-visible {
-  outline: 2px solid var(--color-accentTeal);
-  outline-offset: 2px;
 }
 
 .toasts {
@@ -73,14 +57,6 @@
 @media (max-width: 480px) {
   .dialog {
     padding: var(--spacing-lg);
-  }
-
-  .actions {
-    justify-content: stretch;
-  }
-
-  .actions > button {
-    min-width: 0;
   }
 
   .toasts {

@@ -168,7 +168,6 @@
   color: var(--color-textPrimary);
 }
 
-.confirmActions,
 .pager {
   display: flex;
   justify-content: flex-end;

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ApiError, formatPrice, type components } from '@spot/shared';
+import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
 import { useFeedback } from '../../components/feedback/feedbackContext';
 import { INTERVAL_LABELS, SUBSCRIPTION_STATUS_LABELS, formatDate } from './format';
@@ -110,14 +111,14 @@ export function SubscriptionCard({ subscription, onChange, onAuthError, onStale 
               {currentPeriodEnd ? ` el ${formatDate(currentPeriodEnd)}` : ' el final del período'} y después no se
               renovará.
             </p>
-            <div className={styles.confirmActions}>
-              <button type="button" className={styles.textButton} onClick={() => setConfirmOpen(false)} disabled={pending}>
+            <ActionButtons stacked>
+              <Button type="button" variant="secondary" compact onClick={() => setConfirmOpen(false)} disabled={pending}>
                 Volver
-              </button>
-              <Button type="button" variant="danger" onClick={handleCancel} disabled={pending}>
+              </Button>
+              <Button type="button" variant="danger" compact onClick={handleCancel} disabled={pending}>
                 {pending ? 'Cancelando…' : 'Cancelar suscripción'}
               </Button>
-            </div>
+            </ActionButtons>
           </div>
         ) : cancellable ? (
           <button

@@ -10,6 +10,7 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '../../api/client';
+import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
@@ -222,14 +223,14 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
                 <input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} />
                 Contacto principal
               </label>
-              <div className={styles.formActions}>
-                <button type="button" className={styles.cancelButton} onClick={closeForm} disabled={submitting}>
+              <ActionButtons stacked>
+                <Button type="button" variant="secondary" compact onClick={closeForm} disabled={submitting}>
                   Cancelar
-                </button>
-                <Button type="submit" disabled={submitting}>
+                </Button>
+                <Button type="submit" compact disabled={submitting}>
                   {submitting ? 'Guardando…' : 'Guardar contacto'}
                 </Button>
-              </div>
+              </ActionButtons>
             </form>
           ) : (
             <Button type="button" fullWidth onClick={openForm}>

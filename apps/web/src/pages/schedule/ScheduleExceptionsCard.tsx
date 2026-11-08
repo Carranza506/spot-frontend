@@ -9,6 +9,7 @@ import {
   validateTimeRange,
   type components,
 } from '@spot/shared';
+import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { useFeedback } from '../../components/feedback/feedbackContext';
@@ -290,14 +291,14 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                 error={fieldErrors.reason}
                 disabled={busy}
               />
-              <div className={styles.formActions}>
-                <button type="button" className={styles.cancelButton} onClick={closeForm} disabled={busy}>
+              <ActionButtons stacked>
+                <Button type="button" variant="secondary" compact onClick={closeForm} disabled={busy}>
                   Cancelar
-                </button>
-                <Button type="submit" disabled={busy}>
+                </Button>
+                <Button type="submit" compact disabled={busy}>
                   {submitting ? 'Guardando…' : 'Guardar excepción'}
                 </Button>
-              </div>
+              </ActionButtons>
             </form>
           ) : (
             <Button type="button" fullWidth onClick={openForm}>

@@ -7,6 +7,7 @@ import {
   type BookingAction,
   type components,
 } from '@spot/shared';
+import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { useFeedback, type ConfirmOptions } from '../../components/feedback/feedbackContext';
@@ -122,14 +123,14 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
             maxLength={BOOKING_CANCEL_REASON_MAX_LENGTH}
             onChange={(e) => setReason(e.target.value)}
           />
-          <div className={styles.cancelActions}>
-            <button type="button" className={styles.action} onClick={() => setCancelOpen(false)} disabled={busy}>
+          <ActionButtons>
+            <Button type="button" variant="secondary" compact onClick={() => setCancelOpen(false)} disabled={busy}>
               Volver
-            </button>
-            <Button type="submit" variant="danger" disabled={busy}>
+            </Button>
+            <Button type="submit" variant="danger" compact disabled={busy}>
               Cancelar reservación
             </Button>
-          </div>
+          </ActionButtons>
         </form>
       )}
     </li>

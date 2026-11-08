@@ -145,7 +145,7 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
       {load.status === 'loading' && <div className={pageStyles.message}>Cargando…</div>}
       {load.status === 'error' && (
         <div className={pageStyles.message}>
-          <p>No se pudo cargar el horario.</p>
+          <p className={formStyles.generalError}>No se pudo cargar el horario.</p>
           <Button type="button" onClick={retry}>
             Reintentar
           </Button>

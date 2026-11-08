@@ -22,7 +22,8 @@ export class ApiError extends Error {
 /**
  * Builds an ApiError from a non-2xx Response. If the body isn't valid JSON or
  * doesn't match the Error schema (e.g. a proxy/HTML error page), falls back to
- * a synthetic Error payload so callers only ever have to handle ApiError.
+ * a synthetic Error payload so callers only ever have to handle ApiError. Its message is shown to
+ * users, so it's never the response's own status text ("Bad Gateway").
  */
 export async function parseErrorResponse(response: Response): Promise<ApiError> {
   let body: unknown;
@@ -38,7 +39,7 @@ export async function parseErrorResponse(response: Response): Promise<ApiError> 
 
   return new ApiError(response.status, {
     code: 'UNKNOWN_ERROR',
-    message: response.statusText || 'An unexpected error occurred.',
+    message: 'Ocurrió un error inesperado. Intentá de nuevo.',
     timestamp: new Date().toISOString(),
   });
 }

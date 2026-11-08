@@ -151,7 +151,7 @@ export function BusinessProfilePage() {
         {loadState.status === 'loading' && <div className={styles.message}>Cargando…</div>}
         {loadState.status === 'error' && (
           <div className={styles.message}>
-            <p>No se pudo cargar tu negocio.</p>
+            <p className={formStyles.generalError}>No se pudo cargar tu negocio.</p>
             <Button type="button" onClick={retry}>
               Reintentar
             </Button>
