@@ -110,13 +110,13 @@ export function BookingsPage() {
 
   const reload = () => setReloadKey((key) => key + 1);
 
-  async function handleAction(booking: Booking, action: BookingAction, reason?: string) {
+  async function handleAction(booking: Booking, action: BookingAction) {
     setActionError(null);
     setPendingId(booking.id);
     try {
       const run: Record<BookingAction, () => Promise<Booking>> = {
         confirm: () => bookingsApi.confirm(booking.id),
-        cancel: () => bookingsApi.cancel(booking.id, reason),
+        cancel: () => bookingsApi.cancel(booking.id),
         complete: () => bookingsApi.complete(booking.id),
         noShow: () => bookingsApi.markNoShow(booking.id),
       };
@@ -209,8 +209,7 @@ export function BookingsPage() {
               <ul className={styles.list}>
                 {list.bookings.map((booking) => (
                   <BookingRow
-                    // Keyed by status too: a transition remounts the row, closing its cancel form.
-                    key={`${booking.id}-${booking.status}`}
+                    key={booking.id}
                     booking={booking}
                     busy={pendingId !== null}
                     pending={pendingId === booking.id}

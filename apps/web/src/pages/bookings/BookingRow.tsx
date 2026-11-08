@@ -1,15 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import {
-  BOOKING_CANCEL_REASON_MAX_LENGTH,
   BOOKING_STATUS_LABELS,
   allowedBookingActions,
   formatPrice,
   type BookingAction,
   type components,
 } from '@spot/shared';
-import { ActionButtons } from '../../components/ActionButtons';
-import { Button } from '../../components/Button';
-import { TextField } from '../../components/TextField';
 import { useFeedback, type ConfirmOptions } from '../../components/feedback/feedbackContext';
 import { ACTION_LABELS, formatDay, formatTimeRange } from './format';
 import styles from './Bookings.module.css';
@@ -25,11 +21,17 @@ const STATUS_BADGE: Record<BookingStatus, string> = {
   NO_SHOW: styles.badgeClosed,
 };
 
-const CONFIRM_OPTIONS: Record<Exclude<BookingAction, 'cancel'>, ConfirmOptions> = {
+const CONFIRM_OPTIONS: Record<BookingAction, ConfirmOptions> = {
   confirm: {
     title: 'Confirmar reservación',
     message: '¿Confirmar esta reservación? El cliente recibirá una notificación.',
     confirmLabel: 'Confirmar',
+  },
+  cancel: {
+    title: 'Cancelar reservación',
+    message: '¿Cancelar esta reservación? No se puede deshacer.',
+    confirmLabel: 'Cancelar reservación',
+    danger: true,
   },
   complete: {
     title: 'Marcar como completada',
@@ -50,13 +52,11 @@ interface BookingRowProps {
   busy: boolean;
   /** True while this row's own transition is in flight. */
   pending: boolean;
-  onAction: (booking: Booking, action: BookingAction, reason?: string) => void;
+  onAction: (booking: Booking, action: BookingAction) => void;
 }
 
 export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps) {
   const { confirm } = useFeedback();
-  const [cancelOpen, setCancelOpen] = useState(false);
-  const [reason, setReason] = useState('');
   // Read once per row, not on every render (render must stay pure). A row left open past startAt keeps the
   // buttons hidden until the list reloads, which is the safe side.
   const [renderedAt] = useState(Date.now);
@@ -67,16 +67,7 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
   );
 
   async function handleAction(action: BookingAction) {
-    if (action === 'cancel') {
-      setCancelOpen(true);
-      return;
-    }
     if (await confirm(CONFIRM_OPTIONS[action])) onAction(booking, action);
-  }
-
-  function handleCancelSubmit(event: FormEvent) {
-    event.preventDefault();
-    onAction(booking, 'cancel', reason.trim() || undefined);
   }
 
   return (
@@ -106,33 +97,13 @@ export function BookingRow({ booking, busy, pending, onAction }: BookingRowProps
               type="button"
               className={action === 'cancel' || action === 'noShow' ? styles.dangerAction : styles.action}
               onClick={() => handleAction(action)}
-              disabled={busy || cancelOpen}
+              disabled={busy}
             >
               {ACTION_LABELS[action]}
             </button>
           ))
         )}
       </div>
-
-      {cancelOpen && !pending && (
-        <form className={styles.cancelForm} onSubmit={handleCancelSubmit} noValidate>
-          <TextField
-            id={`cancelReason-${booking.id}`}
-            label="Motivo de la cancelación (opcional)"
-            value={reason}
-            maxLength={BOOKING_CANCEL_REASON_MAX_LENGTH}
-            onChange={(e) => setReason(e.target.value)}
-          />
-          <ActionButtons>
-            <Button type="button" variant="secondary" compact onClick={() => setCancelOpen(false)} disabled={busy}>
-              Volver
-            </Button>
-            <Button type="submit" variant="danger" compact disabled={busy}>
-              Cancelar reservación
-            </Button>
-          </ActionButtons>
-        </form>
-      )}
     </li>
   );
 }
