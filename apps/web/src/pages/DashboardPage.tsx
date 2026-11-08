@@ -109,15 +109,17 @@ export function DashboardPage() {
             <ul className={styles.appointmentList}>
               {data.upcoming.map((booking) => {
                 const pending = booking.status === 'PENDING';
+                // An account without a name (clientName null) still gets a readable row.
+                const clientName = booking.clientName ?? 'Cliente';
                 return (
                   <li key={booking.id} className={styles.appointmentRow}>
                     <span className={`${styles.appointmentAvatar} ${pending ? styles.avatarAmber : styles.avatarTeal}`}>
-                      {(Array.from(booking.serviceName.trim())[0] ?? '?').toUpperCase()}
+                      {initials(clientName)}
                     </span>
                     <div className={styles.appointmentInfo}>
-                      <span className={styles.appointmentName}>{booking.serviceName}</span>
+                      <span className={styles.appointmentName}>{clientName}</span>
                       <span className={styles.appointmentService}>
-                        {formatDay(booking.startAt)} · {formatTimeRange(booking.startAt, booking.endAt)}
+                        {booking.serviceName} · {formatDay(booking.startAt)} · {formatTimeRange(booking.startAt, booking.endAt)}
                       </span>
                     </div>
                     <span className={`${styles.badge} ${pending ? styles.badgePending : styles.badgeConfirmed}`}>
@@ -132,4 +134,15 @@ export function DashboardPage() {
       </section>
     </div>
   );
+}
+
+/** "María Rodríguez" → "MR". Array.from keeps an emoji or other surrogate pair whole. */
+function initials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => Array.from(part)[0] ?? '')
+    .join('')
+    .toUpperCase();
 }

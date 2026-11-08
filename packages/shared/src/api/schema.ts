@@ -1999,6 +1999,8 @@ export interface components {
             id: string;
             /** Format: uuid */
             userId: string;
+            /** @description The client's first and last name (`users.first_name`, `users.last_name`), read when the booking is returned; `null` when the account has no name. */
+            readonly clientName?: string | null;
             /** Format: uuid */
             businessId: string;
             /**
@@ -2745,7 +2747,7 @@ export interface operations {
             query?: {
                 page?: components["parameters"]["PageParam"];
                 pageSize?: components["parameters"]["PageSizeParam"];
-                /** @description Free text searched in the business name and description. */
+                /** @description Free text searched in the business name and description, and in the name and description of its active services. */
                 q?: string;
                 categoryId?: string;
                 city?: string;
