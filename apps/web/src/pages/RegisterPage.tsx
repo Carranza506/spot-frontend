@@ -121,7 +121,7 @@ export function RegisterPage() {
           onChange={(e) => setPassword(e.target.value)}
           error={fieldErrors.password}
         />
-        <Button type="submit" fullWidth disabled={submitting}>
+        <Button type="submit" disabled={submitting}>
           {submitting ? 'Creando cuenta…' : 'Crear cuenta'}
         </Button>
       </form>

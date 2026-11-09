@@ -108,10 +108,10 @@ export function BillingSuccessPage() {
               vuelvas a pagar.
             </p>
             <ActionButtons className={styles.resultActions}>
-              <Button type="button" variant="secondary" compact onClick={() => navigate('/billing')}>
+              <Button type="button" variant="secondary" onClick={() => navigate('/billing')}>
                 Ir a mi suscripción
               </Button>
-              <Button type="button" compact onClick={() => setAttempt((a) => a + 1)}>
+              <Button type="button" onClick={() => setAttempt((a) => a + 1)}>
                 Volver a comprobar
               </Button>
             </ActionButtons>

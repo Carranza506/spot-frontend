@@ -224,16 +224,16 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
                 Contacto principal
               </label>
               <ActionButtons stacked>
-                <Button type="button" variant="secondary" compact onClick={closeForm} disabled={submitting}>
+                <Button type="button" variant="secondary" onClick={closeForm} disabled={submitting}>
                   Cancelar
                 </Button>
-                <Button type="submit" compact disabled={submitting}>
+                <Button type="submit" disabled={submitting}>
                   {submitting ? 'Guardando…' : 'Guardar contacto'}
                 </Button>
               </ActionButtons>
             </form>
           ) : (
-            <Button type="button" fullWidth onClick={openForm}>
+            <Button type="button" onClick={openForm}>
               Agregar contacto
             </Button>
           )}

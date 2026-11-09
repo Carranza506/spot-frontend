@@ -1,14 +1,17 @@
+/* One size for every button: `width: fit-content` so a column layout can't stretch it. */
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: fit-content;
+  min-height: 44px;
   border: none;
   border-radius: var(--radius-md);
   background: var(--color-accentTeal);
   color: var(--color-onPanelDark);
-  font-size: var(--fontSize-md);
+  font-size: var(--fontSize-sm);
   font-weight: 600;
-  padding: var(--spacing-lg);
+  padding: 0 var(--spacing-lg);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
@@ -36,17 +39,7 @@
   filter: brightness(0.92);
 }
 
-.compact {
-  min-height: 44px;
-  padding: 0 var(--spacing-lg);
-  font-size: var(--fontSize-sm);
-}
-
 .button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.fullWidth {
-  width: 100%;
 }

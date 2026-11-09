@@ -112,10 +112,10 @@ export function SubscriptionCard({ subscription, onChange, onAuthError, onStale 
               renovará.
             </p>
             <ActionButtons stacked>
-              <Button type="button" variant="secondary" compact onClick={() => setConfirmOpen(false)} disabled={pending}>
+              <Button type="button" variant="secondary" onClick={() => setConfirmOpen(false)} disabled={pending}>
                 Volver
               </Button>
-              <Button type="button" variant="danger" compact onClick={handleCancel} disabled={pending}>
+              <Button type="button" variant="danger" onClick={handleCancel} disabled={pending}>
                 {pending ? 'Cancelando…' : 'Cancelar suscripción'}
               </Button>
             </ActionButtons>

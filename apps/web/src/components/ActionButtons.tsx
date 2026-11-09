@@ -5,11 +5,15 @@ interface ActionButtonsProps {
   className?: string;
   /** One above the other, for a narrow card where a long label would break in two lines. */
   stacked?: boolean;
+  /** Centered instead of pushed to the right, for a dialog. */
+  centered?: boolean;
   children: ReactNode;
 }
 
 /** A row of equally sized buttons, aligned to the right: the secondary one first, then the main one. */
-export function ActionButtons({ className, stacked, children }: ActionButtonsProps) {
-  const classes = [styles.actions, stacked ? styles.stacked : '', className].filter(Boolean).join(' ');
+export function ActionButtons({ className, stacked, centered, children }: ActionButtonsProps) {
+  const classes = [styles.actions, stacked ? styles.stacked : '', centered ? styles.centered : '', className]
+    .filter(Boolean)
+    .join(' ');
   return <div className={classes}>{children}</div>;
 }

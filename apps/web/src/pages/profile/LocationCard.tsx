@@ -274,10 +274,10 @@ export function LocationCard({ businessId }: LocationCardProps) {
             </div>
           )}
           <ActionButtons stacked>
-            <Button type="button" variant="secondary" compact onClick={fillCurrentPosition} disabled={locating || submitting}>
+            <Button type="button" variant="secondary" onClick={fillCurrentPosition} disabled={locating || submitting}>
               {locating ? 'Obteniendo ubicación…' : 'Usar mi ubicación actual'}
             </Button>
-            <Button type="submit" compact disabled={submitting}>
+            <Button type="submit" disabled={submitting}>
               {submitting ? 'Guardando…' : 'Guardar ubicación'}
             </Button>
           </ActionButtons>

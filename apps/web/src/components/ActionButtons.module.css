@@ -13,7 +13,14 @@
   width: auto;
 }
 
+/* With margin-left already auto, an auto right margin centers the row. */
+.centered {
+  margin-right: auto;
+}
+
+/* Overrides the button's own fit-content, so both fill their column and stay equal. */
 .actions > button {
+  width: 100%;
   min-width: 120px;
   font-family: inherit;
 }

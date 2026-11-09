@@ -134,10 +134,10 @@ export function ServiceForm({ service, submitLabel, onSubmit, onCancel }: Servic
         error={fieldErrors.durationMinutes}
       />
       <ActionButtons className={styles.fullRow}>
-        <Button type="button" variant="secondary" compact onClick={onCancel} disabled={submitting}>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
           Cancelar
         </Button>
-        <Button type="submit" compact disabled={submitting}>
+        <Button type="submit" disabled={submitting}>
           {submitting ? 'Guardando…' : submitLabel}
         </Button>
       </ActionButtons>

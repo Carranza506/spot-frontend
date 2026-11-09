@@ -292,16 +292,16 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                 disabled={busy}
               />
               <ActionButtons stacked>
-                <Button type="button" variant="secondary" compact onClick={closeForm} disabled={busy}>
+                <Button type="button" variant="secondary" onClick={closeForm} disabled={busy}>
                   Cancelar
                 </Button>
-                <Button type="submit" compact disabled={busy}>
+                <Button type="submit" disabled={busy}>
                   {submitting ? 'Guardando…' : 'Guardar excepción'}
                 </Button>
               </ActionButtons>
             </form>
           ) : (
-            <Button type="button" fullWidth onClick={openForm}>
+            <Button type="button" onClick={openForm}>
               Agregar excepción
             </Button>
           )}

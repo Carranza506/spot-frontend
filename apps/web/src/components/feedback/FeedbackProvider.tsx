@@ -64,12 +64,12 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               {request.title}
             </h2>
             <p className={styles.message}>{request.message}</p>
-            <ActionButtons className={styles.actions}>
+            <ActionButtons centered className={styles.actions}>
               {/* First in the DOM, so it takes the initial focus: Enter must not confirm by accident. */}
-              <Button type="button" variant="secondary" compact onClick={() => settle(false)}>
+              <Button type="button" variant="secondary" onClick={() => settle(false)}>
                 Volver
               </Button>
-              <Button type="button" variant={request.danger ? 'danger' : 'primary'} compact onClick={() => settle(true)}>
+              <Button type="button" variant={request.danger ? 'danger' : 'primary'} onClick={() => settle(true)}>
                 {request.confirmLabel}
               </Button>
             </ActionButtons>
