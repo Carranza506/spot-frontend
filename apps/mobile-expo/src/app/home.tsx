@@ -27,6 +27,7 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { rememberWrongRole } from '@/auth/wrongRole';
 import { Logo } from '@/components/Logo';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LogoutIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
@@ -126,7 +127,16 @@ export default function HomeScreen() {
 
   useEffect(() => {
     getOwnProfile(authClient)
-      .then(setUser)
+      .then((profile) => {
+        // A business or admin session stored before the login screen started checking the role.
+        if (profile.role !== 'CLIENT') {
+          rememberWrongRole();
+          // Clearing the session takes this screen back to the login, which shows the reason.
+          void logout(authClient);
+          return;
+        }
+        setUser(profile);
+      })
       .catch(() => setUser(null));
     // Login and register both land here, so this is where the device gets its push token registered.
     void registerForPush();
