@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ApiError, listBusinessCategories, listCategories, replaceBusinessCategories, type components } from '@spot/shared';
 import { authClient } from '../api/client';
 import { Button } from '../components/Button';
+import { useFeedback } from '../components/feedback/feedbackContext';
 import { useBusinessContext } from '../routes/businessContext';
 import formStyles from './AuthForm.module.css';
 import pageStyles from './BusinessProfilePage.module.css';
@@ -41,12 +42,12 @@ function sameSet(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
 /** Categorías: the categories a business is listed under, which the client search filters by. */
 export function CategoriesPage() {
   const navigate = useNavigate();
+  const { showToast } = useFeedback();
   const { business } = useBusinessContext();
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' });
   const [savedIds, setSavedIds] = useState<ReadonlySet<string>>(new Set());
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchCategories = useCallback(() => {
@@ -77,12 +78,10 @@ export function CategoriesPage() {
       else next.add(categoryId);
       return next;
     });
-    setSaved(false);
     setGeneralError(null);
   }
 
   async function save() {
-    setSaved(false);
     setGeneralError(null);
     setSubmitting(true);
     try {
@@ -90,7 +89,7 @@ export function CategoriesPage() {
       const ids = new Set(updated.map((c) => c.id));
       setSavedIds(ids);
       setSelected(ids);
-      setSaved(true);
+      showToast('Las categorías se guardaron correctamente.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
@@ -128,7 +127,6 @@ export function CategoriesPage() {
               Elegí en qué categorías aparece tu negocio. Los clientes las usan para filtrar la búsqueda.
             </p>
             {generalError && <p className={formStyles.generalError}>{generalError}</p>}
-            {saved && <p className={pageStyles.success}>Las categorías se guardaron correctamente.</p>}
 
             {loadState.options.length === 0 ? (
               <p className={pageStyles.placeholder}>Todavía no hay categorías disponibles.</p>

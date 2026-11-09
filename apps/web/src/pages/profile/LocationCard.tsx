@@ -14,9 +14,11 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '../../api/client';
+import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
+import { useFeedback } from '../../components/feedback/feedbackContext';
 import formStyles from '../AuthForm.module.css';
 import pageStyles from '../BusinessProfilePage.module.css';
 import styles from './ContactsCard.module.css';
@@ -67,13 +69,13 @@ interface LocationCardProps {
 /** Ubicación of the business profile: address, province/city and the map point the search uses. */
 export function LocationCard({ businessId }: LocationCardProps) {
   const navigate = useNavigate();
+  const { showToast } = useFeedback();
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' });
   // Kept so a save sends back the country the business already has.
   const [country, setCountry] = useState<string | undefined>(undefined);
   const [values, setValues] = useState<FormValues>(EMPTY_FORM);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [locating, setLocating] = useState(false);
 
@@ -100,7 +102,6 @@ export function LocationCard({ businessId }: LocationCardProps) {
 
   function updateField(field: FormField, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setSaved(false);
   }
 
   function fillCurrentPosition() {
@@ -123,7 +124,6 @@ export function LocationCard({ businessId }: LocationCardProps) {
           delete next.longitude;
           return next;
         });
-        setSaved(false);
         setLocating(false);
       },
       () => {
@@ -136,7 +136,6 @@ export function LocationCard({ businessId }: LocationCardProps) {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setSaved(false);
 
     const errors = validate(values);
     if (Object.keys(errors).length > 0) {
@@ -159,7 +158,7 @@ export function LocationCard({ businessId }: LocationCardProps) {
       });
       setValues(toFormValues(updated));
       setCountry(updated.country);
-      setSaved(true);
+      showToast('La ubicación se guardó correctamente.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
@@ -201,7 +200,6 @@ export function LocationCard({ businessId }: LocationCardProps) {
             Con la ubicación, los clientes encuentran tu negocio por provincia, ciudad y “Cerca de mí”.
           </p>
           {generalError && <p className={formStyles.generalError}>{generalError}</p>}
-          {saved && <p className={pageStyles.success}>La ubicación se guardó correctamente.</p>}
           <TextField
             id="address"
             label="Dirección"
@@ -263,8 +261,8 @@ export function LocationCard({ businessId }: LocationCardProps) {
             onChange={(e) => updateField('longitude', e.target.value)}
             error={fieldErrors.longitude}
           />
-          <div className={styles.formActions}>
-            {hasPoint && (
+          {hasPoint && (
+            <div className={styles.formActions}>
               <a
                 className={styles.cancelButton}
                 href={`https://www.google.com/maps?q=${parseCoordinate(values.latitude)},${parseCoordinate(values.longitude)}`}
@@ -273,19 +271,16 @@ export function LocationCard({ businessId }: LocationCardProps) {
               >
                 Ver en el mapa
               </a>
-            )}
-            <button
-              type="button"
-              className={styles.cancelButton}
-              onClick={fillCurrentPosition}
-              disabled={locating || submitting}
-            >
+            </div>
+          )}
+          <ActionButtons stacked>
+            <Button type="button" variant="secondary" compact onClick={fillCurrentPosition} disabled={locating || submitting}>
               {locating ? 'Obteniendo ubicación…' : 'Usar mi ubicación actual'}
-            </button>
-          </div>
-          <Button type="submit" fullWidth disabled={submitting}>
-            {submitting ? 'Guardando…' : 'Guardar ubicación'}
-          </Button>
+            </Button>
+            <Button type="submit" compact disabled={submitting}>
+              {submitting ? 'Guardando…' : 'Guardar ubicación'}
+            </Button>
+          </ActionButtons>
         </form>
       )}
     </article>
