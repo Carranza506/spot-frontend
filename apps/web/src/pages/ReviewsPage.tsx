@@ -3,7 +3,7 @@ import type { components } from '@spot/shared';
 import { Button } from '../components/Button';
 import { useBusinessContext } from '../routes/businessContext';
 import { ReviewRow } from './reviews/ReviewRow';
-import { isReviewsMock, reviewsApi } from './reviews/reviewsApi';
+import { reviewsApi } from './reviews/reviewsApi';
 import formStyles from './AuthForm.module.css';
 import pageStyles from './BusinessProfilePage.module.css';
 import styles from './reviews/Reviews.module.css';
@@ -60,12 +60,6 @@ export function ReviewsPage() {
 
   return (
     <div className={styles.page}>
-      {isReviewsMock && (
-        <p className={styles.mockNotice}>
-          Modo de prueba: las reseñas son de ejemplo y no vienen del servidor (VITE_REVIEWS_MOCK=true).
-        </p>
-      )}
-
       <article className={pageStyles.card}>
         <div className={styles.titleRow}>
           <h2 className={pageStyles.cardTitle}>Reseñas</h2>
