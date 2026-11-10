@@ -7,7 +7,6 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '../../api/client';
-import { mockScheduleApi } from './mockScheduleApi';
 
 type BusinessHour = components['schemas']['BusinessHour'];
 type BusinessHourInput = components['schemas']['BusinessHourInput'];
@@ -27,7 +26,7 @@ export interface ScheduleApi {
 // The contract's max pageSize; a business has far fewer upcoming exceptions, so one page is the whole list.
 const EXCEPTIONS_PAGE_SIZE = 100;
 
-const remoteScheduleApi: ScheduleApi = {
+export const scheduleApi: ScheduleApi = {
   listHours: (businessId) => listBusinessHours(authClient, businessId).then((page) => page.data),
   replaceHours: (businessId, hours) =>
     replaceBusinessHours(authClient, businessId, hours).then((result) => result.data),
@@ -38,16 +37,3 @@ const remoteScheduleApi: ScheduleApi = {
   createException: (businessId, data) => createBusinessScheduleException(authClient, businessId, data),
   deleteException: (businessId, exceptionId) => deleteBusinessScheduleException(authClient, businessId, exceptionId),
 };
-
-/** True when VITE_SCHEDULE_MOCK=true — see mockScheduleApi. */
-export const isScheduleMock = import.meta.env.VITE_SCHEDULE_MOCK === 'true';
-
-// Weekly hours (spot-backend #60) are always real; only schedule exceptions (#61) can be mocked.
-export const scheduleApi: ScheduleApi = isScheduleMock
-  ? {
-      ...remoteScheduleApi,
-      listExceptions: mockScheduleApi.listExceptions,
-      createException: mockScheduleApi.createException,
-      deleteException: mockScheduleApi.deleteException,
-    }
-  : remoteScheduleApi;
