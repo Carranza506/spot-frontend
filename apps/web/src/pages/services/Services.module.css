@@ -61,13 +61,6 @@
   grid-column: 1 / -1;
 }
 
-.formActions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
 /* Rows follow the Reservaciones list. */
 .list {
   list-style: none;

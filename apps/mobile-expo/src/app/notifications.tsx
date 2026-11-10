@@ -6,6 +6,7 @@ import { color, listOwnNotifications, markNotificationRead, type components } fr
 import { authClient } from '@/api/client';
 import { formatBusinessShortDateTime } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { ErrorMessage } from '@/components/ErrorMessage';
 
 type Notification = components['schemas']['Notification'];
 
@@ -101,11 +102,7 @@ export default function NotificationsScreen() {
         )}
       </View>
 
-      {actionError && (
-        <Text style={styles.actionError} role="alert" accessibilityLiveRegion="assertive">
-          {actionError}
-        </Text>
-      )}
+      {actionError && <ErrorMessage style={styles.actionError}>{actionError}</ErrorMessage>}
 
       {status === 'loading' ? (
         <View style={styles.center}>
@@ -192,8 +189,6 @@ const styles = StyleSheet.create({
   actionError: {
     marginHorizontal: 24,
     marginBottom: 8,
-    fontSize: 14,
-    color: color.danger,
   },
   center: {
     flex: 1,

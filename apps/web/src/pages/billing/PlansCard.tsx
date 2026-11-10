@@ -75,12 +75,7 @@ export function PlansCard({ plans, currentPlanCode, onAuthError, onStale }: Plan
                 </ul>
                 {/* FREE can't be checked out (it's what's left without a paid subscription). */}
                 {!isCurrent && plan.code !== 'FREE' && (
-                  <Button
-                    type="button"
-                    fullWidth
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={pendingCode !== null}
-                  >
+                  <Button type="button" onClick={() => handleSubscribe(plan)} disabled={pendingCode !== null}>
                     {pendingCode === plan.code ? 'Redirigiendo…' : 'Suscribirse'}
                   </Button>
                 )}

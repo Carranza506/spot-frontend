@@ -80,7 +80,7 @@ export function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           error={fieldErrors.password}
         />
-        <Button type="submit" fullWidth disabled={submitting}>
+        <Button type="submit" disabled={submitting}>
           {submitting ? 'Entrando…' : 'Entrar al panel'}
         </Button>
       </form>

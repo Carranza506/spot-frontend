@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError, type components } from '@spot/shared';
+import { ActionButtons } from '../components/ActionButtons';
 import { Button } from '../components/Button';
 import { CheckCircleIcon, ClockIcon } from '../components/dashboard/icons';
 import { billingApi } from './billing/billingApi';
@@ -106,14 +107,14 @@ export function BillingSuccessPage() {
               Todavía no recibimos la confirmación de Stripe. Puede tardar un momento en reflejarse; si ya pagaste, no
               vuelvas a pagar.
             </p>
-            <div className={styles.resultActions}>
+            <ActionButtons className={styles.resultActions}>
+              <Button type="button" variant="secondary" onClick={() => navigate('/billing')}>
+                Ir a mi suscripción
+              </Button>
               <Button type="button" onClick={() => setAttempt((a) => a + 1)}>
                 Volver a comprobar
               </Button>
-              <Link to="/billing" className={styles.textButton}>
-                Ir a mi suscripción
-              </Link>
-            </div>
+            </ActionButtons>
           </>
         )}
       </div>

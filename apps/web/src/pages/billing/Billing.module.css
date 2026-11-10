@@ -168,7 +168,6 @@
   color: var(--color-textPrimary);
 }
 
-.confirmActions,
 .pager {
   display: flex;
   justify-content: flex-end;
@@ -271,12 +270,9 @@
   color: var(--color-success);
 }
 
-.resultActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: var(--spacing-md);
+/* Centered with the rest of the result, not to the right like other action rows. */
+.result .resultActions {
+  margin-left: 0;
 }
 
 @media (max-width: 720px) {

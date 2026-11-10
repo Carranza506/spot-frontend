@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { themeToCssVariables } from '@spot/shared'
 import './index.css'
 import App from './App.tsx'
+import { FeedbackProvider } from './components/feedback/FeedbackProvider'
 
 for (const [key, value] of Object.entries(themeToCssVariables())) {
   document.documentElement.style.setProperty(key, value)
@@ -12,7 +13,9 @@ for (const [key, value] of Object.entries(themeToCssVariables())) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <FeedbackProvider>
+        <App />
+      </FeedbackProvider>
     </BrowserRouter>
   </StrictMode>,
 )

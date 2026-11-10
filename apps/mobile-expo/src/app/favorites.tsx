@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { color, type components } from '@spot/shared';
 import { BusinessLinkArea } from '@/components/business/BusinessLinkArea';
+import { ErrorMessage } from '@/components/ErrorMessage';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
@@ -54,11 +55,7 @@ export default function FavoritesScreen() {
         </Text>
       </View>
 
-      {actionError && (
-        <Text style={styles.actionError} role="alert" accessibilityLiveRegion="assertive">
-          {actionError}
-        </Text>
-      )}
+      {actionError && <ErrorMessage style={styles.actionError}>{actionError}</ErrorMessage>}
 
       {status === 'idle' || (status === 'loading' && !refreshing) ? (
         <View style={styles.center}>
@@ -143,8 +140,6 @@ const styles = StyleSheet.create({
   actionError: {
     marginHorizontal: 24,
     marginBottom: 8,
-    fontSize: 14,
-    color: color.danger,
   },
   center: {
     flex: 1,

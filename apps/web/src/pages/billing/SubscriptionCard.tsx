@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ApiError, formatPrice, type components } from '@spot/shared';
+import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
+import { useFeedback } from '../../components/feedback/feedbackContext';
 import { INTERVAL_LABELS, SUBSCRIPTION_STATUS_LABELS, formatDate } from './format';
 import { billingApi } from './billingApi';
 import formStyles from '../AuthForm.module.css';
@@ -29,10 +31,10 @@ interface SubscriptionCardProps {
 
 /** Mi suscripción: the effective plan, its status and period end, and cancel-at-period-end. */
 export function SubscriptionCard({ subscription, onChange, onAuthError, onStale }: SubscriptionCardProps) {
+  const { showToast } = useFeedback();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const { plan, status, currentPeriodEnd, cancelAtPeriodEnd } = subscription;
   // Only ACTIVE/PAST_DUE subscriptions can be canceled (404 otherwise).
@@ -40,12 +42,11 @@ export function SubscriptionCard({ subscription, onChange, onAuthError, onStale 
 
   async function handleCancel() {
     setError(null);
-    setSuccess(null);
     setPending(true);
     try {
       const updated = await billingApi.cancelSubscription();
       setConfirmOpen(false);
-      setSuccess('Tu suscripción se cancelará al final del período actual.');
+      showToast('Tu suscripción se cancelará al final del período actual.');
       onChange(updated);
     } catch (err) {
       if (onAuthError(err)) return;
@@ -65,7 +66,6 @@ export function SubscriptionCard({ subscription, onChange, onAuthError, onStale 
     <article className={pageStyles.card}>
       <h2 className={pageStyles.cardTitle}>Mi suscripción</h2>
       <div className={styles.stack}>
-        {success && <p className={pageStyles.success}>{success}</p>}
         {error && <p className={formStyles.generalError}>{error}</p>}
 
         <dl className={styles.details}>
@@ -111,14 +111,14 @@ export function SubscriptionCard({ subscription, onChange, onAuthError, onStale 
               {currentPeriodEnd ? ` el ${formatDate(currentPeriodEnd)}` : ' el final del período'} y después no se
               renovará.
             </p>
-            <div className={styles.confirmActions}>
-              <button type="button" className={styles.textButton} onClick={() => setConfirmOpen(false)} disabled={pending}>
+            <ActionButtons stacked>
+              <Button type="button" variant="secondary" onClick={() => setConfirmOpen(false)} disabled={pending}>
                 Volver
-              </button>
-              <Button type="button" onClick={handleCancel} disabled={pending}>
+              </Button>
+              <Button type="button" variant="danger" onClick={handleCancel} disabled={pending}>
                 {pending ? 'Cancelando…' : 'Cancelar suscripción'}
               </Button>
-            </div>
+            </ActionButtons>
           </div>
         ) : cancellable ? (
           <button
@@ -126,7 +126,6 @@ export function SubscriptionCard({ subscription, onChange, onAuthError, onStale 
             className={styles.dangerButton}
             onClick={() => {
               setConfirmOpen(true);
-              setSuccess(null);
               setError(null);
             }}
           >
