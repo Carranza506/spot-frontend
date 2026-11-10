@@ -6,8 +6,7 @@ const workspaceRoot = path.resolve(projectRoot, '../..');
 
 /**
  * Extended for the pnpm workspace so Metro can resolve `@spot/shared`, which
- * lives outside this app's own node_modules as a symlink (same approach as
- * apps/mobile/metro.config.js).
+ * lives outside this app's own node_modules as a symlink.
  */
 const config = getDefaultConfig(projectRoot);
 
