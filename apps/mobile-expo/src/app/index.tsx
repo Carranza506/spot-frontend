@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Text } from 'react-native';
 import { Link } from 'expo-router';
-import { ApiError, login, mapAuthApiError, validateEmail, validatePassword } from '@spot/shared';
+import { ApiError, login, logout, mapAuthApiError, validateEmail, validatePassword } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { WRONG_ROLE_MESSAGE, forgetWrongRole, rememberWrongRole, takeWrongRole } from '@/auth/wrongRole';
 import { AuthScreen } from '@/components/AuthScreen';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { TextField } from '@/components/TextField';
@@ -16,7 +17,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [generalError, setGeneralError] = useState<string | null>(null);
+  // Lazy: a session cleared for a non-client account remounts this screen, and the reason comes with it.
+  const [generalError, setGeneralError] = useState<string | null>(takeWrongRole);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit() {
@@ -34,11 +36,21 @@ export default function LoginScreen() {
 
     setFieldErrors({});
     setGeneralError(null);
+    // Whatever stopped an earlier account must not be shown to the one trying now.
+    forgetWrongRole();
     setSubmitting(true);
     try {
-      await login(authClient, { email, password });
+      const user = await login(authClient, { email, password });
       // Another account may have been signed in on this screen: it must not see their favorites.
       favorites.reset();
+      // This is the consumer app: a business or admin account has nothing to do past this screen.
+      if (user.role !== 'CLIENT') {
+        // Remembered for the remount, and set here for the case where there isn't one.
+        rememberWrongRole();
+        await logout(authClient);
+        setGeneralError(WRONG_ROLE_MESSAGE);
+        return;
+      }
       resetTo('/home');
     } catch (error) {
       if (error instanceof ApiError) {

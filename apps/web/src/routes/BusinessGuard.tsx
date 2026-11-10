@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { ApiError, getMyBusiness, type components } from '@spot/shared';
+import { ApiError, getMyBusiness, logout, type components } from '@spot/shared';
 import { authClient } from '../api/client';
 import { Button } from '../components/Button';
+import { BUSINESS_ONLY_STATE } from './businessOnly';
 import type { BusinessContext } from './businessContext';
 import formStyles from '../pages/AuthForm.module.css';
 import styles from './BusinessGuard.module.css';
@@ -14,6 +15,7 @@ type GuardState =
   | { status: 'ready'; business: Business }
   | { status: 'missing' }
   | { status: 'unauthenticated' }
+  | { status: 'forbidden' }
   | { status: 'error' };
 
 /**
@@ -30,6 +32,12 @@ export function BusinessGuard() {
       .catch((error: unknown) => {
         if (error instanceof ApiError && error.status === 404) setState({ status: 'missing' });
         else if (error instanceof ApiError && error.status === 401) setState({ status: 'unauthenticated' });
+        // Only a BUSINESS account can read it: a 403 ends the session, and the login says why.
+        else if (error instanceof ApiError && error.status === 403) {
+          logout(authClient)
+            .catch(() => {})
+            .finally(() => setState({ status: 'forbidden' }));
+        }
         else setState({ status: 'error' });
       });
   }, []);
@@ -52,6 +60,8 @@ export function BusinessGuard() {
       return <Navigate to="/complete-profile" replace />;
     case 'unauthenticated':
       return <Navigate to="/login" replace />;
+    case 'forbidden':
+      return <Navigate to="/login" replace state={BUSINESS_ONLY_STATE} />;
     case 'error':
       return (
         <div className={styles.message}>

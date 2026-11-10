@@ -1,18 +1,23 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ApiError, login, mapAuthApiError, validateEmail, validatePassword } from '@spot/shared';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ApiError, login, logout, mapAuthApiError, validateEmail, validatePassword } from '@spot/shared';
 import { authClient } from '../api/client';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
+import { BUSINESS_ONLY_MESSAGE, isBusinessOnlyRedirect } from '../routes/businessOnly';
 import formStyles from './AuthForm.module.css';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [generalError, setGeneralError] = useState<string | null>(null);
+  // A guard sends accounts the panel has nothing for back here, with the reason.
+  const [generalError, setGeneralError] = useState<string | null>(() =>
+    isBusinessOnlyRedirect(location.state) ? BUSINESS_ONLY_MESSAGE : null,
+  );
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
@@ -34,7 +39,13 @@ export function LoginPage() {
     setGeneralError(null);
     setSubmitting(true);
     try {
-      await login(authClient, { email, password });
+      const user = await login(authClient, { email, password });
+      // The panel is for business accounts: anything else stays here with the reason.
+      if (user.role !== 'BUSINESS') {
+        await logout(authClient);
+        setGeneralError(BUSINESS_ONLY_MESSAGE);
+        return;
+      }
       navigate('/dashboard', { replace: true });
     } catch (error) {
       if (error instanceof ApiError) {
