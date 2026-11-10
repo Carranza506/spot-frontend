@@ -2,6 +2,58 @@
 
 Spot's frontend: a pnpm workspace monorepo containing the web dashboard (for businesses) and the mobile app (for consumers), plus a shared package for types/DTOs used by both.
 
+## Quick start (end to end)
+
+This is part 2 of 2. **First start the backend** with the
+[spot-backend quick start](https://github.com/Carranza506/spot-backend#quick-start-from-a-clean-machine):
+the API must be answering at `http://localhost:5195`, with its demo accounts seeded.
+
+**You need:** [Node.js](https://nodejs.org/) 22 or newer, and pnpm, enabled once with
+`corepack enable` (it comes with Node). For the mobile app on a phone, the
+[Expo Go](https://expo.dev/go) app, for the same Expo SDK as `apps/mobile-expo` (57).
+
+**1. Clone and install** (from the repo root, once)
+
+```bash
+git clone https://github.com/Carranza506/spot-frontend.git
+cd spot-frontend
+pnpm install
+```
+
+**2. Web panel (businesses)**
+
+```bash
+cp apps/web/.env.example apps/web/.env   # VITE_API_BASE_URL=/api/v1: Vite proxies it to localhost:5195
+pnpm dev:web
+```
+
+Open **http://localhost:5173** and sign in with **`negocio@spot.test`** / **`Spot1234!`**
+(Barbería La U: bookings, a review, services, hours and location already set up).
+
+**3. Mobile app (clients)**
+
+```bash
+cp apps/mobile-expo/.env.example apps/mobile-expo/.env
+```
+
+Set `EXPO_PUBLIC_API_BASE_URL` in `apps/mobile-expo/.env`, depending on where the app will run:
+
+| Where | `EXPO_PUBLIC_API_BASE_URL` | Then |
+| --- | --- | --- |
+| A phone with Expo Go | `http://<this machine's LAN IPv4>:5195/api/v1` (`ipconfig` on Windows) | Scan the QR code. Phone and computer on the same Wi-Fi, and Windows Firewall allowing ports 8081 and 5195 on private networks |
+| The browser on this machine | `http://localhost:5195/api/v1` | Press `w`; it opens at http://localhost:8081, the origin the Gateway's CORS allows |
+
+Then start it:
+
+```bash
+pnpm --filter mobile-expo start
+```
+
+Sign in with **`cliente@spot.test`** / **`Spot1234!`** (María Rodríguez: bookings in every state
+at Barbería La U). "Cerca de mí" finds the demo businesses near the UNA campus in Heredia.
+
+The sections below are the detailed reference: project structure, shared types and team workflow.
+
 ## Prerequisites
 
 - [Node.js 24 LTS](https://nodejs.org/) — verify with `node --version`
