@@ -31,9 +31,10 @@
   flex-direction: column;
 }
 
+/* Fixed status and actions columns: both stay in place whatever each row's status and buttons are. */
 .row {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) auto auto;
+  grid-template-columns: 150px minmax(0, 1fr) 110px 264px;
   align-items: center;
   column-gap: var(--spacing-md);
   row-gap: var(--spacing-md);
@@ -116,8 +117,7 @@
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-sm);
-  min-width: 220px;
+  gap: var(--spacing-md);
 }
 
 /* Text buttons, same as ContactsCard's delete/cancel buttons. */
@@ -142,17 +142,6 @@
   cursor: not-allowed;
 }
 
-.cancelForm {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-surfaceMuted);
-  border-radius: var(--radius-md);
-}
-
-.cancelActions,
 .pager {
   display: flex;
   justify-content: flex-end;
@@ -164,15 +153,21 @@
   justify-content: space-between;
 }
 
-@media (max-width: 900px) {
+/* With the sidebar open, the fixed columns would leave the service no room below this width. */
+@media (max-width: 1100px) {
   .row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: 150px minmax(0, 1fr) auto;
   }
 
   .actions {
     grid-column: 1 / -1;
     justify-content: flex-start;
-    min-width: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 }
 

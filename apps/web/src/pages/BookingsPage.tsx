@@ -4,6 +4,7 @@ import { ApiError, BOOKING_STATUS_LABELS, type BookingAction, type components } 
 import { Button } from '../components/Button';
 import { SelectField } from '../components/SelectField';
 import { TextField } from '../components/TextField';
+import { useFeedback } from '../components/feedback/feedbackContext';
 import { useBusinessContext } from '../routes/businessContext';
 import { BookingRow } from './bookings/BookingRow';
 import { bookingsApi } from './bookings/bookingsApi';
@@ -44,6 +45,7 @@ type LoadedList = { query: string } & Exclude<ListState, { status: 'loading' }>;
 export function BookingsPage() {
   const { business } = useBusinessContext();
   const navigate = useNavigate();
+  const { showToast } = useFeedback();
 
   const [filters, setFilters] = useState<Filters>(() => ({ status: '', from: localIsoDate(new Date()), to: '' }));
   const [page, setPage] = useState(1);
@@ -51,7 +53,6 @@ export function BookingsPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const rangeError = filters.from && filters.to && filters.from > filters.to ? 'La fecha final debe ser posterior a la inicial.' : null;
 
@@ -105,24 +106,22 @@ export function BookingsPage() {
     setFilters((current) => ({ ...current, ...changes }));
     setPage(1);
     setActionError(null);
-    setSuccess(null);
   }
 
   const reload = () => setReloadKey((key) => key + 1);
 
-  async function handleAction(booking: Booking, action: BookingAction, reason?: string) {
+  async function handleAction(booking: Booking, action: BookingAction) {
     setActionError(null);
-    setSuccess(null);
     setPendingId(booking.id);
     try {
       const run: Record<BookingAction, () => Promise<Booking>> = {
         confirm: () => bookingsApi.confirm(booking.id),
-        cancel: () => bookingsApi.cancel(booking.id, reason),
+        cancel: () => bookingsApi.cancel(booking.id),
         complete: () => bookingsApi.complete(booking.id),
         noShow: () => bookingsApi.markNoShow(booking.id),
       };
       const updated = await run[action]();
-      setSuccess(SUCCESS_MESSAGES[action]);
+      showToast(SUCCESS_MESSAGES[action]);
       // The new status may no longer match the status filter, so re-read instead of patching in place.
       if (filters.status && updated.status !== filters.status) reload();
       else
@@ -192,7 +191,6 @@ export function BookingsPage() {
         </div>
 
         <div className={styles.stack}>
-          {success && <p className={pageStyles.success}>{success}</p>}
           {actionError && <p className={formStyles.generalError}>{actionError}</p>}
 
           {rangeError ? null : list.status === 'loading' ? (
@@ -211,8 +209,7 @@ export function BookingsPage() {
               <ul className={styles.list}>
                 {list.bookings.map((booking) => (
                   <BookingRow
-                    // Keyed by status too: a transition remounts the row, closing its cancel form.
-                    key={`${booking.id}-${booking.status}`}
+                    key={booking.id}
                     booking={booking}
                     busy={pendingId !== null}
                     pending={pendingId === booking.id}

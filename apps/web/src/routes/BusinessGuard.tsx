@@ -5,6 +5,7 @@ import { authClient } from '../api/client';
 import { Button } from '../components/Button';
 import { BUSINESS_ONLY_STATE } from './businessOnly';
 import type { BusinessContext } from './businessContext';
+import formStyles from '../pages/AuthForm.module.css';
 import styles from './BusinessGuard.module.css';
 
 type Business = components['schemas']['Business'];
@@ -64,7 +65,7 @@ export function BusinessGuard() {
     case 'error':
       return (
         <div className={styles.message}>
-          <p>No se pudo cargar tu negocio.</p>
+          <p className={formStyles.generalError}>No se pudo cargar tu negocio.</p>
           <Button type="button" onClick={retry}>
             Reintentar
           </Button>

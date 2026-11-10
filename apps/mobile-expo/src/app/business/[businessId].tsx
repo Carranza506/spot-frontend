@@ -9,6 +9,7 @@ import { PhotosSection } from '@/components/business/PhotosSection';
 import { ReviewsSection } from '@/components/business/ReviewsSection';
 import { ServicesSection } from '@/components/business/ServicesSection';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { FavoriteActionError } from '@/favorites/FavoriteActionError';
 import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { useAsyncData } from '@/hooks/useAsyncData';
@@ -53,6 +54,7 @@ export default function BusinessDetailScreen() {
           <ReviewsSection businessId={businessId} />
         </ScrollView>
       )}
+      <FavoriteActionError />
     </SafeAreaView>
   );
 }

@@ -10,9 +10,11 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '../../api/client';
+import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
+import { useFeedback } from '../../components/feedback/feedbackContext';
 import formStyles from '../AuthForm.module.css';
 import pageStyles from '../BusinessProfilePage.module.css';
 import styles from './ContactsCard.module.css';
@@ -48,6 +50,7 @@ interface ContactsCardProps {
 
 export function ContactsCard({ businessId }: ContactsCardProps) {
   const navigate = useNavigate();
+  const { confirm, showToast } = useFeedback();
   const [list, setList] = useState<ListState>({ status: 'loading' });
   const [actionError, setActionError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -105,6 +108,7 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
       await createBusinessContact(authClient, businessId, { type, value: value.trim(), isPrimary });
       closeForm();
       fetchContacts();
+      showToast('Contacto agregado.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
@@ -121,13 +125,20 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
   }
 
   async function handleDelete(contact: BusinessContact) {
-    if (!window.confirm(`¿Eliminar el contacto ${CONTACT_TYPE_LABELS[contact.type]}: ${contact.value}?`)) return;
+    const confirmed = await confirm({
+      title: 'Eliminar contacto',
+      message: `¿Eliminar el contacto ${CONTACT_TYPE_LABELS[contact.type]}: ${contact.value}?`,
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) return;
 
     setActionError(null);
     setDeletingId(contact.id);
     try {
       await deleteBusinessContact(authClient, businessId, contact.id);
       fetchContacts();
+      showToast('Contacto eliminado.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
@@ -212,17 +223,17 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
                 <input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} />
                 Contacto principal
               </label>
-              <div className={styles.formActions}>
-                <button type="button" className={styles.cancelButton} onClick={closeForm} disabled={submitting}>
+              <ActionButtons stacked>
+                <Button type="button" variant="secondary" onClick={closeForm} disabled={submitting}>
                   Cancelar
-                </button>
+                </Button>
                 <Button type="submit" disabled={submitting}>
                   {submitting ? 'Guardando…' : 'Guardar contacto'}
                 </Button>
-              </div>
+              </ActionButtons>
             </form>
           ) : (
-            <Button type="button" fullWidth onClick={openForm}>
+            <Button type="button" onClick={openForm}>
               Agregar contacto
             </Button>
           )}

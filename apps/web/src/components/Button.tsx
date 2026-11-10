@@ -2,10 +2,11 @@ import type { ButtonHTMLAttributes } from 'react';
 import styles from './Button.module.css';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  fullWidth?: boolean;
+  variant?: 'primary' | 'secondary' | 'danger';
 }
 
-export function Button({ fullWidth, className, ...props }: ButtonProps) {
-  const classes = [styles.button, fullWidth ? styles.fullWidth : '', className].filter(Boolean).join(' ');
+/** The web's one button size, whatever the screen: inside ActionButtons it fills its column. */
+export function Button({ variant = 'primary', className, ...props }: ButtonProps) {
+  const classes = [styles.button, styles[variant], className].filter(Boolean).join(' ');
   return <button className={classes} {...props} />;
 }

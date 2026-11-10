@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
-import { router } from 'expo-router';
 import { ApiError, createBookingReview, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { NETWORK_ERROR, isUnauthorized } from '@/api/errors';
+import { useToast } from '@/components/Toast';
+import { resetTo } from '@/navigation/resetTo';
 import { getReviewedBookings, markBookingReviewed } from './reviewedBookings';
 import type { BookingReviewProps } from './BookingReview';
 
@@ -29,6 +30,7 @@ function reviewErrorMessage(error: unknown): string {
 
 /** The "Dejar reseña" flow of a bookings list (#29): one form open at a time, one submit in flight. */
 export function useBookingReview({ onMessage, onStale }: UseBookingReviewOptions) {
+  const showToast = useToast();
   // One review form open at a time; its draft lives in ReviewForm.
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
@@ -65,9 +67,10 @@ export function useBookingReview({ onMessage, onStale }: UseBookingReviewOptions
       await createBookingReview(authClient, booking.id, { rating, comment });
       markReviewed(booking.id, rating);
       setReviewingId(null);
+      showToast('Tu reseña se envió.');
     } catch (err) {
       if (isUnauthorized(err)) {
-        router.replace('/');
+        resetTo('/');
         return;
       }
       // Already reviewed (another device, or before a restart): the card says so instead of offering it again.

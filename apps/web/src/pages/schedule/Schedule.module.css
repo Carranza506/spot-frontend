@@ -9,15 +9,6 @@
   margin: 0;
 }
 
-.mockNotice {
-  font-size: var(--fontSize-sm);
-  color: var(--color-warningText);
-  background: var(--color-warningBg);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  margin: 0;
-}
-
 /* ---- Weekly hours ---- */
 
 .hoursList {
@@ -149,8 +140,7 @@
   color: var(--color-warningText);
 }
 
-.deleteButton,
-.cancelButton {
+.deleteButton {
   flex: 0 0 auto;
   background: none;
   border: none;
@@ -164,12 +154,7 @@
   color: var(--color-danger);
 }
 
-.cancelButton {
-  color: var(--color-textSecondary);
-}
-
-.deleteButton:disabled,
-.cancelButton:disabled {
+.deleteButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -199,13 +184,6 @@
 
 .checkbox input {
   accent-color: var(--color-accentTeal);
-}
-
-.formActions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--spacing-md);
 }
 
 @media (max-width: 720px) {

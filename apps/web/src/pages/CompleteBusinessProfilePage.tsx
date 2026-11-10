@@ -130,7 +130,7 @@ export function CompleteBusinessProfilePage() {
           onChange={(e) => setPhone(e.target.value)}
           error={fieldErrors.phone}
         />
-        <Button type="submit" fullWidth disabled={submitting}>
+        <Button type="submit" disabled={submitting}>
           {submitting ? 'Guardando…' : 'Guardar y continuar'}
         </Button>
       </form>
