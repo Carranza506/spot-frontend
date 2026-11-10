@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ApiError, fromApiTime, toApiTime, validateTimeRange, type components } from '@spot/shared';
+import { ApiError, DAY_LABELS, WEEK_ORDER, fromApiTime, toApiTime, validateTimeRange, type components } from '@spot/shared';
 import { Button } from '../../components/Button';
 import { useFeedback } from '../../components/feedback/feedbackContext';
 import fieldStyles from '../../components/TextField.module.css';
@@ -11,10 +11,6 @@ import styles from './Schedule.module.css';
 
 type BusinessHour = components['schemas']['BusinessHour'];
 type BusinessHourInput = components['schemas']['BusinessHourInput'];
-
-// Shown Monday-first, the way a week reads in Costa Rica; dayOfWeek keeps the contract's 0=Sunday numbering.
-const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
-const DAY_LABELS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 // Pre-filled for days without stored times, so opening one only needs adjusting, not typing.
 const DEFAULT_OPEN_TIME = '09:00';

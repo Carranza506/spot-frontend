@@ -42,6 +42,7 @@ export {
   replaceBusinessCategories,
   validateHttpUrl,
   validateCoordinate,
+  CONTACT_TYPE_LABELS,
   parseCoordinate,
   BUSINESS_NAME_MAX_LENGTH,
   BUSINESS_LEGAL_NAME_MAX_LENGTH,
@@ -100,6 +101,8 @@ export {
   validateTimeRange,
   toApiTime,
   fromApiTime,
+  DAY_LABELS,
+  WEEK_ORDER,
   SCHEDULE_EXCEPTION_REASON_MAX_LENGTH,
 } from './schedule';
 export {
