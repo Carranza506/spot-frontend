@@ -25,7 +25,7 @@ cd spot-frontend
 
 ## Install dependencies
 
-Run this once, from the repo root (not from inside `apps/web` or `apps/mobile`). This installs dependencies for `web`, `mobile`, and `shared` together, since they're all part of the same pnpm workspace:
+Run this once, from the repo root (not from inside an app's folder). This installs dependencies for every workspace package — `web`, `mobile-expo`, `mobile` and `shared` — together:
 
 ```bash
 pnpm install
@@ -35,10 +35,11 @@ pnpm install
 
 ```
 apps/
-  web/       -> React + Vite web app (business dashboard)
-  mobile/    -> React Native app (consumer app)
+  web/          -> React + Vite web app (business dashboard)
+  mobile-expo/  -> Expo + expo-router app (consumer app) — the official mobile app
+  mobile/       -> bare React Native template from the initial setup; not used
 packages/
-  shared/    -> Shared TypeScript types/DTOs matching the backend API contract
+  shared/       -> Shared TypeScript types/DTOs matching the backend API contract
 pnpm-workspace.yaml
 package.json
 ```
@@ -53,23 +54,42 @@ This starts the Vite dev server. The terminal will print the local URL (usually 
 
 ## Running the mobile app
 
-Start the Metro bundler first:
+The official consumer app is `apps/mobile-expo` (Expo + expo-router). `apps/mobile` is the bare
+React Native template from the initial setup and isn't used.
+
+Create its env file once, from the template:
+
+```bash
+cp apps/mobile-expo/.env.example apps/mobile-expo/.env
+```
+
+Then set `EXPO_PUBLIC_API_BASE_URL` to this machine's LAN IPv4 address, so a phone on the same
+Wi-Fi reaches the Gateway from `spot-backend`. Run `ipconfig` on Windows (or `ifconfig` on
+macOS/Linux) and look for the IPv4 address:
+
+```
+EXPO_PUBLIC_API_BASE_URL=http://192.168.0.10:5195/api/v1
+```
+
+`localhost` only works when the app runs on this same machine, as it does in the browser. `.env`
+is git-ignored: never commit it.
+
+Then start Expo from the repo root:
 
 ```bash
 pnpm start:mobile
 ```
 
-Then, in a separate terminal, run the app on an emulator/device:
-
-```bash
-cd apps/mobile
-pnpm android   # for Android
-pnpm ios       # for iOS (Mac only)
-```
+Expo prints a QR code to open the app in Expo Go. In that same terminal, press `a` for an Android
+emulator, `i` for an iOS simulator (Mac only), or `w` to open it in the browser.
 
 ## Environment variables / API configuration
 
-The API base URL (pointing at the local Gateway from `spot-backend`, or a deployed environment) should be configured per app — details to be added once the shared API client is implemented (see the "Set up typed API client" issues in the project board).
+The API base URL points at the local Gateway from `spot-backend` (or a deployed environment) and is
+set per app in a git-ignored `.env`, copied from that app's `.env.example`:
+
+- `apps/web/.env` — `VITE_API_BASE_URL`; the default `/api/v1` goes through Vite's dev proxy to `localhost:5195`
+- `apps/mobile-expo/.env` — `EXPO_PUBLIC_API_BASE_URL`; see "Running the mobile app" above
 
 ## Shared types (`packages/shared`)
 
