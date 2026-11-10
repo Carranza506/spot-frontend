@@ -18,6 +18,8 @@ export const color = {
   placeholder: '#9ea8a4',
   border: '#e6e5e0',
   danger: '#d1453b',
+  /** Filled danger buttons: `danger` is for text, and too loud as a large surface next to the greens. */
+  dangerSolid: '#a9483f',
   onPanelDarkInactive: '#adb5b3',
   success: '#35803a',
   successBg: '#e1fce6',

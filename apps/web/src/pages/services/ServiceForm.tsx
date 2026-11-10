@@ -9,6 +9,7 @@ import {
   validateServicePrice,
   type components,
 } from '@spot/shared';
+import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import formStyles from '../AuthForm.module.css';
@@ -132,14 +133,14 @@ export function ServiceForm({ service, submitLabel, onSubmit, onCancel }: Servic
         onChange={(e) => setDuration(e.target.value)}
         error={fieldErrors.durationMinutes}
       />
-      <div className={`${styles.formActions} ${styles.fullRow}`}>
-        <button type="button" className={styles.textButton} onClick={onCancel} disabled={submitting}>
+      <ActionButtons className={styles.fullRow}>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
           Cancelar
-        </button>
+        </Button>
         <Button type="submit" disabled={submitting}>
           {submitting ? 'Guardando…' : submitLabel}
         </Button>
-      </div>
+      </ActionButtons>
     </form>
   );
 }

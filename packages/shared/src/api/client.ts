@@ -148,7 +148,7 @@ export function createApiClient({ baseUrl, storage }: ApiClientConfig): ApiClien
       } catch {
         throw new ApiError(0, {
           code: 'SERIALIZATION_ERROR',
-          message: 'Failed to serialize request body.',
+          message: 'No se pudo enviar la solicitud. Intentá de nuevo.',
           timestamp: new Date().toISOString(),
         });
       }

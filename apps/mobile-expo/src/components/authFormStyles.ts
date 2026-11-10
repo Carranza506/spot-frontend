@@ -10,8 +10,6 @@ export const authFormStyles = StyleSheet.create({
     marginBottom: 22,
   },
   generalError: {
-    fontSize: 14,
-    color: color.danger,
     marginBottom: 16,
   },
   footerRow: {

@@ -28,9 +28,12 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { ErrorMessage } from '@/components/ErrorMessage';
 import { Logo } from '@/components/Logo';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LogoutIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
+import { resetTo } from '@/navigation/resetTo';
+import { FavoriteActionError } from '@/favorites/FavoriteActionError';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { BusinessCard } from '@/components/business/BusinessCard';
 import { QuickActions } from '@/home/QuickActions';
@@ -240,7 +243,7 @@ export default function HomeScreen() {
     } finally {
       // The next account must not see this one's favorites.
       favorites.reset();
-      router.replace('/');
+      resetTo('/');
     }
   }
 
@@ -336,7 +339,7 @@ export default function HomeScreen() {
                     maxLength={AI_SEARCH_QUERY_MAX_LENGTH}
                     style={styles.aiInput}
                   />
-                  {aiQueryError ? <Text style={styles.aiError}>{aiQueryError}</Text> : null}
+                  {aiQueryError ? <ErrorMessage>{aiQueryError}</ErrorMessage> : null}
                   <PrimaryButton title="Buscar con IA" onPress={() => searchWithAi()} loading={results.status === 'loading'} />
                 </View>
               )}
@@ -440,6 +443,7 @@ export default function HomeScreen() {
           />
         </View>
       </ScrollView>
+      <FavoriteActionError />
     </SafeAreaView>
   );
 }
@@ -551,7 +555,7 @@ function ResultsSection({ mode, results, columns, filtered, nearby, onLoadMore, 
               <PrimaryButton title="Cargar más" onPress={onLoadMore} loading={results.loadingMore} />
             </View>
           )}
-          {results.loadMoreError && <Text style={styles.error}>{results.loadMoreError}</Text>}
+          {results.loadMoreError && <ErrorMessage>{results.loadMoreError}</ErrorMessage>}
           {nearby && (
             <Pressable onPress={() => openInMaps(nearby.mapsUrl)} accessibilityRole="link" style={[styles.stateButton, styles.mapsLink]}>
               <Text style={styles.stateButtonText}>Ver más negocios cerca en Google Maps</Text>
@@ -756,11 +760,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 4,
   },
-  aiError: {
-    fontSize: 13,
-    color: color.danger,
-    paddingHorizontal: 4,
-  },
   quickActions: {
     marginTop: -36,
     marginBottom: 20,
@@ -838,11 +837,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
     maxWidth: 320,
-  },
-  error: {
-    fontSize: 14,
-    color: color.danger,
-    textAlign: 'center',
   },
   stateBox: {
     alignItems: 'center',

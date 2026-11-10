@@ -1,0 +1,41 @@
+/* Equal columns: every button takes the width of the longest label. */
+.actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  width: fit-content;
+  margin-left: auto;
+  gap: var(--spacing-sm);
+}
+
+.stacked {
+  grid-auto-flow: row;
+  width: auto;
+}
+
+/* With margin-left already auto, an auto right margin centers the row. */
+.centered {
+  margin-right: auto;
+}
+
+/* Overrides the button's own fit-content, so both fill their column and stay equal. */
+.actions > button {
+  width: 100%;
+  min-width: 120px;
+  font-family: inherit;
+}
+
+.actions > button:focus-visible {
+  outline: 2px solid var(--color-accentTeal);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .actions {
+    width: auto;
+  }
+
+  .actions > button {
+    min-width: 0;
+  }
+}

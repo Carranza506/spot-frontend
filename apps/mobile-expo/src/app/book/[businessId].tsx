@@ -12,6 +12,8 @@ import {
   todayInBusinessTimeZone,
 } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { resetTo } from '@/navigation/resetTo';
+import { ErrorMessage } from '@/components/ErrorMessage';
 
 type AvailabilityDay = components['schemas']['AvailabilityDay'];
 type AvailabilitySlot = components['schemas']['AvailabilitySlot'];
@@ -81,7 +83,7 @@ export default function BookingScreen() {
       setBooking(await createBooking(authClient, { businessId, serviceId, startAt: selectedSlot.startAt }));
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        router.replace('/');
+        resetTo('/');
         return;
       }
       setSubmitError(bookingErrorMessage(error));
@@ -117,7 +119,7 @@ export default function BookingScreen() {
             </Text>
             <Text style={styles.cardMeta}>{booking.serviceDurationMinutes} min</Text>
           </View>
-          <PrimaryButton title="Listo" onPress={goBack} />
+          <PrimaryButton title="Listo" onPress={() => router.replace('/bookings')} />
         </ScrollView>
       ) : state.status === 'loading' ? (
         <ActivityIndicator style={styles.centered} color={color.accentTeal} />
@@ -135,7 +137,7 @@ export default function BookingScreen() {
           <Text style={styles.title} accessibilityRole="header">
             Reservá tu cita
           </Text>
-          {submitError ? <Text style={styles.error}>{submitError}</Text> : null}
+          {submitError ? <ErrorMessage>{submitError}</ErrorMessage> : null}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle} accessibilityRole="header">
@@ -248,10 +250,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: color.textPrimary,
-  },
-  error: {
-    fontSize: 14,
-    color: color.danger,
   },
   section: {
     gap: 12,

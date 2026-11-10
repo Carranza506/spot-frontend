@@ -6,6 +6,7 @@ import { billingApi } from './billing/billingApi';
 import { PaymentsCard } from './billing/PaymentsCard';
 import { PlansCard } from './billing/PlansCard';
 import { SubscriptionCard } from './billing/SubscriptionCard';
+import formStyles from './AuthForm.module.css';
 import pageStyles from './BusinessProfilePage.module.css';
 import styles from './billing/Billing.module.css';
 
@@ -75,7 +76,7 @@ export function BillingPage() {
           <div className={pageStyles.message}>Cargando…</div>
         ) : (
           <div className={pageStyles.message}>
-            <p>No se pudo cargar tu plan.</p>
+            <p className={formStyles.generalError}>No se pudo cargar tu plan.</p>
             <Button type="button" onClick={() => setReloadKey((key) => key + 1)}>
               Reintentar
             </Button>

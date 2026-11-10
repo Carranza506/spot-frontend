@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Text } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { ApiError, mapAuthApiError, register, validateEmail, validatePassword, validateRequired } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { AuthScreen } from '@/components/AuthScreen';
+import { ErrorMessage } from '@/components/ErrorMessage';
 import { TextField } from '@/components/TextField';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { authFormStyles } from '@/components/authFormStyles';
 import { useFavorites } from '@/favorites/FavoritesProvider';
+import { resetTo } from '@/navigation/resetTo';
 
 export default function RegisterScreen() {
   const favorites = useFavorites();
@@ -51,7 +53,7 @@ export default function RegisterScreen() {
       });
       // A new account starts with no favorites, whoever was signed in on this device before.
       favorites.reset();
-      router.replace('/home');
+      resetTo('/home');
     } catch (error) {
       if (error instanceof ApiError) {
         const mapped = mapAuthApiError(error);
@@ -68,7 +70,7 @@ export default function RegisterScreen() {
   return (
     <AuthScreen>
       <Text style={authFormStyles.title}>Crear cuenta</Text>
-      {generalError && <Text style={authFormStyles.generalError}>{generalError}</Text>}
+      {generalError && <ErrorMessage style={authFormStyles.generalError}>{generalError}</ErrorMessage>}
 
       <TextField
         label="Nombre"

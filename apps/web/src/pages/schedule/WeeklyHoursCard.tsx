@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiError, fromApiTime, toApiTime, validateTimeRange, type components } from '@spot/shared';
 import { Button } from '../../components/Button';
+import { useFeedback } from '../../components/feedback/feedbackContext';
 import fieldStyles from '../../components/TextField.module.css';
 import formStyles from '../AuthForm.module.css';
 import pageStyles from '../BusinessProfilePage.module.css';
@@ -72,11 +73,11 @@ interface WeeklyHoursCardProps {
 
 export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
   const navigate = useNavigate();
+  const { showToast } = useFeedback();
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
   const [rows, setRows] = useState<DayRow[]>(() => toRows([]));
   const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchHours = useCallback(() => {
@@ -104,12 +105,10 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
       delete next[dayOfWeek];
       return next;
     });
-    setSaved(false);
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setSaved(false);
 
     const errors = validate(rows);
     if (Object.keys(errors).length > 0) {
@@ -125,7 +124,7 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
       const updated = await scheduleApi.replaceHours(businessId, rows.map(toInput));
       setRows(toRows(updated));
       setLoad({ status: 'ready', configured: true });
-      setSaved(true);
+      showToast('El horario se guardó correctamente.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
@@ -146,7 +145,7 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
       {load.status === 'loading' && <div className={pageStyles.message}>Cargando…</div>}
       {load.status === 'error' && (
         <div className={pageStyles.message}>
-          <p>No se pudo cargar el horario.</p>
+          <p className={formStyles.generalError}>No se pudo cargar el horario.</p>
           <Button type="button" onClick={retry}>
             Reintentar
           </Button>
@@ -160,7 +159,6 @@ export function WeeklyHoursCard({ businessId }: WeeklyHoursCardProps) {
             </p>
           )}
           {generalError && <p className={formStyles.generalError} role="alert">{generalError}</p>}
-          {saved && <p className={pageStyles.success} role="status">El horario se guardó correctamente.</p>}
 
           <ul className={styles.hoursList}>
             {rows.map((row) => {

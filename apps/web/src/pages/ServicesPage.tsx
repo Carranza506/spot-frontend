@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ApiError, type components } from '@spot/shared';
 import { Button } from '../components/Button';
 import { SelectField } from '../components/SelectField';
+import { useFeedback } from '../components/feedback/feedbackContext';
 import { useBusinessContext } from '../routes/businessContext';
 import { ServiceForm, type ServiceFormValues } from './services/ServiceForm';
 import { ServiceRow } from './services/ServiceRow';
@@ -43,6 +44,7 @@ type LoadedList = { query: string } & Exclude<ListState, { status: 'loading' }>;
 export function ServicesPage() {
   const { business } = useBusinessContext();
   const navigate = useNavigate();
+  const { confirm, showToast } = useFeedback();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [page, setPage] = useState(1);
@@ -51,7 +53,6 @@ export function ServicesPage() {
   const [creating, setCreating] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const handleAuthError = useCallback(
     (error: unknown) => {
@@ -94,29 +95,24 @@ export function ServicesPage() {
 
   const reload = () => setReloadKey((key) => key + 1);
 
-  function clearMessages() {
-    setActionError(null);
-    setSuccess(null);
-  }
-
   function changeFilter(filter: StatusFilter) {
     setStatusFilter(filter);
     setPage(1);
-    clearMessages();
+    setActionError(null);
   }
 
   async function handleCreate(values: ServiceFormValues) {
-    clearMessages();
+    setActionError(null);
     await servicesApi.create(business.id, { ...values, description: values.description ?? undefined });
     setCreating(false);
-    setSuccess(`Servicio “${values.name}” creado.`);
+    showToast(`Servicio “${values.name}” creado.`);
     reload();
   }
 
   async function handleUpdate(service: Service, values: ServiceFormValues) {
-    clearMessages();
+    setActionError(null);
     const updated = await servicesApi.update(service.id, values);
-    setSuccess(`Servicio “${updated.name}” actualizado.`);
+    showToast(`Servicio “${updated.name}” actualizado.`);
     setLoaded((current) =>
       current?.status === 'ready'
         ? { ...current, services: current.services.map((s) => (s.id === updated.id ? updated : s)) }
@@ -128,19 +124,22 @@ export function ServicesPage() {
     const deactivating = service.isActive;
     if (
       deactivating &&
-      !window.confirm(
-        `¿Desactivar “${service.name}”? Los clientes ya no podrán reservarlo; las reservaciones existentes se mantienen.`,
-      )
+      !(await confirm({
+        title: 'Desactivar servicio',
+        message: `¿Desactivar “${service.name}”? Los clientes ya no podrán reservarlo; las reservaciones existentes se mantienen.`,
+        confirmLabel: 'Desactivar',
+        danger: true,
+      }))
     ) {
       return;
     }
 
-    clearMessages();
+    setActionError(null);
     setPendingId(service.id);
     try {
       if (deactivating) await servicesApi.deactivate(service.id);
       else await servicesApi.update(service.id, { isActive: true });
-      setSuccess(`Servicio “${service.name}” ${deactivating ? 'desactivado' : 'reactivado'}.`);
+      showToast(`Servicio “${service.name}” ${deactivating ? 'desactivado' : 'reactivado'}.`);
       // Re-read: the new state may no longer match the status filter.
       reload();
     } catch (error) {
@@ -166,7 +165,7 @@ export function ServicesPage() {
               type="button"
               onClick={() => {
                 setCreating(true);
-                clearMessages();
+                setActionError(null);
               }}
             >
               Nuevo servicio
@@ -197,7 +196,6 @@ export function ServicesPage() {
             </SelectField>
           </div>
 
-          {success && <p className={pageStyles.success}>{success}</p>}
           {actionError && <p className={formStyles.generalError}>{actionError}</p>}
 
           {list.status === 'loading' ? (

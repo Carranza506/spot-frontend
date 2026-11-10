@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { REVIEW_RATING_MAX, color } from '@spot/shared';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { ActionButtons } from '@/components/ActionButtons';
+import { ErrorMessage } from '@/components/ErrorMessage';
 import { TextField } from '@/components/TextField';
 
 interface ReviewFormProps {
@@ -63,21 +65,18 @@ export function ReviewForm({ bookingId, submitting, error, onSubmit, onCancel }:
         style={styles.comment}
       />
 
-      {error ? (
-        <Text style={styles.error} role="alert" accessibilityLiveRegion="assertive">
-          {error}
-        </Text>
-      ) : null}
-      <PrimaryButton
-        title="Enviar reseña"
-        onPress={submit}
-        loading={submitting}
-        disabled={rating === 0}
-        accessibilityHint={rating === 0 ? 'Elegí una calificación primero.' : undefined}
-      />
-      <Pressable onPress={onCancel} disabled={submitting} style={styles.cancelButton} role="button">
-        <Text style={styles.cancelText}>Cancelar</Text>
-      </Pressable>
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+      <ActionButtons style={styles.actions}>
+        <PrimaryButton title="Cancelar" variant="secondary" compact onPress={onCancel} disabled={submitting} />
+        <PrimaryButton
+          title="Enviar reseña"
+          compact
+          onPress={submit}
+          loading={submitting}
+          disabled={rating === 0}
+          accessibilityHint={rating === 0 ? 'Elegí una calificación primero.' : undefined}
+        />
+      </ActionButtons>
     </View>
   );
 }
@@ -119,18 +118,7 @@ const styles = StyleSheet.create({
     minHeight: 88,
     textAlignVertical: 'top',
   },
-  error: {
-    fontSize: 14,
-    color: color.danger,
-  },
-  cancelButton: {
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cancelText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: color.accentTeal,
+  actions: {
+    marginTop: 8,
   },
 });
