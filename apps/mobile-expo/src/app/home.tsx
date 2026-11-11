@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -39,7 +40,8 @@ import { BusinessCard } from '@/components/business/BusinessCard';
 import { QuickActions } from '@/home/QuickActions';
 import { registerForPush, unregisterPush } from '@/notifications/push';
 import { Chip } from '@/search/Chip';
-import { CriteriaSummary, FilterGroup, FilterLabel, NearbyToggle, PROVINCES } from '@/search/SearchFilters';
+import { CriteriaSummary, FilterGroup, FilterLabel, MAX_RADIUS_KM, NearbyToggle, PROVINCES } from '@/search/SearchFilters';
+import { googleMapsSearchUrl } from '@/search/googleMaps';
 import { useBusinessSearch, type SearchResults } from '@/search/useBusinessSearch';
 import { useCurrentLocation } from '@/search/useCurrentLocation';
 
@@ -127,6 +129,17 @@ export default function HomeScreen() {
   const longitude = coords?.longitude;
   const activeFilters = (province ? 1 : 0) + (city.trim() ? 1 : 0) + (coords ? 1 : 0);
   const hasAnyFilter = activeFilters > 0 || !!categoryId || !!text.trim();
+
+  // "Cerca de mí" only knows Spot's businesses: Google Maps lists the rest around the user (#71).
+  const categoryName = categories?.find((c) => c.id === categoryId)?.name;
+  const aiService = results.status === 'ready' ? results.criteria?.serviceQuery : undefined;
+  const nearby: NearbyActions | null = coords
+    ? {
+        mapsUrl: googleMapsSearchUrl(mode === 'ai' ? [aiService, aiQuery] : [text, categoryName], coords, radiusKm),
+        // Browse re-runs on its own when the radius changes; AI mode only searches on submit.
+        onWiden: mode === 'browse' && radiusKm < MAX_RADIUS_KM ? () => setRadiusKm(MAX_RADIUS_KM) : null,
+      }
+    : null;
 
   useEffect(() => {
     getOwnProfile(authClient)
@@ -433,6 +446,7 @@ export default function HomeScreen() {
             results={results}
             columns={columns}
             filtered={hasAnyFilter}
+            nearby={nearby}
             onLoadMore={loadMore}
             onRetry={retry}
             onClearFilters={clearFilters}
@@ -458,17 +472,30 @@ function ModeTab({ label, icon, active, onPress }: { label: string; icon?: React
   );
 }
 
+/** With "Cerca de mí" on: what to offer beyond Spot's own businesses. */
+interface NearbyActions {
+  mapsUrl: string;
+  /** Widens the radius to MAX_RADIUS_KM; null when it already is, or in AI mode. */
+  onWiden: (() => void) | null;
+}
+
 interface ResultsSectionProps {
   mode: Mode;
   results: SearchResults;
   columns: number;
   filtered: boolean;
+  nearby: NearbyActions | null;
   onLoadMore: () => void;
   onRetry: () => void;
   onClearFilters: () => void;
 }
 
-function ResultsSection({ mode, results, columns, filtered, onLoadMore, onRetry, onClearFilters }: ResultsSectionProps) {
+function openInMaps(url: string) {
+  // Best effort: on a device it opens the Maps app; if nothing can open it there's nothing else to do.
+  Linking.openURL(url).catch(() => {});
+}
+
+function ResultsSection({ mode, results, columns, filtered, nearby, onLoadMore, onRetry, onClearFilters }: ResultsSectionProps) {
   if (results.status === 'idle') return null;
 
   const title = mode === 'ai' ? 'Resultados' : filtered ? 'Resultados' : 'Negocios para vos';
@@ -504,12 +531,24 @@ function ResultsSection({ mode, results, columns, filtered, onLoadMore, onRetry,
         <View style={styles.stateBox}>
           <Text style={styles.stateTitle}>No encontramos negocios</Text>
           <Text style={styles.stateText}>
-            {mode === 'ai'
-              ? 'Probá describiendo el servicio con otras palabras o activá "Cerca de mí".'
-              : filtered
-                ? 'Probá con otro nombre o quitá algunos filtros.'
-                : 'Todavía no hay negocios activos para mostrar.'}
+            {nearby
+              ? 'Todavía no hay negocios de Spot en esta zona. Podés ampliar la distancia o ver los negocios cercanos en Google Maps.'
+              : mode === 'ai'
+                ? 'Probá describiendo el servicio con otras palabras o activá "Cerca de mí".'
+                : filtered
+                  ? 'Probá con otro nombre o quitá algunos filtros.'
+                  : 'Todavía no hay negocios activos para mostrar.'}
           </Text>
+          {nearby?.onWiden && (
+            <Pressable onPress={nearby.onWiden} accessibilityRole="button" style={styles.stateButton}>
+              <Text style={styles.stateButtonText}>Ampliar a {MAX_RADIUS_KM} km</Text>
+            </Pressable>
+          )}
+          {nearby && (
+            <Pressable onPress={() => openInMaps(nearby.mapsUrl)} accessibilityRole="link" style={styles.stateButton}>
+              <Text style={styles.stateButtonText}>Buscar en Google Maps</Text>
+            </Pressable>
+          )}
           {mode === 'browse' && filtered && (
             <Pressable onPress={onClearFilters} accessibilityRole="button" style={styles.stateButton}>
               <Text style={styles.stateButtonText}>Limpiar filtros</Text>
@@ -527,6 +566,11 @@ function ResultsSection({ mode, results, columns, filtered, onLoadMore, onRetry,
             </View>
           )}
           {results.loadMoreError && <ErrorMessage>{results.loadMoreError}</ErrorMessage>}
+          {nearby && (
+            <Pressable onPress={() => openInMaps(nearby.mapsUrl)} accessibilityRole="link" style={[styles.stateButton, styles.mapsLink]}>
+              <Text style={styles.stateButtonText}>Ver más negocios cerca en Google Maps</Text>
+            </Pressable>
+          )}
         </>
       )}
     </View>
@@ -831,6 +875,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 999,
     backgroundColor: color.accentTeal,
+  },
+  // Under the results grid: the same pill as the empty-state buttons, centered.
+  mapsLink: {
+    alignSelf: 'center',
+    marginTop: 16,
   },
   stateButtonText: {
     fontSize: 14,

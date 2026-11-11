@@ -7,6 +7,8 @@ import type { LocationState } from './useCurrentLocation';
 type AiSearchCriteria = components['schemas']['AiSearchCriteria'];
 
 const RADIUS_OPTIONS_KM = [5, 10, 25];
+/** The widest "Cerca de mí" radius, offered when a narrower one finds nothing (#71). */
+export const MAX_RADIUS_KM = RADIUS_OPTIONS_KM[RADIUS_OPTIONS_KM.length - 1];
 export const PROVINCES = ['San José', 'Alajuela', 'Cartago', 'Heredia', 'Guanacaste', 'Puntarenas', 'Limón'];
 
 const dateFormat = new Intl.DateTimeFormat('es-CR', { weekday: 'short', day: 'numeric', month: 'short' });
