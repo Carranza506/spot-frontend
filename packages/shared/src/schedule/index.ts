@@ -15,6 +15,12 @@ export {
   validateTimeRange,
 } from './validators';
 
+/** Day names indexed by the contract's dayOfWeek (0=Sunday..6=Saturday). */
+export const DAY_LABELS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+/** dayOfWeek values Monday-first, the way a week reads in Costa Rica. */
+export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
 // A week has at most one business_hours row per day_of_week, so one page always holds all of them.
 const WEEK_DAYS = 7;
 

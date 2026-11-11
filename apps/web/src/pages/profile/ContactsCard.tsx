@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ApiError,
+  CONTACT_TYPE_LABELS,
   createBusinessContact,
   deleteBusinessContact,
   listBusinessContacts,
@@ -21,17 +22,6 @@ import styles from './ContactsCard.module.css';
 
 type BusinessContact = components['schemas']['BusinessContact'];
 type ContactType = components['schemas']['ContactType'];
-
-const CONTACT_TYPE_LABELS: Record<ContactType, string> = {
-  PHONE: 'Teléfono',
-  WHATSAPP: 'WhatsApp',
-  EMAIL: 'Correo',
-  WEBSITE: 'Sitio web',
-  FACEBOOK: 'Facebook',
-  INSTAGRAM: 'Instagram',
-  TIKTOK: 'TikTok',
-  OTHER: 'Otro',
-};
 
 // Types offered when adding a contact. EMAIL stays valid in the API (and labelled above, so
 // existing EMAIL contacts still render), but Business.email in "Datos del negocio" covers it.

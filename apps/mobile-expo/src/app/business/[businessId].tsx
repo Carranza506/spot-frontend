@@ -5,6 +5,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ApiError, color, getBusiness } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { BusinessHeader } from '@/components/business/BusinessHeader';
+import { ContactsSection } from '@/components/business/ContactsSection';
+import { HoursSection } from '@/components/business/HoursSection';
 import { PhotosSection } from '@/components/business/PhotosSection';
 import { ReviewsSection } from '@/components/business/ReviewsSection';
 import { ServicesSection } from '@/components/business/ServicesSection';
@@ -51,6 +53,8 @@ export default function BusinessDetailScreen() {
           {favorites.status === 'ready' && <FavoriteButton business={state.data} />}
           <PhotosSection businessId={businessId} businessName={state.data.name} />
           <ServicesSection businessId={businessId} />
+          <HoursSection businessId={businessId} />
+          <ContactsSection businessId={businessId} />
           <ReviewsSection businessId={businessId} />
         </ScrollView>
       )}

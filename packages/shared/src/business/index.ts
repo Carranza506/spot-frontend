@@ -11,6 +11,7 @@ type PaginatedPhotos = components['schemas']['PaginatedPhotos'];
 type BusinessLocation = components['schemas']['BusinessLocation'];
 type BusinessLocationUpsertRequest = components['schemas']['BusinessLocationUpsertRequest'];
 type Category = components['schemas']['Category'];
+type ContactType = components['schemas']['ContactType'];
 type PaginatedCategories = components['schemas']['PaginatedCategories'];
 
 export { mapBusinessApiError, mapBusinessContactApiError, mapBusinessLocationApiError } from './errors';
@@ -26,6 +27,18 @@ export {
   validateCoordinate,
   validateHttpUrl,
 } from './validators';
+
+/** How each contact type is shown to people, in Spanish. */
+export const CONTACT_TYPE_LABELS: Record<ContactType, string> = {
+  PHONE: 'Teléfono',
+  WHATSAPP: 'WhatsApp',
+  EMAIL: 'Correo',
+  WEBSITE: 'Sitio web',
+  FACEBOOK: 'Facebook',
+  INSTAGRAM: 'Instagram',
+  TIKTOK: 'TikTok',
+  OTHER: 'Otro',
+};
 
 /** Creates the business profile for the authenticated BUSINESS account (1:1, 409 if it already has one). */
 export function createBusiness(client: Pick<ApiClient, 'apiFetch'>, data: BusinessCreateRequest): Promise<Business> {
