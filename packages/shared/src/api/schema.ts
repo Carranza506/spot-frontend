@@ -20,7 +20,8 @@ export interface paths {
          *     directly. Any other value (including `SUPERADMIN`) is rejected with
          *     400 — elevated roles beyond these two are never self-service.
          *
-         *     Access: public (no JWT required).
+         *     Access: public (no JWT required). Rate limited per client IP at
+         *     the Gateway, shared with `/auth/login` (429 past the limit).
          */
         post: operations["registerUser"];
         delete?: never;
@@ -43,7 +44,8 @@ export interface paths {
          * @description Main login mechanism for the MVP. Validates credentials against
          *     `users.password_hash` and issues a JWT access token and a refresh token.
          *
-         *     Access: public (no JWT required).
+         *     Access: public (no JWT required). Rate limited per client IP at
+         *     the Gateway, shared with `/auth/register` (429 past the limit).
          */
         post: operations["loginWithPassword"];
         delete?: never;
@@ -565,6 +567,10 @@ export interface paths {
         /**
          * Create a service for a business
          * @description Required role: `BUSINESS` who owns the business.
+         *
+         *     The new service is active, so it counts against the plan's `features.maxServices`
+         *     (`GET /business/billing/plans`): on FREE a business can have at most 5 active services,
+         *     on PRO there's no limit. Inactive services don't count.
          */
         post: operations["createService"];
         delete?: never;
@@ -609,6 +615,10 @@ export interface paths {
          * Update a service
          * @description Required role: `BUSINESS` who owns the business the service
          *     belongs to.
+         *
+         *     Reactivating an inactive service (`isActive: true`) counts against the plan's
+         *     `features.maxServices`, the same as `createService`. Editing an active service or
+         *     deactivating one is never limited.
          */
         patch: operations["updateService"];
         trace?: never;
@@ -1900,9 +1910,11 @@ export interface components {
             pagination: components["schemas"]["PaginationMeta"];
         };
         /**
-         * @description What a plan includes. Informational only: these limits are not enforced
-         *     yet. `null` means the plan sets no limit; the general limits of each
-         *     endpoint (for example, 20 photos per business) always apply.
+         * @description What a plan includes. `maxServices` is enforced when a service is
+         *     created or reactivated (409 `SERVICE_LIMIT_REACHED`); the photo limits
+         *     are informational only for now. `null` means the plan sets no limit; the
+         *     general limits of each endpoint (for example, 20 photos per business)
+         *     always apply.
          */
         PlanFeatures: {
             /** @description Maximum number of active services of the business. */
@@ -2332,6 +2344,28 @@ export interface components {
             };
         };
         /**
+         * @description Too many requests from this client IP in the current window (the
+         *     Gateway's limit on login and register, 10 per minute by default). The
+         *     `Retry-After` header says how many seconds to wait.
+         */
+        TooManyRequests: {
+            headers: {
+                /** @description Seconds until the client can try again. */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "code": "TOO_MANY_REQUESTS",
+                 *       "message": "Demasiados intentos. Esperá un momento y volvé a intentarlo.",
+                 *       "timestamp": "2026-08-30T20:00:00Z"
+                 *     }
+                 */
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /**
          * @description Unhandled error (for example, a database failure). Never exposes
          *     internal details; only a generic code and a friendly message.
          */
@@ -2398,6 +2432,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["UnprocessableEntity"];
+            429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -2431,6 +2466,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -3464,6 +3500,22 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            /** @description The business already has as many active services as its plan allows. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": "SERVICE_LIMIT_REACHED",
+                     *       "message": "Tu plan permite hasta 5 servicios activos. Desactiva uno o cámbiate al plan Pro para agregar más.",
+                     *       "timestamp": "2026-11-08T20:00:00Z"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
             500: components["responses"]["InternalServerError"];
         };
     };
@@ -3543,6 +3595,22 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            /** @description Reactivating it would exceed the active services the business's plan allows. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": "SERVICE_LIMIT_REACHED",
+                     *       "message": "Tu plan permite hasta 5 servicios activos. Desactiva uno o cámbiate al plan Pro para agregar más.",
+                     *       "timestamp": "2026-11-08T20:00:00Z"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
             500: components["responses"]["InternalServerError"];
         };
     };
