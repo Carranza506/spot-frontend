@@ -57,6 +57,8 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
+  // The exception being edited, or null when the form adds a new one.
+  const [editing, setEditing] = useState<BusinessScheduleException | null>(null);
   const [exceptionDate, setExceptionDate] = useState('');
   const [isClosed, setIsClosed] = useState(true);
   const [openTime, setOpenTime] = useState(DEFAULT_OPEN_TIME);
@@ -87,13 +89,23 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
     fetchExceptions();
   }
 
-  function openForm() {
+  function openForm(exception: BusinessScheduleException | null = null) {
+    closeForm();
     setFormOpen(true);
     setActionError(null);
+    if (exception) {
+      setEditing(exception);
+      setExceptionDate(exception.exceptionDate);
+      setIsClosed(exception.isClosed);
+      setOpenTime(fromApiTime(exception.openTime) || DEFAULT_OPEN_TIME);
+      setCloseTime(fromApiTime(exception.closeTime) || DEFAULT_CLOSE_TIME);
+      setReason(exception.reason ?? '');
+    }
   }
 
   function closeForm() {
     setFormOpen(false);
+    setEditing(null);
     setExceptionDate('');
     setIsClosed(true);
     setOpenTime(DEFAULT_OPEN_TIME);
@@ -128,18 +140,26 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
     setGeneralError(null);
     setSubmitting(true);
     try {
-      await scheduleApi.createException(businessId, {
+      // The edit replaces the whole exception, so an omitted reason clears it.
+      const data = {
         exceptionDate,
         isClosed,
         ...(isClosed ? {} : { openTime: toApiTime(openTime), closeTime: toApiTime(closeTime) }),
         ...(reason.trim() ? { reason: reason.trim() } : {}),
-      });
+      };
+      if (editing) await scheduleApi.updateException(businessId, editing.id, data);
+      else await scheduleApi.createException(businessId, data);
       closeForm();
       fetchExceptions();
-      showToast('Excepción agregada.');
+      showToast(editing ? 'Excepción actualizada.' : 'Excepción agregada.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
+      } else if (editing && error instanceof ApiError && error.status === 404) {
+        // Deleted meanwhile (e.g. from another tab): the refreshed list reflects that.
+        closeForm();
+        fetchExceptions();
+        setActionError(error.message);
       } else if (error instanceof ApiError && error.status === 409) {
         setFieldErrors({ exceptionDate: 'Ya existe una excepción para esa fecha.' });
       } else if (error instanceof ApiError) {
@@ -223,6 +243,15 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                   </div>
                   <button
                     type="button"
+                    className={styles.editButton}
+                    onClick={() => openForm(exception)}
+                    disabled={busy}
+                    aria-label={`Editar la excepción del ${formatIsoDate(exception.exceptionDate)}`}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
                     className={styles.deleteButton}
                     onClick={() => handleDelete(exception)}
                     disabled={busy}
@@ -296,12 +325,12 @@ export function ScheduleExceptionsCard({ businessId }: ScheduleExceptionsCardPro
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={busy}>
-                  {submitting ? 'Guardando…' : 'Guardar excepción'}
+                  {submitting ? 'Guardando…' : editing ? 'Guardar cambios' : 'Guardar excepción'}
                 </Button>
               </ActionButtons>
             </form>
           ) : (
-            <Button type="button" onClick={openForm}>
+            <Button type="button" onClick={() => openForm()}>
               Agregar excepción
             </Button>
           )}

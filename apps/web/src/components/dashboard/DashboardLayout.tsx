@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { logout } from '@spot/shared';
 import { authClient } from '../../api/client';
@@ -11,6 +12,7 @@ import {
   GridIcon,
   LogoIcon,
   LogoutIcon,
+  MenuIcon,
   StoreIcon,
   TagIcon,
   UserIcon,
@@ -53,9 +55,19 @@ export function DashboardLayout() {
   );
   const title = activeItem?.label ?? 'Dashboard';
 
+  // Narrow screens only (see the @media in the CSS): the sidebar is a drawer behind the menu button.
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => event.key === 'Escape' && setMenuOpen(false);
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [menuOpen]);
+
   return (
     <div className={styles.page}>
-      <aside className={styles.sidebar}>
+      {menuOpen && <div className={styles.backdrop} onClick={() => setMenuOpen(false)} aria-hidden="true" />}
+      <aside id="dashboard-sidebar" className={[styles.sidebar, menuOpen ? styles.sidebarOpen : ''].join(' ')}>
         <div className={styles.logo}>
           <LogoIcon />
           <span>Spot</span>
@@ -65,6 +77,7 @@ export function DashboardLayout() {
             <NavLink
               key={path}
               to={path}
+              onClick={() => setMenuOpen(false)}
               className={({ isActive }) => [styles.navItem, isActive ? styles.navItemActive : ''].join(' ')}
             >
               <Icon />
@@ -79,7 +92,17 @@ export function DashboardLayout() {
       </aside>
       <div className={styles.contentColumn}>
         <header className={styles.topbar}>
-          <div>
+          <button
+            type="button"
+            className={styles.menuButton}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label="Abrir menú"
+            aria-controls="dashboard-sidebar"
+            aria-expanded={menuOpen}
+          >
+            <MenuIcon />
+          </button>
+          <div className={styles.titleBlock}>
             <h1 className={styles.title}>{title}</h1>
             <p className={styles.subtitle}>{business.name} · Administrador</p>
           </div>

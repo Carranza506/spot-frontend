@@ -80,6 +80,19 @@ export function createBusinessScheduleException(
   });
 }
 
+/** Replaces a schedule exception, keeping its id (409 if another exception already has the new date). */
+export function updateBusinessScheduleException(
+  client: Pick<ApiClient, 'apiFetch'>,
+  businessId: string,
+  exceptionId: string,
+  data: BusinessScheduleExceptionCreateRequest,
+): Promise<BusinessScheduleException> {
+  return client.apiFetch<BusinessScheduleException>(
+    `${businessPath(businessId)}/schedule-exceptions/${encodeURIComponent(exceptionId)}`,
+    { method: 'PUT', body: data },
+  );
+}
+
 /** Removes a schedule exception from a business the authenticated BUSINESS account owns (204). */
 export function deleteBusinessScheduleException(
   client: Pick<ApiClient, 'apiFetch'>,

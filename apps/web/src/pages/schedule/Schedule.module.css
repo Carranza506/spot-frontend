@@ -140,7 +140,8 @@
   color: var(--color-warningText);
 }
 
-.deleteButton {
+.deleteButton,
+.editButton {
   flex: 0 0 auto;
   background: none;
   border: none;
@@ -154,7 +155,12 @@
   color: var(--color-danger);
 }
 
-.deleteButton:disabled {
+.editButton {
+  color: var(--color-textPrimary);
+}
+
+.deleteButton:disabled,
+.editButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
