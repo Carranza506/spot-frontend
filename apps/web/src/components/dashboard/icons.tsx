@@ -35,6 +35,24 @@ export function CalendarIcon({ size = 18 }: IconProps) {
   );
 }
 
+export function BellIcon({ size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
+      <path d="M5 13.5V9a5 5 0 0 1 10 0v4.5l1.3 1.7H3.7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M8.3 17.2a1.8 1.8 0 0 0 3.4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SearchIcon({ size = 18 }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M13.2 13.2 17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function ListIcon({ size = 18 }: IconProps) {
   return (
     <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">

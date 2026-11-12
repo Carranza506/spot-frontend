@@ -13,6 +13,7 @@ import { BillingPage } from './pages/BillingPage';
 import { BillingSuccessPage } from './pages/BillingSuccessPage';
 import { BillingCancelPage } from './pages/BillingCancelPage';
 import { AccountPage } from './pages/AccountPage';
+import { ComingSoonPage } from './pages/ComingSoonPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { ProtectedRoute } from './routes/ProtectedRoute';
@@ -37,6 +38,8 @@ function App() {
             <Route path="/reviews" element={<ReviewsPage />} />
             <Route path="/billing" element={<BillingPage />} />
             <Route path="/account" element={<AccountPage />} />
+            {/* The top bar's search, "Nueva reservación" and bell: outside the MVP for now (#101). */}
+            <Route path="/proximamente/:feature" element={<ComingSoonPage />} />
             {/* Stripe Checkout return URLs, as the backend sends them to Stripe. */}
             <Route path="/billing/success" element={<BillingSuccessPage />} />
             <Route path="/billing/cancel" element={<BillingCancelPage />} />

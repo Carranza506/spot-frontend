@@ -136,6 +136,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--spacing-md);
 }
 
 .title {
@@ -179,6 +180,58 @@
   flex: 1 1 auto;
   background: var(--color-background);
   padding: var(--spacing-xl);
+}
+
+/* Shaped like a search field, but a link: the search isn't built yet (#101). */
+.searchLink {
+  flex: 0 1 320px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: 44px;
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-textSecondary);
+  font-size: var(--fontSize-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.newBooking {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-accentTeal);
+  color: var(--color-onPanelDark);
+  font-size: var(--fontSize-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.newBooking:hover {
+  background: var(--color-accentTealHover);
+}
+
+.iconLink {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-textPrimary);
+}
+
+.iconLink:hover {
+  background: var(--color-background);
 }
 
 .titleBlock {
@@ -234,6 +287,12 @@
   .topbar {
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
+  }
+
+  /* No room for the search field and the button's text on a phone: the bell and avatar stay. */
+  .searchLink,
+  .newBooking {
+    display: none;
   }
 
   .title {

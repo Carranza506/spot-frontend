@@ -5,6 +5,7 @@ import { authClient } from '../../api/client';
 import { usePlanUsage } from '../../pages/services/usePlanUsage';
 import { useBusinessContext } from '../../routes/businessContext';
 import {
+  BellIcon,
   CalendarIcon,
   ChatIcon,
   ClockIcon,
@@ -13,6 +14,7 @@ import {
   LogoIcon,
   LogoutIcon,
   MenuIcon,
+  SearchIcon,
   StoreIcon,
   TagIcon,
 } from './icons';
@@ -44,6 +46,7 @@ const SECTIONS = [
   ...NAV_GROUPS.flatMap((group) => group.items),
   { path: '/billing', label: 'Plan' },
   { path: '/account', label: 'Mi cuenta' },
+  { path: '/proximamente', label: 'Próximamente' },
 ];
 
 function initials(name: string): string {
@@ -144,6 +147,17 @@ export function DashboardLayout() {
             <h1 className={styles.title}>{title}</h1>
             <p className={styles.subtitle}>{business.name} · Administrador</p>
           </div>
+          {/* Outside the MVP for now: they open a "Próximamente" page instead of doing nothing (#101). */}
+          <Link to="/proximamente/busqueda" className={styles.searchLink}>
+            <SearchIcon />
+            <span>Buscar cliente o reservación</span>
+          </Link>
+          <Link to="/proximamente/nueva-reservacion" className={styles.newBooking}>
+            Nueva reservación
+          </Link>
+          <Link to="/proximamente/notificaciones" className={styles.iconLink} aria-label="Notificaciones" title="Notificaciones">
+            <BellIcon />
+          </Link>
           <Link to="/account" className={styles.avatar} aria-label="Mi cuenta" title="Mi cuenta">
             {initials(business.name)}
           </Link>
