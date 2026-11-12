@@ -25,8 +25,9 @@ type Field = 'currentPassword' | 'newPassword' | 'confirmPassword';
 
 /** Mi cuenta (W9): the account's own settings, apart from the business's. */
 export function AccountPage() {
+  // Stacked, not Perfil's two columns: the password form needs the full width.
   return (
-    <div className={styles.page}>
+    <div className={styles.sideColumn}>
       <ProfileCard />
       <PasswordCard />
     </div>
