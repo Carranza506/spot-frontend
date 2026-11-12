@@ -315,7 +315,7 @@ export default function BookingsScreen() {
                 {list.loadMoreError ? <ErrorMessage style={styles.actionError}>{list.loadMoreError}</ErrorMessage> : null}
                 <PrimaryButton title="Cargar más" onPress={() => void loadMore()} loading={list.loadingMore} />
               </View>
-            ) : null
+            ) : undefined
           }
         />
       )}
