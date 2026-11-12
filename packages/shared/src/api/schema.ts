@@ -1588,6 +1588,7 @@ export interface components {
             firstName: string | null;
             /** @description Null for a BUSINESS account — its name is `businesses.name` instead. */
             lastName: string | null;
+            /** @description E.164 ("+50688881234"). Phones saved before BUG-09 may keep the format they were typed in. */
             phone?: string | null;
             /** Format: uri */
             profilePhotoUrl?: string | null;
@@ -1612,6 +1613,7 @@ export interface components {
             firstName?: string;
             /** @description Required when role is CLIENT (the default). Ignored for BUSINESS — a business account has no person name. */
             lastName?: string;
+            /** @description International format with the country code ("+506 8888 1234"), valid for that country (libphonenumber). Stored and returned as E.164 ("+50688881234"); blank means no phone. 400 otherwise. */
             phone?: string;
             /**
              * @description Optional. Defaults to CLIENT when omitted. Only CLIENT and BUSINESS may be requested here — SUPERADMIN is never granted through self-service registration.
@@ -1644,6 +1646,7 @@ export interface components {
             firstName?: string;
             /** @description CLIENT only: cannot be cleared to null or empty (400). Rejected outright (400) for a BUSINESS account — its name is edited via PATCH /business/businesses/me instead. */
             lastName?: string;
+            /** @description International format with the country code ("+506 8888 1234"), valid for that country (libphonenumber). Stored and returned as E.164 ("+50688881234"); blank means no phone. 400 otherwise. */
             phone?: string | null;
             /** Format: uri */
             profilePhotoUrl?: string | null;
@@ -1705,6 +1708,7 @@ export interface components {
             legalName?: string | null;
             /** Format: email */
             email?: string | null;
+            /** @description E.164 ("+50688881234"). Phones saved before BUG-09 may keep the format they were typed in. */
             phone?: string | null;
             /** Format: uri */
             website?: string | null;
@@ -1722,6 +1726,7 @@ export interface components {
             legalName?: string;
             /** Format: email */
             email?: string;
+            /** @description International format with the country code ("+506 8888 1234"), valid for that country (libphonenumber). Stored and returned as E.164 ("+50688881234"); blank means no phone. 400 otherwise. */
             phone?: string;
             /** Format: uri */
             website?: string;
@@ -1734,6 +1739,7 @@ export interface components {
             legalName?: string | null;
             /** Format: email */
             email?: string | null;
+            /** @description International format with the country code ("+506 8888 1234"), valid for that country (libphonenumber). Stored and returned as E.164 ("+50688881234"); blank means no phone. 400 otherwise. */
             phone?: string | null;
             /** Format: uri */
             website?: string | null;
@@ -1777,6 +1783,7 @@ export interface components {
             /** Format: uuid */
             businessId: string;
             type: components["schemas"]["ContactType"];
+            /** @description For PHONE and WHATSAPP, E.164 ("+50688881234"). */
             value: string;
             isPrimary: boolean;
             /** Format: date-time */
@@ -1784,6 +1791,7 @@ export interface components {
         };
         BusinessContactCreateRequest: {
             type: components["schemas"]["ContactType"];
+            /** @description For PHONE and WHATSAPP, a phone in international format valid for its country ("+506 8888 1234"), stored as E.164; 400 otherwise. Free text for the other types. */
             value: string;
             /** @default false */
             isPrimary: boolean;
