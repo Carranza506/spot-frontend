@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { color, validateHttpUrl, type components } from '@spot/shared';
+import { color, formatPhone, validateHttpUrl, type components } from '@spot/shared';
 import { phoneUrl } from './businessInfo';
 import { ContactLink, emailUrl, httpUrl } from './ContactLink';
 
@@ -14,7 +14,7 @@ interface ContactRow {
 
 function contactRows({ phone, email, website }: Business): ContactRow[] {
   const rows: ContactRow[] = [];
-  if (phone) rows.push({ label: 'Teléfono', value: phone, url: phoneUrl(phone) });
+  if (phone) rows.push({ label: 'Teléfono', value: formatPhone(phone), url: phoneUrl(phone) });
   if (email) rows.push({ label: 'Correo', value: email, url: emailUrl(email) });
   const site = website ? httpUrl(website) : null;
   if (site) rows.push({ label: 'Sitio web', value: site, url: site });

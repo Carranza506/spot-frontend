@@ -158,3 +158,12 @@ export function DollarIcon({ size = 18 }: IconProps) {
     </svg>
   );
 }
+
+export function UserIcon({ size = 18 }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
+      <circle cx="10" cy="7" r="3.2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3.8 16.8c.9-3 3.3-4.6 6.2-4.6s5.3 1.6 6.2 4.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}

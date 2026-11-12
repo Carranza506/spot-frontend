@@ -81,6 +81,15 @@ export function BellIcon(props: IconProps) {
   );
 }
 
+export function UserIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Circle cx={12} cy={8} r={4} />
+      <Path d="M4.5 20.5c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5" />
+    </StrokeIcon>
+  );
+}
+
 export function LogoutIcon(props: IconProps) {
   return (
     <StrokeIcon {...props}>
