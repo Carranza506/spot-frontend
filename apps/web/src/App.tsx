@@ -12,6 +12,7 @@ import { ReviewsPage } from './pages/ReviewsPage';
 import { BillingPage } from './pages/BillingPage';
 import { BillingSuccessPage } from './pages/BillingSuccessPage';
 import { BillingCancelPage } from './pages/BillingCancelPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { BusinessGuard } from './routes/BusinessGuard';
@@ -40,7 +41,7 @@ function App() {
           </Route>
         </Route>
       </Route>
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
