@@ -1,0 +1,17 @@
+.row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Code first ("+506 Costa Rica"), so a long country name can be cut without hiding the code. */
+.country {
+  flex: 0 1 auto;
+  max-width: 45%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.number {
+  flex: 1 1 0;
+  min-width: 0;
+}

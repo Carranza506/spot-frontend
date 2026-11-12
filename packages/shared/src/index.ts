@@ -22,6 +22,8 @@ export {
   register,
   logout,
   getOwnProfile,
+  changePassword,
+  updateOwnProfile,
   type AuthClient,
 } from './auth';
 export {
@@ -130,3 +132,14 @@ export {
   type NotificationsFilter,
 } from './notifications';
 export { formatPrice } from './format';
+export {
+  DEFAULT_PHONE_COUNTRY,
+  PHONE_COUNTRIES,
+  PHONE_INVALID_MESSAGE,
+  formatPhone,
+  splitPhone,
+  toE164,
+  validatePhone,
+  type CountryCode,
+  type PhoneCountry,
+} from './phone';

@@ -1,12 +1,23 @@
 import { useState } from 'react';
 import { Text } from 'react-native';
 import { Link } from 'expo-router';
-import { ApiError, mapAuthApiError, register, validateEmail, validatePassword, validateRequired } from '@spot/shared';
+import {
+  ApiError,
+  mapAuthApiError,
+  register,
+  splitPhone,
+  toE164,
+  validateEmail,
+  validatePassword,
+  validatePhone,
+  validateRequired,
+} from '@spot/shared';
 import { authClient } from '@/api/client';
 import { takeReturnTo } from '@/auth/returnTo';
 import { guestOnly } from '@/auth/sessionGates';
 import { AuthScreen } from '@/components/AuthScreen';
 import { ErrorMessage } from '@/components/ErrorMessage';
+import { PhoneField } from '@/components/PhoneField';
 import { TextField } from '@/components/TextField';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { authFormStyles } from '@/components/authFormStyles';
@@ -17,7 +28,7 @@ function RegisterScreen() {
   const favorites = useFavorites();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(() => splitPhone(null));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -34,6 +45,8 @@ function RegisterScreen() {
     if (lastNameError) errors.lastName = lastNameError;
     if (emailError) errors.email = emailError;
     if (passwordError) errors.password = passwordError;
+    const phoneError = validatePhone(phone.national, phone.country);
+    if (phoneError) errors.phone = phoneError;
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -44,6 +57,7 @@ function RegisterScreen() {
     setFieldErrors({});
     setGeneralError(null);
     setSubmitting(true);
+    const phoneE164 = toE164(phone.national, phone.country);
     try {
       // No `role`: this consumer app only ever creates CLIENT accounts (the contract default).
       await register(authClient, {
@@ -51,7 +65,7 @@ function RegisterScreen() {
         password,
         firstName,
         lastName,
-        ...(phone.trim() ? { phone: phone.trim() } : {}),
+        ...(phoneE164 ? { phone: phoneE164 } : {}),
       });
       // A new account starts with no favorites, whoever was signed in on this device before.
       favorites.reset();
@@ -90,15 +104,7 @@ function RegisterScreen() {
         onChangeText={setLastName}
         error={fieldErrors.lastName}
       />
-      <TextField
-        label="Teléfono"
-        placeholder="+506 8888-1234"
-        keyboardType="phone-pad"
-        autoComplete="tel"
-        value={phone}
-        onChangeText={setPhone}
-        error={fieldErrors.phone}
-      />
+      <PhoneField label="Teléfono (opcional)" value={phone} onChange={setPhone} error={fieldErrors.phone} />
       <TextField
         label="Correo"
         placeholder="vos@correo.com"

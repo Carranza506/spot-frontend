@@ -1,4 +1,4 @@
-import { CONTACT_TYPE_LABELS, listBusinessContacts } from '@spot/shared';
+import { CONTACT_TYPE_LABELS, formatPhone, listBusinessContacts } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { ContactLink, contactUrl } from './ContactLink';
@@ -29,7 +29,7 @@ export function ContactsSection({ businessId }: { businessId: string }) {
             <ContactLink
               key={contact.id}
               label={CONTACT_TYPE_LABELS[contact.type]}
-              value={contact.value}
+              value={contact.type === 'PHONE' || contact.type === 'WHATSAPP' ? formatPhone(contact.value) : contact.value}
               url={contactUrl(contact)}
             />
           ))
