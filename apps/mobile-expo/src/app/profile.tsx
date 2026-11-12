@@ -17,6 +17,7 @@ import {
   type components,
 } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { requireSession } from '@/auth/sessionGates';
 import { signOut } from '@/auth/signOut';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { PhoneField, type PhoneValue } from '@/components/PhoneField';
@@ -39,7 +40,7 @@ const toForm = (user: User): Form => ({
 });
 
 /** Perfil (M7): the account's name and phone, and its password. */
-export default function ProfileScreen() {
+function ProfileScreen() {
   const [user, setUser] = useState<User | 'loading' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
 
@@ -302,3 +303,6 @@ const styles = StyleSheet.create({
     backgroundColor: color.surfaceMuted,
   },
 });
+
+// Like every screen that needs a session (#88): without one, the login first, then back here.
+export default requireSession(ProfileScreen);
