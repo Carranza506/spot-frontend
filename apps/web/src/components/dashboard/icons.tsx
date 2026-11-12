@@ -35,6 +35,14 @@ export function CalendarIcon({ size = 18 }: IconProps) {
   );
 }
 
+export function ListIcon({ size = 18 }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
+      <path d="M4 5.5h12M4 10h12M4 14.5h7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function StoreIcon({ size = 18 }: IconProps) {
   return (
     <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
