@@ -110,16 +110,23 @@ export default function BookingScreen() {
       ) : booking ? (
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.title} accessibilityRole="header">
-            ¡Reserva creada!
+            ¡Reserva enviada!
           </Text>
           <View style={styles.card}>
+            {/* Same colors as Mis reservas' PENDING badge: a new booking waits for the business. */}
+            <View style={styles.pendingBadge}>
+              <Text style={styles.pendingBadgeText}>Pendiente de confirmación</Text>
+            </View>
             <Text style={styles.cardTitle}>{booking.serviceName}</Text>
             <Text style={styles.cardText}>
               {formatBusinessDay(booking.startAt)} a las {formatBusinessTime(booking.startAt)}
             </Text>
             <Text style={styles.cardMeta}>{booking.serviceDurationMinutes} min</Text>
           </View>
-          <PrimaryButton title="Listo" onPress={() => router.replace('/bookings')} />
+          <Text style={styles.message}>
+            El negocio tiene que confirmarla. Te avisamos cuando lo haga, y podés seguirla en Mis reservas.
+          </Text>
+          <PrimaryButton title="Ver mis reservas" onPress={() => router.replace('/bookings')} />
         </ScrollView>
       ) : state.status === 'loading' ? (
         <ActivityIndicator style={styles.centered} color={color.accentTeal} />
@@ -307,5 +314,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: color.accentTeal,
+  },
+  pendingBadge: {
+    alignSelf: 'flex-start',
+    marginBottom: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: color.warningBg,
+  },
+  pendingBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: color.warningText,
   },
 });
