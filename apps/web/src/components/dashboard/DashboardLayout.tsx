@@ -15,6 +15,7 @@ import {
   MenuIcon,
   StoreIcon,
   TagIcon,
+  UserIcon,
 } from './icons';
 import styles from './DashboardLayout.module.css';
 
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { path: '/profile', label: 'Perfil', Icon: GearIcon },
   { path: '/reviews', label: 'Reseñas', Icon: ChatIcon },
   { path: '/billing', label: 'Plan', Icon: CardIcon },
+  { path: '/account', label: 'Mi cuenta', Icon: UserIcon },
 ];
 
 function initials(name: string): string {

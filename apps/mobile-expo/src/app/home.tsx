@@ -29,16 +29,17 @@ import {
 } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { rememberWrongRole } from '@/auth/wrongRole';
+import { requireSession } from '@/auth/sessionGates';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Logo } from '@/components/Logo';
 import { PrimaryButton } from '@/components/PrimaryButton';
-import { LogoutIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
-import { resetTo } from '@/navigation/resetTo';
+import { LogoutIcon, UserIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
 import { FavoriteActionError } from '@/favorites/FavoriteActionError';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { BusinessCard } from '@/components/business/BusinessCard';
 import { QuickActions } from '@/home/QuickActions';
-import { registerForPush, unregisterPush } from '@/notifications/push';
+import { registerForPush } from '@/notifications/push';
+import { signOut } from '@/auth/signOut';
 import { Chip } from '@/search/Chip';
 import { CriteriaSummary, FilterGroup, FilterLabel, MAX_RADIUS_KM, NearbyToggle, PROVINCES } from '@/search/SearchFilters';
 import { googleMapsSearchUrl } from '@/search/googleMaps';
@@ -51,7 +52,6 @@ type Business = components['schemas']['Business'];
 
 type Mode = 'browse' | 'ai';
 
-const LOGOUT_PUSH_WAIT_MS = 3000;
 const PAGE_SIZE = 20;
 const TYPING_DEBOUNCE_MS = 350;
 const CONTENT_MAX_WIDTH = 1040;
@@ -96,7 +96,7 @@ function columnsFor(width: number): number {
  * right away, filters them as the user types or picks a category/province/city/radius, offers the
  * natural-language (AI) search, and keeps favorites, bookings and notifications one tap away.
  */
-export default function HomeScreen() {
+function HomeScreen() {
   const { width } = useWindowDimensions();
   const favorites = useFavorites();
   const [user, setUser] = useState<User | null>(null);
@@ -142,18 +142,6 @@ export default function HomeScreen() {
     : null;
 
   useEffect(() => {
-    getOwnProfile(authClient)
-      .then((profile) => {
-        // A business or admin session stored before the login screen started checking the role.
-        if (profile.role !== 'CLIENT') {
-          rememberWrongRole();
-          // Clearing the session takes this screen back to the login, which shows the reason.
-          void logout(authClient);
-          return;
-        }
-        setUser(profile);
-      })
-      .catch(() => setUser(null));
     // Login and register both land here, so this is where the device gets its push token registered.
     void registerForPush();
     // Root categories only: they're the broad ones a user filters by.
@@ -162,10 +150,23 @@ export default function HomeScreen() {
       .catch(() => setCategories([]));
   }, []);
 
-  // Coming back from Notificaciones (or anywhere else) refreshes the unread badge.
+  // Coming back from Notificaciones or Perfil (or anywhere else) refreshes the unread badge and the
+  // greeting's name.
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      getOwnProfile(authClient)
+        .then((profile) => {
+          // A business or admin session stored before the login screen started checking the role.
+          if (profile.role !== 'CLIENT') {
+            rememberWrongRole();
+            // Clearing the session takes this screen back to the login, which shows the reason.
+            void logout(authClient);
+            return;
+          }
+          if (active) setUser(profile);
+        })
+        .catch(() => active && setUser(null));
       listOwnNotifications(authClient, { isRead: false, pageSize: 1 })
         .then((page) => active && setUnread(page.pagination.total))
         .catch(() => active && setUnread(0));
@@ -246,15 +247,7 @@ export default function HomeScreen() {
 
   async function handleLogout() {
     setLoggingOut(true);
-    try {
-      // Best effort: a slow or unreachable notifications service must not keep the user signed in.
-      await Promise.race([unregisterPush(), new Promise((resolve) => setTimeout(resolve, LOGOUT_PUSH_WAIT_MS))]);
-      await logout(authClient);
-    } finally {
-      // The next account must not see this one's favorites.
-      favorites.reset();
-      resetTo('/');
-    }
+    await signOut(favorites.reset);
   }
 
   const columns = columnsFor(Math.min(width, CONTENT_MAX_WIDTH));
@@ -268,20 +261,31 @@ export default function HomeScreen() {
             <View style={styles.inner}>
               <View style={styles.topBar}>
                 <Logo />
-                <Pressable
-                  onPress={handleLogout}
-                  disabled={loggingOut}
-                  accessibilityRole="button"
-                  accessibilityLabel="Cerrar sesión"
-                  style={({ pressed, hovered }) => [styles.logout, (hovered || pressed) && styles.logoutActive]}
-                >
-                  {loggingOut ? (
-                    <ActivityIndicator size="small" color={color.onPanelDark} />
-                  ) : (
-                    <LogoutIcon size={18} color={color.onPanelDark} />
-                  )}
-                  <Text style={styles.logoutText}>Salir</Text>
-                </Pressable>
+                <View style={styles.topActions}>
+                  <Pressable
+                    onPress={() => router.push('/profile')}
+                    accessibilityRole="button"
+                    accessibilityLabel="Perfil"
+                    style={({ pressed, hovered }) => [styles.logout, (hovered || pressed) && styles.logoutActive]}
+                  >
+                    <UserIcon size={18} color={color.onPanelDark} />
+                    <Text style={styles.logoutText}>Perfil</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleLogout}
+                    disabled={loggingOut}
+                    accessibilityRole="button"
+                    accessibilityLabel="Cerrar sesión"
+                    style={({ pressed, hovered }) => [styles.logout, (hovered || pressed) && styles.logoutActive]}
+                  >
+                    {loggingOut ? (
+                      <ActivityIndicator size="small" color={color.onPanelDark} />
+                    ) : (
+                      <LogoutIcon size={18} color={color.onPanelDark} />
+                    )}
+                    <Text style={styles.logoutText}>Salir</Text>
+                  </Pressable>
+                </View>
               </View>
 
               <Text style={styles.greeting} role="heading" aria-level={1}>
@@ -641,6 +645,10 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     marginBottom: 24,
   },
+  topActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   logout: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -908,3 +916,5 @@ const styles = StyleSheet.create({
     backgroundColor: color.surfaceMuted,
   },
 });
+
+export default requireSession(HomeScreen);

@@ -5,15 +5,20 @@ import {
   CONTACT_TYPE_LABELS,
   createBusinessContact,
   deleteBusinessContact,
+  formatPhone,
   listBusinessContacts,
   mapBusinessContactApiError,
+  splitPhone,
+  toE164,
   updateBusinessContact,
+  validatePhone,
   validateRequired,
   type components,
 } from '@spot/shared';
 import { authClient } from '../../api/client';
 import { ActionButtons } from '../../components/ActionButtons';
 import { Button } from '../../components/Button';
+import { PhoneField } from '../../components/PhoneField';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
 import { useFeedback } from '../../components/feedback/feedbackContext';
@@ -33,6 +38,8 @@ const CONTACTS_PAGE_SIZE = 100;
 
 const NETWORK_ERROR = 'No se pudo conectar con el servidor. Intentá de nuevo.';
 
+const isPhoneType = (type: ContactType) => type === 'PHONE' || type === 'WHATSAPP';
+
 type ListState = { status: 'loading' } | { status: 'ready'; contacts: BusinessContact[] } | { status: 'error' };
 
 interface ContactsCardProps {
@@ -51,6 +58,7 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
   const [editing, setEditing] = useState<BusinessContact | null>(null);
   const [type, setType] = useState<ContactType>('PHONE');
   const [value, setValue] = useState('');
+  const [phone, setPhone] = useState(() => splitPhone(null));
   const [isPrimary, setIsPrimary] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -78,6 +86,8 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
       setEditing(contact);
       setType(contact.type);
       setValue(contact.value);
+      // A phone is edited in the country picker (#90): its stored E.164 split back into country and number.
+      setPhone(splitPhone(isPhoneType(contact.type) ? contact.value : null));
       setIsPrimary(contact.isPrimary);
     }
   }
@@ -87,6 +97,7 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
     setEditing(null);
     setType('PHONE');
     setValue('');
+    setPhone(splitPhone(null));
     setIsPrimary(false);
     setFieldErrors({});
     setGeneralError(null);
@@ -95,18 +106,23 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
-    const valueError = validateRequired(value, 'El valor del contacto es requerido.');
+    const phoneType = isPhoneType(type);
+    const raw = phoneType ? phone.national : value;
+    const valueError =
+      validateRequired(raw, 'El valor del contacto es requerido.') ??
+      (phoneType ? validatePhone(phone.national, phone.country) : null);
     if (valueError) {
       setFieldErrors({ value: valueError });
       setGeneralError(null);
       return;
     }
+    const contactValue = phoneType ? toE164(phone.national, phone.country)! : value.trim();
 
     setFieldErrors({});
     setGeneralError(null);
     setSubmitting(true);
     try {
-      const data = { type, value: value.trim(), isPrimary };
+      const data = { type, value: contactValue, isPrimary };
       if (editing) await updateBusinessContact(authClient, businessId, editing.id, data);
       else await createBusinessContact(authClient, businessId, data);
       closeForm();
@@ -135,7 +151,7 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
   async function handleDelete(contact: BusinessContact) {
     const confirmed = await confirm({
       title: 'Eliminar contacto',
-      message: `¿Eliminar el contacto ${CONTACT_TYPE_LABELS[contact.type]}: ${contact.value}?`,
+      message: `¿Eliminar el contacto ${CONTACT_TYPE_LABELS[contact.type]}: ${isPhoneType(contact.type) ? formatPhone(contact.value) : contact.value}?`,
       confirmLabel: 'Eliminar',
       danger: true,
     });
@@ -188,7 +204,9 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
                       {CONTACT_TYPE_LABELS[contact.type]}
                       {contact.isPrimary && <span className={styles.badge}>Principal</span>}
                     </span>
-                    <span className={styles.value}>{contact.value}</span>
+                    <span className={styles.value}>
+                      {isPhoneType(contact.type) ? formatPhone(contact.value) : contact.value}
+                    </span>
                   </div>
                   <button
                     type="button"
@@ -229,14 +247,17 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
                   </option>
                 ))}
               </SelectField>
-              <TextField
-                id="contactValue"
-                label="Valor"
-                placeholder="+506 8888-3344"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                error={fieldErrors.value}
-              />
+              {isPhoneType(type) ? (
+                <PhoneField id="contactValue" label="Número" value={phone} onChange={setPhone} error={fieldErrors.value} />
+              ) : (
+                <TextField
+                  id="contactValue"
+                  label="Valor"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  error={fieldErrors.value}
+                />
+              )}
               <label className={styles.checkbox}>
                 <input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} />
                 Contacto principal

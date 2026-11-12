@@ -1,9 +1,20 @@
 import { useEffect, useState, type FormEvent, type MouseEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ApiError, createBusiness, getOwnProfile, logout, mapAuthApiError, validateRequired } from '@spot/shared';
+import {
+  ApiError,
+  createBusiness,
+  getOwnProfile,
+  logout,
+  mapAuthApiError,
+  splitPhone,
+  toE164,
+  validatePhone,
+  validateRequired,
+} from '@spot/shared';
 import { authClient } from '../api/client';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { Button } from '../components/Button';
+import { PhoneField } from '../components/PhoneField';
 import { TextField } from '../components/TextField';
 import { BUSINESS_ONLY_STATE } from '../routes/businessOnly';
 import formStyles from './AuthForm.module.css';
@@ -11,6 +22,7 @@ import formStyles from './AuthForm.module.css';
 /** Values RegisterPage passes along when its createBusiness call failed, to prefill the form. */
 interface PrefillState {
   name?: string;
+  /** E.164, as RegisterPage sends it to the API. */
   phone?: string;
 }
 
@@ -18,7 +30,7 @@ export function CompleteBusinessProfilePage() {
   const navigate = useNavigate();
   const prefill = (useLocation().state ?? {}) as PrefillState;
   const [businessName, setBusinessName] = useState(prefill.name ?? '');
-  const [phone, setPhone] = useState(prefill.phone ?? '');
+  const [phone, setPhone] = useState(() => splitPhone(prefill.phone));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -47,12 +59,17 @@ export function CompleteBusinessProfilePage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
+    const errors: Record<string, string> = {};
     const nameError = validateRequired(businessName, 'El nombre del negocio es requerido.');
-    if (nameError) {
-      setFieldErrors({ name: nameError });
+    const phoneError = validatePhone(phone.national, phone.country);
+    if (nameError) errors.name = nameError;
+    if (phoneError) errors.phone = phoneError;
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       setGeneralError(null);
       return;
     }
+    const phoneE164 = toE164(phone.national, phone.country);
 
     setFieldErrors({});
     setGeneralError(null);
@@ -60,7 +77,7 @@ export function CompleteBusinessProfilePage() {
     try {
       await createBusiness(authClient, {
         name: businessName.trim(),
-        ...(phone.trim() ? { phone: phone.trim() } : {}),
+        ...(phoneE164 ? { phone: phoneE164 } : {}),
       });
       navigate('/dashboard', { replace: true });
     } catch (error) {
@@ -120,16 +137,7 @@ export function CompleteBusinessProfilePage() {
           onChange={(e) => setBusinessName(e.target.value)}
           error={fieldErrors.name}
         />
-        <TextField
-          id="phone"
-          label="Teléfono (opcional)"
-          type="tel"
-          placeholder="+506 2222-3344"
-          autoComplete="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          error={fieldErrors.phone}
-        />
+        <PhoneField id="phone" label="Teléfono (opcional)" value={phone} onChange={setPhone} error={fieldErrors.phone} />
         <Button type="submit" disabled={submitting}>
           {submitting ? 'Guardando…' : 'Guardar y continuar'}
         </Button>
