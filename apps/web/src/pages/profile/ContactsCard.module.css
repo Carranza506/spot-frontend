@@ -68,6 +68,7 @@
 }
 
 .deleteButton,
+.editButton,
 .cancelButton {
   flex: 0 0 auto;
   background: none;
@@ -86,7 +87,12 @@
   color: var(--color-textSecondary);
 }
 
+.editButton {
+  color: var(--color-textPrimary);
+}
+
 .deleteButton:disabled,
+.editButton:disabled,
 .cancelButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;

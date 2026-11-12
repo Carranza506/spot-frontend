@@ -404,7 +404,15 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
+        /**
+         * Edit a business's contact
+         * @description Replaces the contact's `type`, `value` and `isPrimary` with the same
+         *     body and rules as `createBusinessContact`, keeping its id. Making it
+         *     primary clears the business's other primary contact. A contact of a
+         *     different business responds `404`.
+         *     Required role: `BUSINESS` who owns the business.
+         */
+        put: operations["updateBusinessContact"];
         post?: never;
         /**
          * Remove a contact from a business
@@ -499,7 +507,16 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
+        /**
+         * Edit a schedule exception
+         * @description Replaces the exception with the same body and rules as
+         *     `createBusinessScheduleException`, keeping its id. Moving it to a date
+         *     that already has another exception of the business responds `409`; if
+         *     `isClosed=false`, requires `openTime < closeTime` (`422`). An exception
+         *     of a different business responds `404`.
+         *     Required role: `BUSINESS` who owns the business.
+         */
+        put: operations["updateBusinessScheduleException"];
         post?: never;
         /**
          * Delete a schedule exception
@@ -3154,6 +3171,45 @@ export interface operations {
             500: components["responses"]["InternalServerError"];
         };
     };
+    updateBusinessContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                businessId: components["parameters"]["BusinessIdParam"];
+                contactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "type": "PHONE",
+                 *       "value": "+506 2222-3344",
+                 *       "isPrimary": false
+                 *     }
+                 */
+                "application/json": components["schemas"]["BusinessContactCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Contact updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessContact"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
     deleteBusinessContact: {
         parameters: {
             query?: never;
@@ -3316,6 +3372,49 @@ export interface operations {
         responses: {
             /** @description Exception created. */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessScheduleException"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    updateBusinessScheduleException: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                businessId: components["parameters"]["BusinessIdParam"];
+                exceptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "exceptionDate": "2026-12-24",
+                 *       "isClosed": false,
+                 *       "openTime": "09:00:00",
+                 *       "closeTime": "13:00:00",
+                 *       "reason": "Nochebuena, medio día"
+                 *     }
+                 */
+                "application/json": components["schemas"]["BusinessScheduleExceptionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Exception updated. */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

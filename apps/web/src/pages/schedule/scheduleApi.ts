@@ -4,6 +4,7 @@ import {
   listBusinessHours,
   listBusinessScheduleExceptions,
   replaceBusinessHours,
+  updateBusinessScheduleException,
   type components,
 } from '@spot/shared';
 import { authClient } from '../../api/client';
@@ -20,6 +21,11 @@ export interface ScheduleApi {
   /** Exceptions dated `from` (YYYY-MM-DD) onwards. */
   listExceptions(businessId: string, from: string): Promise<BusinessScheduleException[]>;
   createException(businessId: string, data: BusinessScheduleExceptionCreateRequest): Promise<BusinessScheduleException>;
+  updateException(
+    businessId: string,
+    exceptionId: string,
+    data: BusinessScheduleExceptionCreateRequest,
+  ): Promise<BusinessScheduleException>;
   deleteException(businessId: string, exceptionId: string): Promise<void>;
 }
 
@@ -35,5 +41,7 @@ export const scheduleApi: ScheduleApi = {
       (page) => page.data,
     ),
   createException: (businessId, data) => createBusinessScheduleException(authClient, businessId, data),
+  updateException: (businessId, exceptionId, data) =>
+    updateBusinessScheduleException(authClient, businessId, exceptionId, data),
   deleteException: (businessId, exceptionId) => deleteBusinessScheduleException(authClient, businessId, exceptionId),
 };
