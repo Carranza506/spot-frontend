@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Tex
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { color, type components } from '@spot/shared';
+import { requireSession } from '@/auth/sessionGates';
 import { BusinessLinkArea } from '@/components/business/BusinessLinkArea';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -12,7 +13,7 @@ import { useFavorites } from '@/favorites/FavoritesProvider';
 type FavoriteBusiness = components['schemas']['FavoriteBusiness'];
 
 /** Mis favoritos: the client's saved businesses, newest first, with the heart to remove one. */
-export default function FavoritesScreen() {
+function FavoritesScreen() {
   const { status, favorites, actionError, ensureLoaded, reload, clearActionError } = useFavorites();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -179,3 +180,5 @@ const styles = StyleSheet.create({
     borderColor: color.border,
   },
 });
+
+export default requireSession(FavoritesScreen);
