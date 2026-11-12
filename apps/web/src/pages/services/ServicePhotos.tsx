@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiError, SERVICE_PHOTO_TYPES, validateServicePhoto, type components } from '@spot/shared';
 import { useFeedback } from '../../components/feedback/feedbackContext';
@@ -12,8 +12,28 @@ const NETWORK_ERROR = 'No se pudo conectar con el servidor. Intentá de nuevo.';
 
 type ListState = { status: 'loading' } | { status: 'ready'; photos: Photo[] } | { status: 'error' };
 
-/** A service's photo gallery: lists, uploads (one file at a time) and deletes photos. */
+/** Where a PhotoGallery reads and writes its photos: a service's or the business's own. */
+export interface PhotoGalleryApi {
+  list(): Promise<Photo[]>;
+  upload(file: File, displayOrder: number): Promise<Photo>;
+  remove(photoId: string): Promise<void>;
+}
+
+/** A service's photo gallery. */
 export function ServicePhotos({ serviceId }: { serviceId: string }) {
+  const api = useMemo<PhotoGalleryApi>(
+    () => ({
+      list: () => servicesApi.listPhotos(serviceId),
+      upload: (file, displayOrder) => servicesApi.uploadPhoto(serviceId, file, displayOrder),
+      remove: (photoId) => servicesApi.deletePhoto(serviceId, photoId),
+    }),
+    [serviceId],
+  );
+  return <PhotoGallery api={api} alt="Foto del servicio" emptyHint="Este servicio todavía no tiene fotos." />;
+}
+
+/** Lists, uploads (one file at a time) and deletes photos. `api` must be stable (memoized). */
+export function PhotoGallery({ api, alt, emptyHint }: { api: PhotoGalleryApi; alt: string; emptyHint: string }) {
   const navigate = useNavigate();
   const { confirm, showToast } = useFeedback();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -23,13 +43,13 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchPhotos = useCallback(() => {
-    servicesApi
-      .listPhotos(serviceId)
+    api
+      .list()
       .then((photos) =>
         setList({ status: 'ready', photos: [...photos].sort((a, b) => a.displayOrder - b.displayOrder) }),
       )
       .catch(() => setList({ status: 'error' }));
-  }, [serviceId]);
+  }, [api]);
 
   useEffect(fetchPhotos, [fetchPhotos]);
 
@@ -54,7 +74,7 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
     setUploading(true);
     try {
       const nextOrder = list.photos.reduce((max, p) => Math.max(max, p.displayOrder + 1), 0);
-      const photo = await servicesApi.uploadPhoto(serviceId, file, nextOrder);
+      const photo = await api.upload(file, nextOrder);
       setList((current) => (current.status === 'ready' ? { ...current, photos: [...current.photos, photo] } : current));
       showToast('Foto agregada.');
     } catch (error) {
@@ -69,7 +89,7 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
     setActionError(null);
     setDeletingId(photo.id);
     try {
-      await servicesApi.deletePhoto(serviceId, photo.id);
+      await api.remove(photo.id);
       setList((current) =>
         current.status === 'ready' ? { ...current, photos: current.photos.filter((p) => p.id !== photo.id) } : current,
       );
@@ -109,7 +129,7 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
       <ul className={styles.photoGrid}>
         {list.photos.map((photo) => (
           <li key={photo.id} className={styles.photoItem}>
-            <img src={photo.url} alt="Foto del servicio" className={styles.photo} />
+            <img src={photo.url} alt={alt} className={styles.photo} />
             <button
               type="button"
               className={styles.photoDelete}
@@ -133,7 +153,7 @@ export function ServicePhotos({ serviceId }: { serviceId: string }) {
         </li>
       </ul>
       {list.photos.length === 0 && !uploading && (
-        <p className={styles.photosHint}>Este servicio todavía no tiene fotos. JPG, PNG o WebP de hasta 5 MB.</p>
+        <p className={styles.photosHint}>{emptyHint} JPG, PNG o WebP de hasta 5 MB.</p>
       )}
       <input
         ref={inputRef}

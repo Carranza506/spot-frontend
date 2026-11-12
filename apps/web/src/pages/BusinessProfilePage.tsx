@@ -18,6 +18,7 @@ import { Button } from '../components/Button';
 import { useFeedback } from '../components/feedback/feedbackContext';
 import { TextField } from '../components/TextField';
 import { useBusinessContext } from '../routes/businessContext';
+import { BusinessPhotosCard } from './profile/BusinessPhotosCard';
 import { ContactsCard } from './profile/ContactsCard';
 import { LocationCard } from './profile/LocationCard';
 import formStyles from './AuthForm.module.css';
@@ -243,6 +244,7 @@ export function BusinessProfilePage() {
       <div className={styles.sideColumn}>
         <LocationCard businessId={business.id} />
         <ContactsCard businessId={business.id} />
+        <BusinessPhotosCard businessId={business.id} />
       </div>
     </div>
   );
