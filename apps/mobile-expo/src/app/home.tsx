@@ -29,6 +29,7 @@ import {
 } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { rememberWrongRole } from '@/auth/wrongRole';
+import { requireSession } from '@/auth/sessionGates';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Logo } from '@/components/Logo';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -96,7 +97,7 @@ function columnsFor(width: number): number {
  * right away, filters them as the user types or picks a category/province/city/radius, offers the
  * natural-language (AI) search, and keeps favorites, bookings and notifications one tap away.
  */
-export default function HomeScreen() {
+function HomeScreen() {
   const { width } = useWindowDimensions();
   const favorites = useFavorites();
   const [user, setUser] = useState<User | null>(null);
@@ -908,3 +909,5 @@ const styles = StyleSheet.create({
     backgroundColor: color.surfaceMuted,
   },
 });
+
+export default requireSession(HomeScreen);

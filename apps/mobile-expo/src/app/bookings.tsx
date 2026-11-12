@@ -14,6 +14,7 @@ import {
 } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { NETWORK_ERROR, isUnauthorized } from '@/api/errors';
+import { requireSession } from '@/auth/sessionGates';
 import { formatBusinessDateTime } from '@/bookings/format';
 import { ActionButtons } from '@/components/ActionButtons';
 import { ErrorMessage } from '@/components/ErrorMessage';
@@ -68,7 +69,7 @@ function cancelErrorMessage(error: unknown): string {
 }
 
 /** Mis reservas: the client's own bookings, newest first, filtered by status, with cancel where it applies (#26). */
-export default function BookingsScreen() {
+function BookingsScreen() {
   const showToast = useToast();
   const [filter, setFilter] = useState<BookingStatus | null>(null);
   const [list, setList] = useState<ListState>({ status: 'loading' });
@@ -536,3 +537,5 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 });
+
+export default requireSession(BookingsScreen);

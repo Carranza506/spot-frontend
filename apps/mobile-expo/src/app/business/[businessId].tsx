@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ApiError, color, getBusiness } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { requireSession } from '@/auth/sessionGates';
 import { BusinessHeader } from '@/components/business/BusinessHeader';
 import { ContactsSection } from '@/components/business/ContactsSection';
 import { HoursSection } from '@/components/business/HoursSection';
@@ -16,7 +17,7 @@ import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { useAsyncData } from '@/hooks/useAsyncData';
 
-export default function BusinessDetailScreen() {
+function BusinessDetailScreen() {
   const { businessId } = useLocalSearchParams<{ businessId: string }>();
   const [state, reload] = useAsyncData(() => getBusiness(authClient, businessId), [businessId]);
   const favorites = useFavorites();
@@ -95,3 +96,5 @@ const styles = StyleSheet.create({
     gap: 28,
   },
 });
+
+export default requireSession(BusinessDetailScreen);
