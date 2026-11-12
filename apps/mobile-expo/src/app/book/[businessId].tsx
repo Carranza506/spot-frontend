@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ApiError, color, createBooking, getBusinessAvailability, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { requireSession, sendToLogin } from '@/auth/sessionGates';
 import {
   formatBusinessDay,
   formatBusinessTime,
@@ -13,7 +14,6 @@ import {
 } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { TextField } from '@/components/TextField';
-import { resetTo } from '@/navigation/resetTo';
 import { ErrorMessage } from '@/components/ErrorMessage';
 
 type AvailabilityDay = components['schemas']['AvailabilityDay'];
@@ -42,7 +42,7 @@ function bookingErrorMessage(error: unknown): string {
   return 'No se pudo crear la reserva. Intentá de nuevo.';
 }
 
-export default function BookingScreen() {
+function BookingScreen() {
   const { businessId, serviceId } = useLocalSearchParams<{ businessId: string; serviceId?: string }>();
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
@@ -94,7 +94,8 @@ export default function BookingScreen() {
       );
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        resetTo('/');
+        // The session ended while choosing: sign in again and come back to this service.
+        sendToLogin({ pathname: '/book/[businessId]', params: { businessId, serviceId } });
         return;
       }
       setSubmitError(bookingErrorMessage(error));
@@ -357,3 +358,5 @@ const styles = StyleSheet.create({
     color: color.warningText,
   },
 });
+
+export default requireSession(BookingScreen);

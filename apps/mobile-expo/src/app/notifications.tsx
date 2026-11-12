@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { color, listOwnNotifications, markNotificationRead, type components } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { requireSession } from '@/auth/sessionGates';
 import { formatBusinessShortDateTime } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { ErrorMessage } from '@/components/ErrorMessage';
@@ -14,7 +15,7 @@ type Notification = components['schemas']['Notification'];
 const PAGE_SIZE = 50;
 
 /** Notificaciones: the user's notifications, newest first; tapping an unread one marks it read. */
-export default function NotificationsScreen() {
+function NotificationsScreen() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -263,3 +264,5 @@ const styles = StyleSheet.create({
     color: color.textSecondary,
   },
 });
+
+export default requireSession(NotificationsScreen);

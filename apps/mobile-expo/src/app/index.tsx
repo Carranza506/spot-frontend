@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react';
-import { Text, type TextInput } from 'react-native';
+import { Text, type TextInputInstance } from 'react-native';
 import { Link } from 'expo-router';
 import { ApiError, login, logout, mapAuthApiError, validateEmail, validatePassword } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { WRONG_ROLE_MESSAGE, forgetWrongRole, rememberWrongRole, takeWrongRole } from '@/auth/wrongRole';
+import { takeReturnTo } from '@/auth/returnTo';
+import { guestOnly } from '@/auth/sessionGates';
 import { AuthScreen } from '@/components/AuthScreen';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { TextField } from '@/components/TextField';
@@ -12,11 +14,11 @@ import { authFormStyles } from '@/components/authFormStyles';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { resetTo } from '@/navigation/resetTo';
 
-export default function LoginScreen() {
+function LoginScreen() {
   const favorites = useFavorites();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const passwordRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInputInstance>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // Lazy: a session cleared for a non-client account remounts this screen, and the reason comes with it.
   const [generalError, setGeneralError] = useState<string | null>(takeWrongRole);
@@ -52,7 +54,8 @@ export default function LoginScreen() {
         setGeneralError(WRONG_ROLE_MESSAGE);
         return;
       }
-      resetTo('/home');
+      // Back to the screen that asked for a session, if any (with the same service, for a booking).
+      resetTo(takeReturnTo() ?? '/home');
     } catch (error) {
       if (error instanceof ApiError) {
         const mapped = mapAuthApiError(error);
@@ -110,3 +113,5 @@ export default function LoginScreen() {
     </AuthScreen>
   );
 }
+
+export default guestOnly(LoginScreen);
