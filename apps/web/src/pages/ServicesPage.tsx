@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ApiError, type components } from '@spot/shared';
 import { Button } from '../components/Button';
 import { SelectField } from '../components/SelectField';
 import { useFeedback } from '../components/feedback/feedbackContext';
 import { useBusinessContext } from '../routes/businessContext';
+import { billingApi } from './billing/billingApi';
 import { ServiceForm, type ServiceFormValues } from './services/ServiceForm';
 import { ServiceRow } from './services/ServiceRow';
 import { servicesApi } from './services/servicesApi';
@@ -53,6 +54,8 @@ export function ServicesPage() {
   const [creating, setCreating] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  // Active services against the plan's maxServices; null on a plan without a limit, or if it failed.
+  const [usage, setUsage] = useState<{ active: number; max: number } | null>(null);
 
   const handleAuthError = useCallback(
     (error: unknown) => {
@@ -92,6 +95,23 @@ export function ServicesPage() {
       ignore = true;
     };
   }, [business.id, statusFilter, page, query, handleAuthError]);
+
+  useEffect(() => {
+    let ignore = false;
+    Promise.all([
+      billingApi.getSubscription(),
+      servicesApi.list(business.id, { page: 1, pageSize: 1, isActive: true }),
+    ])
+      .then(([subscription, active]) => {
+        const max = subscription.plan.features.maxServices;
+        if (!ignore) setUsage(max == null ? null : { active: active.pagination.total, max });
+      })
+      // Only a hint: the backend still enforces the limit (409 SERVICE_LIMIT_REACHED).
+      .catch(() => !ignore && setUsage(null));
+    return () => {
+      ignore = true;
+    };
+  }, [business.id, reloadKey]);
 
   const reload = () => setReloadKey((key) => key + 1);
 
@@ -174,6 +194,22 @@ export function ServicesPage() {
         </div>
 
         <div className={styles.stack}>
+          {usage && (
+            <p className={styles.meta} role="status">
+              {usage.active} de {usage.max} servicios activos.
+              {usage.active >= usage.max && (
+                <>
+                  {' '}
+                  Llegaste al límite de tu plan: desactivá uno o{' '}
+                  <Link to="/billing" className={styles.textButton}>
+                    pasate a Pro
+                  </Link>{' '}
+                  para agregar más.
+                </>
+              )}
+            </p>
+          )}
+
           {creating && (
             <div className={styles.createPanel}>
               <h3 className={styles.panelTitle}>Nuevo servicio</h3>
