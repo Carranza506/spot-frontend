@@ -7,6 +7,7 @@ import {
   deleteBusinessContact,
   listBusinessContacts,
   mapBusinessContactApiError,
+  updateBusinessContact,
   validateRequired,
   type components,
 } from '@spot/shared';
@@ -46,6 +47,8 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
+  // The contact being edited, or null when the form adds a new one.
+  const [editing, setEditing] = useState<BusinessContact | null>(null);
   const [type, setType] = useState<ContactType>('PHONE');
   const [value, setValue] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
@@ -67,13 +70,21 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
     fetchContacts();
   }
 
-  function openForm() {
+  function openForm(contact: BusinessContact | null = null) {
+    closeForm();
     setFormOpen(true);
     setActionError(null);
+    if (contact) {
+      setEditing(contact);
+      setType(contact.type);
+      setValue(contact.value);
+      setIsPrimary(contact.isPrimary);
+    }
   }
 
   function closeForm() {
     setFormOpen(false);
+    setEditing(null);
     setType('PHONE');
     setValue('');
     setIsPrimary(false);
@@ -95,13 +106,20 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
     setGeneralError(null);
     setSubmitting(true);
     try {
-      await createBusinessContact(authClient, businessId, { type, value: value.trim(), isPrimary });
+      const data = { type, value: value.trim(), isPrimary };
+      if (editing) await updateBusinessContact(authClient, businessId, editing.id, data);
+      else await createBusinessContact(authClient, businessId, data);
       closeForm();
       fetchContacts();
-      showToast('Contacto agregado.');
+      showToast(editing ? 'Contacto actualizado.' : 'Contacto agregado.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate('/login', { replace: true });
+      } else if (editing && error instanceof ApiError && error.status === 404) {
+        // Deleted meanwhile (e.g. from another tab): the refreshed list reflects that.
+        closeForm();
+        fetchContacts();
+        setActionError(error.message);
       } else if (error instanceof ApiError) {
         const mapped = mapBusinessContactApiError(error);
         setFieldErrors(mapped.fieldErrors);
@@ -174,9 +192,18 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
                   </div>
                   <button
                     type="button"
+                    className={styles.editButton}
+                    onClick={() => openForm(contact)}
+                    disabled={deletingId !== null || submitting}
+                    aria-label={`Editar contacto ${CONTACT_TYPE_LABELS[contact.type]}: ${contact.value}`}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
                     className={styles.deleteButton}
                     onClick={() => handleDelete(contact)}
-                    disabled={deletingId !== null}
+                    disabled={deletingId !== null || submitting}
                   >
                     {deletingId === contact.id ? 'Eliminando…' : 'Eliminar'}
                   </button>
@@ -195,7 +222,8 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
                 onChange={(e) => setType(e.target.value as ContactType)}
                 error={fieldErrors.type}
               >
-                {CREATABLE_CONTACT_TYPES.map((option) => (
+                {/* An existing EMAIL contact keeps EMAIL as an option, so editing it doesn't change its type. */}
+                {(editing?.type === 'EMAIL' ? [...CREATABLE_CONTACT_TYPES, 'EMAIL' as const] : CREATABLE_CONTACT_TYPES).map((option) => (
                   <option key={option} value={option}>
                     {CONTACT_TYPE_LABELS[option]}
                   </option>
@@ -218,12 +246,12 @@ export function ContactsCard({ businessId }: ContactsCardProps) {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Guardando…' : 'Guardar contacto'}
+                  {submitting ? 'Guardando…' : editing ? 'Guardar cambios' : 'Guardar contacto'}
                 </Button>
               </ActionButtons>
             </form>
           ) : (
-            <Button type="button" onClick={openForm}>
+            <Button type="button" onClick={() => openForm()}>
               Agregar contacto
             </Button>
           )}
