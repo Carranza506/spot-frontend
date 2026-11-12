@@ -63,8 +63,8 @@ The sections below are the detailed reference: project structure, shared types a
   corepack prepare pnpm@latest --activate
 ```
   Verify with `pnpm --version`
-- For Android development: [Android Studio](https://developer.android.com/studio) (Android SDK)
-- For iOS development: Xcode (Mac only)
+- Optional, to run `apps/mobile-expo` in an Android emulator: [Android Studio](https://developer.android.com/studio) (Android SDK)
+- Optional, to run `apps/mobile-expo` in an iOS simulator: Xcode (Mac only)
 - [GitHub CLI](https://cli.github.com/) (`gh`) if you'll be creating issues/PRs from the terminal
 - Editor: VS Code (or your preferred editor)
 
@@ -77,7 +77,7 @@ cd spot-frontend
 
 ## Install dependencies
 
-Run this once, from the repo root (not from inside an app's folder). This installs dependencies for every workspace package — `web`, `mobile-expo`, `mobile` and `shared` — together:
+Run this once, from the repo root (not from inside an app's folder). This installs dependencies for every workspace package — `web`, `mobile-expo` and `shared` — together:
 
 ```bash
 pnpm install
@@ -88,8 +88,7 @@ pnpm install
 ```
 apps/
   web/          -> React + Vite web app (business dashboard)
-  mobile-expo/  -> Expo + expo-router app (consumer app) — the official mobile app
-  mobile/       -> bare React Native template from the initial setup; not used
+  mobile-expo/  -> Expo + expo-router app (consumer app) — the mobile app
 packages/
   shared/       -> Shared TypeScript types/DTOs matching the backend API contract
 pnpm-workspace.yaml
@@ -106,8 +105,7 @@ This starts the Vite dev server. The terminal will print the local URL (usually 
 
 ## Running the mobile app
 
-The official consumer app is `apps/mobile-expo` (Expo + expo-router). `apps/mobile` is the bare
-React Native template from the initial setup and isn't used.
+The consumer app is `apps/mobile-expo` (Expo + expo-router).
 
 Create its env file once, from the template:
 
@@ -145,7 +143,7 @@ set per app in a git-ignored `.env`, copied from that app's `.env.example`:
 
 ## Shared types (`packages/shared`)
 
-Types and DTOs that mirror `contracts/spot-api.yaml` from `spot-backend` should live here, so both `web` and `mobile` consume the exact same shapes instead of duplicating type definitions. Import it in either app as `@spot/shared`.
+Types and DTOs that mirror `contracts/spot-api.yaml` from `spot-backend` should live here, so both `web` and `mobile-expo` consume the exact same shapes instead of duplicating type definitions. Import it in either app as `@spot/shared`.
 
 ## Team workflow
 
@@ -159,5 +157,5 @@ This repo follows a `feature branch -> develop -> main` flow, enforced by branch
 ## Team conventions
 
 - Commits: short, descriptive messages in English
-- Cross-cutting changes to `packages/shared` should be flagged to the team before merging, since they affect both `web` and `mobile`
+- Cross-cutting changes to `packages/shared` should be flagged to the team before merging, since they affect both `web` and `mobile-expo`
 - Check the GitHub Project board for assigned issues and their acceptance criteria before starting work
