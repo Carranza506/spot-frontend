@@ -13,6 +13,7 @@ import {
   todayInBusinessTimeZone,
 } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { TextField } from '@/components/TextField';
 import { ErrorMessage } from '@/components/ErrorMessage';
 
 type AvailabilityDay = components['schemas']['AvailabilityDay'];
@@ -22,6 +23,8 @@ type Booking = components['schemas']['Booking'];
 type LoadState = { status: 'loading' } | { status: 'loaded'; days: AvailabilityDay[] } | { status: 'error'; error: unknown };
 
 const DAYS_SHOWN = 7;
+// The backend stores notes as TEXT with no limit: this only keeps the field reasonable.
+const NOTES_MAX_LENGTH = 500;
 
 /** Adds whole days to a YYYY-MM-DD date, without involving any time zone. */
 function addDays(date: string, days: number): string {
@@ -48,6 +51,7 @@ function BookingScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (!serviceId) return;
@@ -80,7 +84,14 @@ function BookingScreen() {
     setSubmitting(true);
     try {
       // The slot's own startAt, exactly as availability returned it: never rebuilt from the time shown.
-      setBooking(await createBooking(authClient, { businessId, serviceId, startAt: selectedSlot.startAt }));
+      setBooking(
+        await createBooking(authClient, {
+          businessId,
+          serviceId,
+          startAt: selectedSlot.startAt,
+          notes: notes.trim() || undefined,
+        }),
+      );
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         // The session ended while choosing: sign in again and come back to this service.
@@ -111,16 +122,24 @@ function BookingScreen() {
       ) : booking ? (
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.title} accessibilityRole="header">
-            ¡Reserva creada!
+            ¡Reserva enviada!
           </Text>
           <View style={styles.card}>
+            {/* Same colors as Mis reservas' PENDING badge: a new booking waits for the business. */}
+            <View style={styles.pendingBadge}>
+              <Text style={styles.pendingBadgeText}>Pendiente de confirmación</Text>
+            </View>
             <Text style={styles.cardTitle}>{booking.serviceName}</Text>
             <Text style={styles.cardText}>
               {formatBusinessDay(booking.startAt)} a las {formatBusinessTime(booking.startAt)}
             </Text>
             <Text style={styles.cardMeta}>{booking.serviceDurationMinutes} min</Text>
+            {booking.notes ? <Text style={styles.cardText}>Notas: {booking.notes}</Text> : null}
           </View>
-          <PrimaryButton title="Listo" onPress={() => router.replace('/bookings')} />
+          <Text style={styles.message}>
+            El negocio tiene que confirmarla. Te avisamos cuando lo haga, y podés seguirla en Mis reservas.
+          </Text>
+          <PrimaryButton title="Ver mis reservas" onPress={() => router.replace('/bookings')} />
         </ScrollView>
       ) : state.status === 'loading' ? (
         <ActivityIndicator style={styles.centered} color={color.accentTeal} />
@@ -207,6 +226,18 @@ function BookingScreen() {
                 ¿Confirmar tu reserva el {formatLongDate(selectedDay.date)} a las{' '}
                 {formatBusinessTime(selectedSlot.startAt)}?
               </Text>
+              <TextField
+                label="Notas para el negocio (opcional)"
+                // TextField's visible label isn't tied to its input: without this the field is read by its placeholder.
+                accessibilityLabel="Notas para el negocio (opcional)"
+                placeholder="Ej.: es mi primera vez, prefiero a Carlos…"
+                value={notes}
+                onChangeText={setNotes}
+                editable={!submitting}
+                multiline
+                maxLength={NOTES_MAX_LENGTH}
+                style={styles.notesInput}
+              />
               <PrimaryButton title="Confirmar reserva" onPress={handleConfirm} loading={submitting} />
             </View>
           ) : null}
@@ -308,6 +339,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: color.accentTeal,
+  },
+  notesInput: {
+    minHeight: 72,
+    textAlignVertical: 'top',
+  },
+  pendingBadge: {
+    alignSelf: 'flex-start',
+    marginBottom: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: color.warningBg,
+  },
+  pendingBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: color.warningText,
   },
 });
 
