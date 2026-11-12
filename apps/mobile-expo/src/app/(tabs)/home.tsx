@@ -34,6 +34,7 @@ import { Logo } from '@/components/Logo';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { BellIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
 import { FavoriteActionError } from '@/favorites/FavoriteActionError';
+import { NextAppointment } from '@/home/NextAppointment';
 import { BusinessCard } from '@/components/business/BusinessCard';
 import { registerForPush } from '@/notifications/push';
 import { Chip } from '@/search/Chip';
@@ -349,6 +350,8 @@ function HomeScreen() {
         </View>
 
         <View style={styles.inner}>
+          <NextAppointment />
+
           {mode === 'browse' ? (
             <>
               {categories && categories.length > 0 && (
