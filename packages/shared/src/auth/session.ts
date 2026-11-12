@@ -51,3 +51,10 @@ export async function logout(client: AuthClient): Promise<void> {
 export function getOwnProfile(client: AuthClient): Promise<User> {
   return client.apiFetch<User>('/auth/me');
 }
+
+type ChangePasswordRequest = components['schemas']['ChangePasswordRequest'];
+
+/** 204 on success; the backend then revokes every refresh token, so the session has to end. 422 for a wrong current password. */
+export function changePassword(client: AuthClient, data: ChangePasswordRequest): Promise<void> {
+  return client.apiFetch<void>('/auth/change-password', { method: 'POST', body: data });
+}

@@ -12,6 +12,7 @@ import { ReviewsPage } from './pages/ReviewsPage';
 import { BillingPage } from './pages/BillingPage';
 import { BillingSuccessPage } from './pages/BillingSuccessPage';
 import { BillingCancelPage } from './pages/BillingCancelPage';
+import { AccountPage } from './pages/AccountPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { ProtectedRoute } from './routes/ProtectedRoute';
@@ -35,6 +36,7 @@ function App() {
             <Route path="/profile" element={<BusinessProfilePage />} />
             <Route path="/reviews" element={<ReviewsPage />} />
             <Route path="/billing" element={<BillingPage />} />
+            <Route path="/account" element={<AccountPage />} />
             {/* Stripe Checkout return URLs, as the backend sends them to Stripe. */}
             <Route path="/billing/success" element={<BillingSuccessPage />} />
             <Route path="/billing/cancel" element={<BillingCancelPage />} />

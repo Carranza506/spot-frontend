@@ -22,6 +22,7 @@ export {
   register,
   logout,
   getOwnProfile,
+  changePassword,
   type AuthClient,
 } from './auth';
 export {
