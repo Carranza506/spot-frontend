@@ -8,6 +8,7 @@ type BusinessContact = components['schemas']['BusinessContact'];
 type BusinessContactCreateRequest = components['schemas']['BusinessContactCreateRequest'];
 type PaginatedBusinessContacts = components['schemas']['PaginatedBusinessContacts'];
 type PaginatedPhotos = components['schemas']['PaginatedPhotos'];
+type Photo = components['schemas']['Photo'];
 type BusinessLocation = components['schemas']['BusinessLocation'];
 type BusinessLocationUpsertRequest = components['schemas']['BusinessLocationUpsertRequest'];
 type Category = components['schemas']['Category'];
@@ -77,6 +78,33 @@ export function listBusinessPhotos(
   );
 }
 
+/** Uploads one image to a business the authenticated BUSINESS account owns, as multipart/form-data (409 past 20 photos). */
+export function uploadBusinessPhoto(
+  client: Pick<ApiClient, 'apiFetch'>,
+  businessId: string,
+  file: Blob,
+  displayOrder?: number,
+): Promise<Photo> {
+  const form = new FormData();
+  form.append('file', file);
+  if (displayOrder !== undefined) form.append('displayOrder', String(displayOrder));
+  return client.apiFetch<Photo>(`/business/businesses/${encodeURIComponent(businessId)}/photos`, {
+    method: 'POST',
+    body: form,
+  });
+}
+
+export function deleteBusinessPhoto(
+  client: Pick<ApiClient, 'apiFetch'>,
+  businessId: string,
+  photoId: string,
+): Promise<void> {
+  return client.apiFetch<void>(
+    `/business/businesses/${encodeURIComponent(businessId)}/photos/${encodeURIComponent(photoId)}`,
+    { method: 'DELETE' },
+  );
+}
+
 function contactsPath(businessId: string): string {
   return `/business/businesses/${encodeURIComponent(businessId)}/contacts`;
 }
@@ -98,6 +126,19 @@ export function createBusinessContact(
 ): Promise<BusinessContact> {
   return client.apiFetch<BusinessContact>(contactsPath(businessId), {
     method: 'POST',
+    body: data,
+  });
+}
+
+/** Replaces a contact's type, value and primary flag, keeping its id (same body as create). */
+export function updateBusinessContact(
+  client: Pick<ApiClient, 'apiFetch'>,
+  businessId: string,
+  contactId: string,
+  data: BusinessContactCreateRequest,
+): Promise<BusinessContact> {
+  return client.apiFetch<BusinessContact>(`${contactsPath(businessId)}/${encodeURIComponent(contactId)}`, {
+    method: 'PUT',
     body: data,
   });
 }
