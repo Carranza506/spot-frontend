@@ -1,9 +1,12 @@
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import type { Ref } from 'react';
 import { color } from '@spot/shared';
 
 interface TextFieldProps extends TextInputProps {
   label: string;
   error?: string;
+  // React 19 passes ref as a prop: lets a form move the focus to the next field.
+  ref?: Ref<TextInput>;
 }
 
 export function TextField({ label, error, style, ...inputProps }: TextFieldProps) {

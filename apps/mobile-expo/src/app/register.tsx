@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Text } from 'react-native';
+import { useRef, useState } from 'react';
+import { Text, type TextInput } from 'react-native';
 import { Link } from 'expo-router';
 import { ApiError, mapAuthApiError, register, validateEmail, validatePassword, validateRequired } from '@spot/shared';
 import { authClient } from '@/api/client';
@@ -18,6 +18,7 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const passwordRef = useRef<TextInput>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -103,6 +104,9 @@ export default function RegisterScreen() {
         autoCapitalize="none"
         autoComplete="email"
         keyboardType="email-address"
+        returnKeyType="next"
+        submitBehavior="submit"
+        onSubmitEditing={() => passwordRef.current?.focus()}
         value={email}
         onChangeText={setEmail}
         error={fieldErrors.email}
@@ -112,6 +116,11 @@ export default function RegisterScreen() {
         placeholder="Mínimo 8 caracteres"
         secureTextEntry
         autoComplete="password"
+        ref={passwordRef}
+        returnKeyType="go"
+        onSubmitEditing={() => {
+          if (!submitting) void handleSubmit();
+        }}
         value={password}
         onChangeText={setPassword}
         error={fieldErrors.password}

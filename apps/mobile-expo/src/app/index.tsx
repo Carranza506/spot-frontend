@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Text } from 'react-native';
+import { useRef, useState } from 'react';
+import { Text, type TextInput } from 'react-native';
 import { Link } from 'expo-router';
 import { ApiError, login, logout, mapAuthApiError, validateEmail, validatePassword } from '@spot/shared';
 import { authClient } from '@/api/client';
@@ -16,6 +16,7 @@ export default function LoginScreen() {
   const favorites = useFavorites();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const passwordRef = useRef<TextInput>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // Lazy: a session cleared for a non-client account remounts this screen, and the reason comes with it.
   const [generalError, setGeneralError] = useState<string | null>(takeWrongRole);
@@ -76,6 +77,9 @@ export default function LoginScreen() {
         autoCapitalize="none"
         autoComplete="email"
         keyboardType="email-address"
+        returnKeyType="next"
+        submitBehavior="submit"
+        onSubmitEditing={() => passwordRef.current?.focus()}
         value={email}
         onChangeText={setEmail}
         error={fieldErrors.email}
@@ -85,6 +89,11 @@ export default function LoginScreen() {
         placeholder="Mínimo 8 caracteres"
         secureTextEntry
         autoComplete="password"
+        ref={passwordRef}
+        returnKeyType="go"
+        onSubmitEditing={() => {
+          if (!submitting) void handleSubmit();
+        }}
         value={password}
         onChangeText={setPassword}
         error={fieldErrors.password}
