@@ -13,6 +13,8 @@ import {
   validateRequired,
 } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { takeReturnTo } from '@/auth/returnTo';
+import { guestOnly } from '@/auth/sessionGates';
 import { AuthScreen } from '@/components/AuthScreen';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { PhoneField } from '@/components/PhoneField';
@@ -22,7 +24,7 @@ import { authFormStyles } from '@/components/authFormStyles';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { resetTo } from '@/navigation/resetTo';
 
-export default function RegisterScreen() {
+function RegisterScreen() {
   const favorites = useFavorites();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -67,7 +69,7 @@ export default function RegisterScreen() {
       });
       // A new account starts with no favorites, whoever was signed in on this device before.
       favorites.reset();
-      resetTo('/home');
+      resetTo(takeReturnTo() ?? '/home');
     } catch (error) {
       if (error instanceof ApiError) {
         const mapped = mapAuthApiError(error);
@@ -134,3 +136,5 @@ export default function RegisterScreen() {
     </AuthScreen>
   );
 }
+
+export default guestOnly(RegisterScreen);
