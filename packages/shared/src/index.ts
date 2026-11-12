@@ -23,6 +23,7 @@ export {
   logout,
   getOwnProfile,
   changePassword,
+  updateOwnProfile,
   type AuthClient,
 } from './auth';
 export {
