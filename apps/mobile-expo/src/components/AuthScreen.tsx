@@ -5,7 +5,7 @@ import { color } from '@spot/shared';
 import { Logo } from './Logo';
 
 // Sampled from the mockup; not part of the shared token set.
-const TAGLINE_COLOR = '#bcc2c1';
+const TAGLINE_COLOR = '#c9d4e0';
 
 interface AuthScreenProps {
   children: ReactNode;

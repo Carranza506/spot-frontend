@@ -147,6 +147,8 @@
 
 .avatarAmber {
   background: var(--color-accentAmber);
+  /* White on sunflower doesn't read. */
+  color: var(--color-textPrimary);
 }
 
 .appointmentInfo {

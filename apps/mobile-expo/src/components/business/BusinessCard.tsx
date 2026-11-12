@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     borderColor: color.border,
     overflow: 'hidden',
     // Soft lift (boxShadow works on web and native; the shadow* props are deprecated on web).
-    boxShadow: '0px 4px 12px rgba(21, 42, 38, 0.06)',
+    boxShadow: '0px 4px 12px rgba(15, 36, 56, 0.06)',
   },
   pressable: {
     flex: 1,

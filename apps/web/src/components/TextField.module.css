@@ -34,7 +34,7 @@
 .input:focus {
   outline: none;
   border-color: var(--color-accentTeal);
-  box-shadow: 0 0 0 3px rgba(63, 148, 136, 0.15);
+  box-shadow: 0 0 0 3px rgba(18, 57, 94, 0.18);
 }
 
 .inputError {
