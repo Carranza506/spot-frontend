@@ -5,13 +5,17 @@ import {
   createBusiness,
   mapAuthApiError,
   register,
+  splitPhone,
+  toE164,
   validateEmail,
+  validatePhone,
   validatePassword,
   validateRequired,
 } from '@spot/shared';
 import { authClient } from '../api/client';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { Button } from '../components/Button';
+import { PhoneField } from '../components/PhoneField';
 import { TextField } from '../components/TextField';
 import formStyles from './AuthForm.module.css';
 
@@ -20,7 +24,7 @@ export function RegisterPage() {
   const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(() => splitPhone(null));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -35,6 +39,8 @@ export function RegisterPage() {
     if (nameError) errors.name = nameError;
     if (emailError) errors.email = emailError;
     if (passwordError) errors.password = passwordError;
+    const phoneError = validatePhone(phone.national, phone.country);
+    if (phoneError) errors.phone = phoneError;
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -62,7 +68,8 @@ export function RegisterPage() {
     // The account and its session already exist at this point, so a failure here must
     // not leave the user on a form whose resubmit would 409 on the email: they finish
     // the business profile from the complete-profile page instead.
-    const business = { name: businessName.trim(), ...(phone.trim() ? { phone: phone.trim() } : {}) };
+    const phoneE164 = toE164(phone.national, phone.country);
+    const business = { name: businessName.trim(), ...(phoneE164 ? { phone: phoneE164 } : {}) };
     try {
       await createBusiness(authClient, business);
       navigate('/dashboard', { replace: true });
@@ -101,16 +108,7 @@ export function RegisterPage() {
           onChange={(e) => setEmail(e.target.value)}
           error={fieldErrors.email}
         />
-        <TextField
-          id="phone"
-          label="Teléfono (opcional)"
-          type="tel"
-          placeholder="+506 2222-3344"
-          autoComplete="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          error={fieldErrors.phone}
-        />
+        <PhoneField id="phone" label="Teléfono (opcional)" value={phone} onChange={setPhone} error={fieldErrors.phone} />
         <TextField
           id="password"
           label="Contraseña"

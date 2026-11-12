@@ -4,18 +4,21 @@ import {
   ApiError,
   BUSINESS_LEGAL_NAME_MAX_LENGTH,
   BUSINESS_NAME_MAX_LENGTH,
-  BUSINESS_PHONE_MAX_LENGTH,
   getMyBusiness,
   mapBusinessApiError,
+  splitPhone,
+  toE164,
   updateOwnBusiness,
   validateEmail,
   validateHttpUrl,
+  validatePhone,
   validateRequired,
   type components,
 } from '@spot/shared';
 import { authClient } from '../api/client';
 import { Button } from '../components/Button';
 import { useFeedback } from '../components/feedback/feedbackContext';
+import { PhoneField, type PhoneValue } from '../components/PhoneField';
 import { TextField } from '../components/TextField';
 import { useBusinessContext } from '../routes/businessContext';
 import { ContactsCard } from './profile/ContactsCard';
@@ -26,7 +29,8 @@ import styles from './BusinessProfilePage.module.css';
 type Business = components['schemas']['Business'];
 
 type FormField = 'name' | 'description' | 'legalName' | 'email' | 'phone' | 'website' | 'logoUrl';
-type FormValues = Record<FormField, string>;
+// The phone is kept apart as a PhoneValue (country + number), see PhoneField.
+type FormValues = Record<Exclude<FormField, 'phone'>, string>;
 
 type LoadState = { status: 'loading' } | { status: 'ready' } | { status: 'missing' | 'unauthenticated' | 'error' };
 
@@ -36,7 +40,6 @@ function toFormValues(business: Business): FormValues {
     description: business.description ?? '',
     legalName: business.legalName ?? '',
     email: business.email ?? '',
-    phone: business.phone ?? '',
     website: business.website ?? '',
     logoUrl: business.logoUrl ?? '',
   };
@@ -47,7 +50,7 @@ function optional(value: string): string | null {
   return value.trim() || null;
 }
 
-function validate(values: FormValues): Partial<Record<FormField, string>> {
+function validate(values: FormValues, phone: PhoneValue): Partial<Record<FormField, string>> {
   const errors: Partial<Record<FormField, string>> = {};
   const nameError = validateRequired(values.name, 'El nombre del negocio es requerido.');
   if (nameError) errors.name = nameError;
@@ -55,6 +58,8 @@ function validate(values: FormValues): Partial<Record<FormField, string>> {
     const emailError = validateEmail(values.email.trim());
     if (emailError) errors.email = emailError;
   }
+  const phoneError = validatePhone(phone.national, phone.country);
+  if (phoneError) errors.phone = phoneError;
   for (const field of ['website', 'logoUrl'] as const) {
     if (values[field].trim()) {
       const urlError = validateHttpUrl(values[field]);
@@ -70,6 +75,7 @@ export function BusinessProfilePage() {
   const { business, setBusiness } = useBusinessContext();
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' });
   const [values, setValues] = useState<FormValues>(() => toFormValues(business));
+  const [phone, setPhone] = useState(() => splitPhone(business.phone));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -81,6 +87,7 @@ export function BusinessProfilePage() {
       .then((fresh) => {
         setBusiness(fresh);
         setValues(toFormValues(fresh));
+        setPhone(splitPhone(fresh.phone));
         setLoadState({ status: 'ready' });
       })
       .catch((error: unknown) => {
@@ -97,14 +104,14 @@ export function BusinessProfilePage() {
     fetchBusiness();
   }
 
-  function updateField(field: FormField, value: string) {
+  function updateField(field: keyof FormValues, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
-    const errors = validate(values);
+    const errors = validate(values, phone);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setGeneralError(null);
@@ -120,12 +127,13 @@ export function BusinessProfilePage() {
         description: optional(values.description),
         legalName: optional(values.legalName),
         email: optional(values.email),
-        phone: optional(values.phone),
+        phone: toE164(phone.national, phone.country),
         website: optional(values.website),
         logoUrl: optional(values.logoUrl),
       });
       setBusiness(updated);
       setValues(toFormValues(updated));
+      setPhone(splitPhone(updated.phone));
       showToast('Los cambios se guardaron correctamente.');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -201,17 +209,7 @@ export function BusinessProfilePage() {
               onChange={(e) => updateField('email', e.target.value)}
               error={fieldErrors.email}
             />
-            <TextField
-              id="phone"
-              label="Teléfono (opcional)"
-              type="tel"
-              placeholder="+506 2222-3344"
-              autoComplete="tel"
-              maxLength={BUSINESS_PHONE_MAX_LENGTH}
-              value={values.phone}
-              onChange={(e) => updateField('phone', e.target.value)}
-              error={fieldErrors.phone}
-            />
+            <PhoneField id="phone" label="Teléfono (opcional)" value={phone} onChange={setPhone} error={fieldErrors.phone} />
             <TextField
               id="website"
               label="Sitio web (opcional)"
