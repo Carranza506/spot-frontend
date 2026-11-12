@@ -4,6 +4,8 @@ import { Link } from 'expo-router';
 import { ApiError, login, logout, mapAuthApiError, validateEmail, validatePassword } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { WRONG_ROLE_MESSAGE, forgetWrongRole, rememberWrongRole, takeWrongRole } from '@/auth/wrongRole';
+import { takeReturnTo } from '@/auth/returnTo';
+import { guestOnly } from '@/auth/sessionGates';
 import { AuthScreen } from '@/components/AuthScreen';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { TextField } from '@/components/TextField';
@@ -12,7 +14,7 @@ import { authFormStyles } from '@/components/authFormStyles';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { resetTo } from '@/navigation/resetTo';
 
-export default function LoginScreen() {
+function LoginScreen() {
   const favorites = useFavorites();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -51,7 +53,8 @@ export default function LoginScreen() {
         setGeneralError(WRONG_ROLE_MESSAGE);
         return;
       }
-      resetTo('/home');
+      // Back to the screen that asked for a session, if any (with the same service, for a booking).
+      resetTo(takeReturnTo() ?? '/home');
     } catch (error) {
       if (error instanceof ApiError) {
         const mapped = mapAuthApiError(error);
@@ -101,3 +104,5 @@ export default function LoginScreen() {
     </AuthScreen>
   );
 }
+
+export default guestOnly(LoginScreen);

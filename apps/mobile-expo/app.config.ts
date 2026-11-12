@@ -6,5 +6,6 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 export default ({ config }: ConfigContext): ExpoConfig =>
   ({
     ...config,
+    plugins: [...(config.plugins ?? []), 'expo-font', 'expo-status-bar'],
     android: { ...config.android, googleServicesFile: process.env.GOOGLE_SERVICES_JSON },
   }) as ExpoConfig;

@@ -10,7 +10,7 @@ the API must be answering at `http://localhost:5195`, with its demo accounts see
 
 **You need:** [Node.js](https://nodejs.org/) 22 or newer, and pnpm, enabled once with
 `corepack enable` (it comes with Node). For the mobile app on a phone, the
-[Expo Go](https://expo.dev/go) app, for the same Expo SDK as `apps/mobile-expo` (57).
+[Expo Go](https://expo.dev/go) app, for the same Expo SDK as `apps/mobile-expo` (58).
 
 **1. Clone and install** (from the repo root, once)
 
