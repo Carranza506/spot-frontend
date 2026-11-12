@@ -33,12 +33,12 @@ import { ErrorMessage } from '@/components/ErrorMessage';
 import { Logo } from '@/components/Logo';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LogoutIcon, UserIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
-import { resetTo } from '@/navigation/resetTo';
 import { FavoriteActionError } from '@/favorites/FavoriteActionError';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { BusinessCard } from '@/components/business/BusinessCard';
 import { QuickActions } from '@/home/QuickActions';
-import { registerForPush, unregisterPush } from '@/notifications/push';
+import { registerForPush } from '@/notifications/push';
+import { signOut } from '@/auth/signOut';
 import { Chip } from '@/search/Chip';
 import { CriteriaSummary, FilterGroup, FilterLabel, MAX_RADIUS_KM, NearbyToggle, PROVINCES } from '@/search/SearchFilters';
 import { googleMapsSearchUrl } from '@/search/googleMaps';
@@ -51,7 +51,6 @@ type Business = components['schemas']['Business'];
 
 type Mode = 'browse' | 'ai';
 
-const LOGOUT_PUSH_WAIT_MS = 3000;
 const PAGE_SIZE = 20;
 const TYPING_DEBOUNCE_MS = 350;
 const CONTENT_MAX_WIDTH = 1040;
@@ -247,15 +246,7 @@ export default function HomeScreen() {
 
   async function handleLogout() {
     setLoggingOut(true);
-    try {
-      // Best effort: a slow or unreachable notifications service must not keep the user signed in.
-      await Promise.race([unregisterPush(), new Promise((resolve) => setTimeout(resolve, LOGOUT_PUSH_WAIT_MS))]);
-      await logout(authClient);
-    } finally {
-      // The next account must not see this one's favorites.
-      favorites.reset();
-      resetTo('/');
-    }
+    await signOut(favorites.reset);
   }
 
   const columns = columnsFor(Math.min(width, CONTENT_MAX_WIDTH));

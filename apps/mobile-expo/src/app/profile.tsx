@@ -4,22 +4,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
   ApiError,
+  changePassword,
   color,
   getOwnProfile,
   mapAuthApiError,
   splitPhone,
   toE164,
   updateOwnProfile,
+  validatePassword,
   validatePhone,
   validateRequired,
   type components,
 } from '@spot/shared';
 import { authClient } from '@/api/client';
+import { signOut } from '@/auth/signOut';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { PhoneField, type PhoneValue } from '@/components/PhoneField';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { TextField } from '@/components/TextField';
 import { useToast } from '@/components/Toast';
+import { useFavorites } from '@/favorites/FavoritesProvider';
 import { resetTo } from '@/navigation/resetTo';
 
 type User = components['schemas']['User'];
@@ -34,7 +38,7 @@ const toForm = (user: User): Form => ({
   phone: splitPhone(user.phone),
 });
 
-/** Perfil (M7): the account's name and phone. */
+/** Perfil (M7): the account's name and phone, and its password. */
 export default function ProfileScreen() {
   const [user, setUser] = useState<User | 'loading' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
@@ -81,7 +85,10 @@ export default function ProfileScreen() {
             />
           </View>
         ) : (
-          <ProfileForm user={user} onSaved={setUser} />
+          <>
+            <ProfileForm user={user} onSaved={setUser} />
+            <PasswordForm />
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -166,6 +173,85 @@ function ProfileForm({ user, onSaved }: { user: User; onSaved: (user: User) => v
   );
 }
 
+type PasswordField = 'currentPassword' | 'newPassword' | 'confirmPassword';
+
+function PasswordForm() {
+  const showToast = useToast();
+  const favorites = useFavorites();
+  const [values, setValues] = useState<Record<PasswordField, string>>({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<PasswordField, string>>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const set = (field: PasswordField) => (value: string) => setValues((current) => ({ ...current, [field]: value }));
+
+  async function handleSubmit() {
+    // Same checks as the web panel's Mi cuenta.
+    const errors: Partial<Record<PasswordField, string>> = {};
+    if (!values.currentPassword) errors.currentPassword = 'Ingresá tu contraseña actual.';
+    const newError = validatePassword(values.newPassword);
+    if (newError) errors.newPassword = newError;
+    else if (values.newPassword === values.currentPassword)
+      errors.newPassword = 'La nueva contraseña tiene que ser distinta de la actual.';
+    if (values.confirmPassword !== values.newPassword) errors.confirmPassword = 'Las contraseñas no coinciden.';
+    setFieldErrors(errors);
+    setGeneralError(null);
+    if (Object.keys(errors).length > 0) return;
+
+    setSubmitting(true);
+    try {
+      await changePassword(authClient, { currentPassword: values.currentPassword, newPassword: values.newPassword });
+    } catch (error) {
+      setSubmitting(false);
+      if (error instanceof ApiError && error.status === 401) resetTo('/');
+      else if (error instanceof ApiError && error.status === 422) setFieldErrors({ currentPassword: error.message });
+      else setGeneralError(error instanceof ApiError ? error.message : NETWORK_ERROR);
+      return;
+    }
+    // The backend revoked every refresh token, this device's included: end the session as "Salir" does.
+    showToast('Contraseña cambiada. Iniciá sesión con la nueva.');
+    await signOut(favorites.reset);
+  }
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Cambiar contraseña</Text>
+      {generalError && <ErrorMessage style={styles.generalError}>{generalError}</ErrorMessage>}
+      <TextField
+        label="Contraseña actual"
+        secureTextEntry
+        autoComplete="current-password"
+        value={values.currentPassword}
+        onChangeText={set('currentPassword')}
+        error={fieldErrors.currentPassword}
+      />
+      <TextField
+        label="Nueva contraseña"
+        placeholder="Mínimo 8 caracteres"
+        secureTextEntry
+        autoComplete="new-password"
+        value={values.newPassword}
+        onChangeText={set('newPassword')}
+        error={fieldErrors.newPassword}
+      />
+      <TextField
+        label="Confirmar nueva contraseña"
+        secureTextEntry
+        autoComplete="new-password"
+        value={values.confirmPassword}
+        onChangeText={set('confirmPassword')}
+        error={fieldErrors.confirmPassword}
+      />
+      <Text style={styles.hint}>Al cambiarla se cierra la sesión en todos tus dispositivos, incluido este.</Text>
+      <PrimaryButton title="Cambiar contraseña" onPress={handleSubmit} loading={submitting} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -205,6 +291,11 @@ const styles = StyleSheet.create({
   },
   generalError: {
     marginBottom: 12,
+  },
+  hint: {
+    fontSize: 13,
+    color: color.textSecondary,
+    marginBottom: 16,
   },
   readOnly: {
     color: color.textSecondary,
