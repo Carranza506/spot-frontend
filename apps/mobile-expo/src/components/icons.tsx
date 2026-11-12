@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
+import type { ColorValue } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { color as palette } from '@spot/shared';
 
 interface IconProps {
   size?: number;
-  color?: string;
+  color?: ColorValue;
 }
 
 /** Stroke icons (24×24 grid) for the home screen. Decorative: the control around them carries the label. */
@@ -77,6 +78,14 @@ export function BellIcon(props: IconProps) {
     <StrokeIcon {...props}>
       <Path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15z" />
       <Path d="M10 20.5a2 2 0 004 0" />
+    </StrokeIcon>
+  );
+}
+
+export function HomeIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z" />
     </StrokeIcon>
   );
 }

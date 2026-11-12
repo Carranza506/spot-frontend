@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import {
   ApiError,
   BOOKING_STATUS_LABELS,
@@ -233,16 +232,8 @@ function BookingsScreen() {
   const activeFilter = FILTERS.find((f) => f.status === filter) ?? FILTERS[0];
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
-        <Pressable
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-          style={styles.backButton}
-          role="button"
-          aria-label="Volver"
-        >
-          <Text style={styles.back}>‹ Volver</Text>
-        </Pressable>
         <Text style={styles.title} role="heading" aria-level={1}>
           Mis reservas
         </Text>
@@ -415,18 +406,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   // 44 x 44 on every platform, and not stretched across the header.
-  backButton: {
-    minWidth: 44,
-    minHeight: 44,
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-    marginBottom: 4,
-  },
-  back: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: color.accentTeal,
-  },
   title: {
     fontSize: 26,
     fontWeight: '700',
