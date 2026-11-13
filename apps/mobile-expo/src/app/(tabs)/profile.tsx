@@ -1,0 +1,315 @@
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  ApiError,
+  changePassword,
+  color,
+  getOwnProfile,
+  mapAuthApiError,
+  splitPhone,
+  toE164,
+  updateOwnProfile,
+  validatePassword,
+  validatePhone,
+  validateRequired,
+  type components,
+} from '@spot/shared';
+import { authClient } from '@/api/client';
+import { requireSession } from '@/auth/sessionGates';
+import { signOut } from '@/auth/signOut';
+import { ErrorMessage } from '@/components/ErrorMessage';
+import { PhoneField, type PhoneValue } from '@/components/PhoneField';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { TextField } from '@/components/TextField';
+import { useToast } from '@/components/Toast';
+import { useFavorites } from '@/favorites/FavoritesProvider';
+import { resetTo } from '@/navigation/resetTo';
+import { font } from '@/theme/fonts';
+
+type User = components['schemas']['User'];
+
+const NETWORK_ERROR = 'No se pudo conectar con el servidor. Intentá de nuevo.';
+
+type Form = { firstName: string; lastName: string; phone: PhoneValue };
+
+const toForm = (user: User): Form => ({
+  firstName: user.firstName ?? '',
+  lastName: user.lastName ?? '',
+  phone: splitPhone(user.phone),
+});
+
+/** Perfil (M7): the account's name and phone, and its password. */
+function ProfileScreen() {
+  const [user, setUser] = useState<User | 'loading' | 'error'>('loading');
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let ignore = false;
+    getOwnProfile(authClient)
+      .then((profile) => !ignore && setUser(profile))
+      .catch((error: unknown) => {
+        if (ignore) return;
+        if (error instanceof ApiError && error.status === 401) resetTo('/');
+        else setUser('error');
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [attempt]);
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Text style={styles.title} accessibilityRole="header">
+          Perfil
+        </Text>
+
+        {user === 'loading' ? (
+          <ActivityIndicator style={styles.center} color={color.accentTeal} />
+        ) : user === 'error' ? (
+          <View style={styles.center}>
+            <ErrorMessage>No se pudieron cargar tus datos.</ErrorMessage>
+            <PrimaryButton
+              title="Reintentar"
+              onPress={() => {
+                setUser('loading');
+                setAttempt((n) => n + 1);
+              }}
+            />
+          </View>
+        ) : (
+          <>
+            <ProfileForm user={user} onSaved={setUser} />
+            <PasswordForm />
+            <SignOutButton />
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function ProfileForm({ user, onSaved }: { user: User; onSaved: (user: User) => void }) {
+  const showToast = useToast();
+  const [form, setForm] = useState<Form>(() => toForm(user));
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit() {
+    const errors: Record<string, string> = {};
+    // A CLIENT can't clear its name (400), so both are required here.
+    const firstNameError = validateRequired(form.firstName, 'El nombre es requerido.');
+    const lastNameError = validateRequired(form.lastName, 'El apellido es requerido.');
+    const phoneError = validatePhone(form.phone.national, form.phone.country);
+    if (firstNameError) errors.firstName = firstNameError;
+    if (lastNameError) errors.lastName = lastNameError;
+    if (phoneError) errors.phone = phoneError;
+    setFieldErrors(errors);
+    setGeneralError(null);
+    if (Object.keys(errors).length > 0) return;
+
+    setSubmitting(true);
+    try {
+      const updated = await updateOwnProfile(authClient, {
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        // null clears it.
+        phone: toE164(form.phone.national, form.phone.country),
+      });
+      onSaved(updated);
+      setForm(toForm(updated));
+      showToast('Perfil actualizado.');
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        resetTo('/');
+        return;
+      }
+      if (error instanceof ApiError) {
+        const mapped = mapAuthApiError(error);
+        setFieldErrors(mapped.fieldErrors);
+        setGeneralError(mapped.generalError ?? null);
+      } else {
+        setGeneralError(NETWORK_ERROR);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Tus datos</Text>
+      {generalError && <ErrorMessage style={styles.generalError}>{generalError}</ErrorMessage>}
+      <TextField label="Correo" value={user.email} editable={false} style={styles.readOnly} />
+      <TextField
+        label="Nombre"
+        autoComplete="given-name"
+        value={form.firstName}
+        onChangeText={(firstName) => setForm({ ...form, firstName })}
+        error={fieldErrors.firstName}
+      />
+      <TextField
+        label="Apellidos"
+        autoComplete="family-name"
+        value={form.lastName}
+        onChangeText={(lastName) => setForm({ ...form, lastName })}
+        error={fieldErrors.lastName}
+      />
+      <PhoneField
+        label="Teléfono (opcional)"
+        value={form.phone}
+        onChange={(phone) => setForm({ ...form, phone })}
+        error={fieldErrors.phone}
+      />
+      <PrimaryButton title="Guardar cambios" onPress={handleSubmit} loading={submitting} />
+    </View>
+  );
+}
+
+type PasswordField = 'currentPassword' | 'newPassword' | 'confirmPassword';
+
+/** "Salir" lived on the home's header; with Perfil as a tab it's here (#101). */
+function SignOutButton() {
+  const favorites = useFavorites();
+  const [signingOut, setSigningOut] = useState(false);
+  return (
+    <PrimaryButton
+      title="Cerrar sesión"
+      variant="secondary"
+      loading={signingOut}
+      onPress={() => {
+        setSigningOut(true);
+        void signOut(favorites.reset);
+      }}
+    />
+  );
+}
+
+function PasswordForm() {
+  const showToast = useToast();
+  const favorites = useFavorites();
+  const [values, setValues] = useState<Record<PasswordField, string>>({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<PasswordField, string>>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const set = (field: PasswordField) => (value: string) => setValues((current) => ({ ...current, [field]: value }));
+
+  async function handleSubmit() {
+    // Same checks as the web panel's Mi cuenta.
+    const errors: Partial<Record<PasswordField, string>> = {};
+    if (!values.currentPassword) errors.currentPassword = 'Ingresá tu contraseña actual.';
+    const newError = validatePassword(values.newPassword);
+    if (newError) errors.newPassword = newError;
+    else if (values.newPassword === values.currentPassword)
+      errors.newPassword = 'La nueva contraseña tiene que ser distinta de la actual.';
+    if (values.confirmPassword !== values.newPassword) errors.confirmPassword = 'Las contraseñas no coinciden.';
+    setFieldErrors(errors);
+    setGeneralError(null);
+    if (Object.keys(errors).length > 0) return;
+
+    setSubmitting(true);
+    try {
+      await changePassword(authClient, { currentPassword: values.currentPassword, newPassword: values.newPassword });
+    } catch (error) {
+      setSubmitting(false);
+      if (error instanceof ApiError && error.status === 401) resetTo('/');
+      else if (error instanceof ApiError && error.status === 422) setFieldErrors({ currentPassword: error.message });
+      else setGeneralError(error instanceof ApiError ? error.message : NETWORK_ERROR);
+      return;
+    }
+    // The backend revoked every refresh token, this device's included: end the session as "Salir" does.
+    showToast('Contraseña cambiada. Iniciá sesión con la nueva.');
+    await signOut(favorites.reset);
+  }
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Cambiar contraseña</Text>
+      {generalError && <ErrorMessage style={styles.generalError}>{generalError}</ErrorMessage>}
+      <TextField
+        label="Contraseña actual"
+        secureTextEntry
+        autoComplete="current-password"
+        value={values.currentPassword}
+        onChangeText={set('currentPassword')}
+        error={fieldErrors.currentPassword}
+      />
+      <TextField
+        label="Nueva contraseña"
+        placeholder="Mínimo 8 caracteres"
+        secureTextEntry
+        autoComplete="new-password"
+        value={values.newPassword}
+        onChangeText={set('newPassword')}
+        error={fieldErrors.newPassword}
+      />
+      <TextField
+        label="Confirmar nueva contraseña"
+        secureTextEntry
+        autoComplete="new-password"
+        value={values.confirmPassword}
+        onChangeText={set('confirmPassword')}
+        error={fieldErrors.confirmPassword}
+      />
+      <Text style={styles.hint}>Al cambiarla se cierra la sesión en todos tus dispositivos, incluido este.</Text>
+      <PrimaryButton title="Cambiar contraseña" onPress={handleSubmit} loading={submitting} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: color.background,
+  },
+  content: {
+    padding: 24,
+    gap: 16,
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: font.bold,
+    color: color.textPrimary,
+  },
+  center: {
+    marginTop: 32,
+    gap: 12,
+    alignItems: 'center',
+  },
+  card: {
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontFamily: font.bold,
+    color: color.textPrimary,
+    marginBottom: 16,
+  },
+  generalError: {
+    marginBottom: 12,
+  },
+  hint: {
+    fontSize: 13,
+    fontFamily: font.regular,
+    color: color.textSecondary,
+    marginBottom: 16,
+  },
+  readOnly: {
+    color: color.textSecondary,
+    backgroundColor: color.surfaceMuted,
+  },
+});
+
+// Like every screen that needs a session (#88): without one, the login first, then back here.
+export default requireSession(ProfileScreen);

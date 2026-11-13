@@ -1,0 +1,78 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  max-width: 760px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* The stack's gap already spaces its children. */
+.stack > p {
+  margin: 0;
+}
+
+.options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+/* A selectable category, styled like a card row; the whole box toggles the checkbox. */
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--fontSize-sm);
+  color: var(--color-textPrimary);
+}
+
+.option input {
+  margin: 2px 0 0;
+  accent-color: var(--color-accentTeal);
+}
+
+.optionSelected {
+  border-color: var(--color-accentTeal);
+  background: var(--color-surfaceMuted);
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.optionName {
+  font-weight: 600;
+}
+
+.optionDescription {
+  color: var(--color-textSecondary);
+  font-size: var(--fontSize-xs);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.count {
+  font-size: var(--fontSize-sm);
+  color: var(--color-textSecondary);
+}

@@ -1,0 +1,149 @@
+import { useRef, useState } from 'react';
+import { Text, type TextInputInstance } from 'react-native';
+import { Link } from 'expo-router';
+import {
+  ApiError,
+  mapAuthApiError,
+  register,
+  splitPhone,
+  toE164,
+  validateEmail,
+  validatePassword,
+  validatePhone,
+  validateRequired,
+} from '@spot/shared';
+import { authClient } from '@/api/client';
+import { takeReturnTo } from '@/auth/returnTo';
+import { guestOnly } from '@/auth/sessionGates';
+import { AuthScreen } from '@/components/AuthScreen';
+import { ErrorMessage } from '@/components/ErrorMessage';
+import { PhoneField } from '@/components/PhoneField';
+import { TextField } from '@/components/TextField';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { authFormStyles } from '@/components/authFormStyles';
+import { useFavorites } from '@/favorites/FavoritesProvider';
+import { resetTo } from '@/navigation/resetTo';
+
+function RegisterScreen() {
+  const favorites = useFavorites();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState(() => splitPhone(null));
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const passwordRef = useRef<TextInputInstance>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit() {
+    const errors: Record<string, string> = {};
+    const firstNameError = validateRequired(firstName, 'El nombre es requerido.');
+    const lastNameError = validateRequired(lastName, 'El apellido es requerido.');
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    if (firstNameError) errors.firstName = firstNameError;
+    if (lastNameError) errors.lastName = lastNameError;
+    if (emailError) errors.email = emailError;
+    if (passwordError) errors.password = passwordError;
+    const phoneError = validatePhone(phone.national, phone.country);
+    if (phoneError) errors.phone = phoneError;
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setGeneralError(null);
+      return;
+    }
+
+    setFieldErrors({});
+    setGeneralError(null);
+    setSubmitting(true);
+    const phoneE164 = toE164(phone.national, phone.country);
+    try {
+      // No `role`: this consumer app only ever creates CLIENT accounts (the contract default).
+      await register(authClient, {
+        email,
+        password,
+        firstName,
+        lastName,
+        ...(phoneE164 ? { phone: phoneE164 } : {}),
+      });
+      // A new account starts with no favorites, whoever was signed in on this device before.
+      favorites.reset();
+      resetTo(takeReturnTo() ?? '/home');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const mapped = mapAuthApiError(error);
+        setFieldErrors(mapped.fieldErrors);
+        setGeneralError(mapped.generalError ?? null);
+      } else {
+        setGeneralError('No se pudo conectar con el servidor. Intentá de nuevo.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <AuthScreen>
+      <Text style={authFormStyles.title}>Crear cuenta</Text>
+      {generalError && <ErrorMessage style={authFormStyles.generalError}>{generalError}</ErrorMessage>}
+
+      <TextField
+        label="Nombre"
+        placeholder="Andrea"
+        autoComplete="given-name"
+        value={firstName}
+        onChangeText={setFirstName}
+        error={fieldErrors.firstName}
+      />
+      <TextField
+        label="Apellidos"
+        placeholder="Morera Zúñiga"
+        autoComplete="family-name"
+        value={lastName}
+        onChangeText={setLastName}
+        error={fieldErrors.lastName}
+      />
+      <PhoneField label="Teléfono (opcional)" value={phone} onChange={setPhone} error={fieldErrors.phone} />
+      <TextField
+        label="Correo"
+        placeholder="vos@correo.com"
+        autoCapitalize="none"
+        autoComplete="email"
+        keyboardType="email-address"
+        returnKeyType="next"
+        submitBehavior="submit"
+        onSubmitEditing={() => passwordRef.current?.focus()}
+        value={email}
+        onChangeText={setEmail}
+        error={fieldErrors.email}
+      />
+      <TextField
+        label="Contraseña"
+        placeholder="Mínimo 8 caracteres"
+        secureTextEntry
+        autoComplete="password"
+        ref={passwordRef}
+        returnKeyType="go"
+        onSubmitEditing={() => {
+          if (!submitting) void handleSubmit();
+        }}
+        value={password}
+        onChangeText={setPassword}
+        error={fieldErrors.password}
+      />
+
+      <PrimaryButton title="Crear cuenta" onPress={handleSubmit} loading={submitting} />
+
+      <Text style={authFormStyles.footerRow}>
+        ¿Ya tenés cuenta?{' '}
+        <Link href="/" style={authFormStyles.footerLink}>
+          Iniciá sesión
+        </Link>
+      </Text>
+    </AuthScreen>
+  );
+}
+
+export default guestOnly(RegisterScreen);
