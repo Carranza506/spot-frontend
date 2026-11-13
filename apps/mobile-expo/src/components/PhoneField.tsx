@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { PHONE_COUNTRIES, color, validatePhone, type CountryCode } from '@spot/shared';
+import { font } from '@/theme/fonts';
 
 export interface PhoneValue {
   country: CountryCode;
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textSecondary,
     marginBottom: 8,
   },
@@ -107,6 +108,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textPrimary,
     backgroundColor: color.surface,
   },
@@ -115,7 +117,7 @@ const styles = StyleSheet.create({
   },
   countryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textPrimary,
   },
   number: {
@@ -128,6 +130,7 @@ const styles = StyleSheet.create({
   error: {
     marginTop: 6,
     fontSize: 13,
+    fontFamily: font.regular,
     color: color.danger,
   },
   backdrop: {
@@ -147,7 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 12,
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   option: {
@@ -162,11 +165,12 @@ const styles = StyleSheet.create({
   },
   optionName: {
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textPrimary,
   },
   optionCode: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textSecondary,
   },
 });

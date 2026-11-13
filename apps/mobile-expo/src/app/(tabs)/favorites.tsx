@@ -8,6 +8,7 @@ import { ErrorMessage } from '@/components/ErrorMessage';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
+import { font } from '@/theme/fonts';
 
 type FavoriteBusiness = components['schemas']['FavoriteBusiness'];
 
@@ -110,11 +111,12 @@ const styles = StyleSheet.create({
   // 44 x 44 on every platform, and not stretched across the header.
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   count: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   actionError: {
@@ -130,12 +132,13 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 15,
+    fontFamily: font.regular,
     color: color.textSecondary,
     textAlign: 'center',
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   emptyContainer: {

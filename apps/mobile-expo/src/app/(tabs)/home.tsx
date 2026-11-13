@@ -42,6 +42,7 @@ import { CriteriaSummary, FilterGroup, FilterLabel, MAX_RADIUS_KM, NearbyToggle,
 import { googleMapsSearchUrl } from '@/search/googleMaps';
 import { useBusinessSearch, type SearchResults } from '@/search/useBusinessSearch';
 import { useCurrentLocation } from '@/search/useCurrentLocation';
+import { font } from '@/theme/fonts';
 
 type User = components['schemas']['User'];
 type Category = components['schemas']['Category'];
@@ -662,7 +663,7 @@ const styles = StyleSheet.create({
   },
   unreadBadgeText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.panelDark,
   },
   avatar: {
@@ -678,17 +679,18 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.panelDark,
   },
   greeting: {
     fontSize: 30,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.onPanelDark,
   },
   subtitle: {
     marginTop: 4,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.onPanelDarkMuted,
     marginBottom: 20,
   },
@@ -713,7 +715,7 @@ const styles = StyleSheet.create({
   },
   modeTabText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.onPanelDarkMuted,
   },
   modeTabTextActive: {
@@ -742,11 +744,13 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textPrimary,
     paddingVertical: 12,
   },
   clearText: {
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   filterButton: {
@@ -776,7 +780,7 @@ const styles = StyleSheet.create({
   },
   filterBadgeText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.panelDark,
   },
   aiBox: {
@@ -787,6 +791,7 @@ const styles = StyleSheet.create({
   aiInput: {
     minHeight: 72,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textPrimary,
     textAlignVertical: 'top',
     paddingHorizontal: 4,
@@ -818,6 +823,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textPrimary,
     backgroundColor: color.surface,
   },
@@ -827,7 +833,7 @@ const styles = StyleSheet.create({
   },
   clearFiltersText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentTeal,
   },
   aiExtras: {
@@ -844,11 +850,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.textPrimary,
   },
   sectionCount: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   grid: {
@@ -878,11 +885,12 @@ const styles = StyleSheet.create({
   },
   stateTitle: {
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   stateText: {
     fontSize: 14,
+    fontFamily: font.regular,
     lineHeight: 20,
     color: color.textSecondary,
     textAlign: 'center',
@@ -901,7 +909,7 @@ const styles = StyleSheet.create({
   },
   stateButtonText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.onPanelDark,
   },
   skeletonCard: {

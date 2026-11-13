@@ -4,6 +4,7 @@ import { authClient } from '@/api/client';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { weekSchedule } from './businessInfo';
 import { Section } from './Section';
+import { font } from '@/theme/fonts';
 
 export function HoursSection({ businessId }: { businessId: string }) {
   const [state] = useAsyncData(() => listBusinessHours(authClient, businessId), [businessId]);
@@ -60,19 +61,20 @@ const styles = StyleSheet.create({
   },
   day: {
     fontSize: 15,
+    fontFamily: font.regular,
     color: color.textPrimary,
   },
   hours: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textPrimary,
   },
   closed: {
-    fontWeight: '400',
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   todayText: {
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentTeal,
   },
 });

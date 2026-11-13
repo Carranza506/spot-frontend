@@ -15,6 +15,7 @@ import {
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { TextField } from '@/components/TextField';
 import { ErrorMessage } from '@/components/ErrorMessage';
+import { font } from '@/theme/fonts';
 
 type AvailabilityDay = components['schemas']['AvailabilityDay'];
 type AvailabilitySlot = components['schemas']['AvailabilitySlot'];
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.accentTeal,
   },
   centered: {
@@ -270,6 +271,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textSecondary,
     textAlign: 'center',
   },
@@ -280,7 +282,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   section: {
@@ -288,7 +290,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   chipRow: {
@@ -311,7 +313,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentTeal,
   },
   chipTextActive: {
@@ -327,17 +329,18 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   cardText: {
     fontSize: 14,
+    fontFamily: font.regular,
     lineHeight: 20,
     color: color.textPrimary,
   },
   cardMeta: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.accentTeal,
   },
   notesInput: {
@@ -354,7 +357,7 @@ const styles = StyleSheet.create({
   },
   pendingBadgeText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.warningText,
   },
 });

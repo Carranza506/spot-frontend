@@ -5,6 +5,7 @@ import { color, getBusiness, listOwnBookings, type components } from '@spot/shar
 import { authClient } from '@/api/client';
 import { formatBusinessShortDateTime } from '@/bookings/format';
 import { soonestUpcoming } from '@/bookings/upcoming';
+import { font } from '@/theme/fonts';
 
 type Booking = components['schemas']['Booking'];
 
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   ticket: {
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   when: {
     flexShrink: 1,
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.panelDark,
   },
   chip: {
@@ -135,12 +136,12 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentAmber,
   },
   what: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.panelDark,
   },
 });

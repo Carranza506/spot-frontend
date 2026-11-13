@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { color, type components } from '@spot/shared';
 import { BusinessAvatar } from './BusinessAvatar';
 import { useOpenBusiness } from './useOpenBusiness';
+import { font } from '@/theme/fonts';
 
 type Business = components['schemas']['Business'];
 
@@ -53,11 +54,12 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   description: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
 });

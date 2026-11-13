@@ -4,6 +4,7 @@ import { authClient } from '@/api/client';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { filledStars, stars } from '@/reviews/stars';
 import { Section } from './Section';
+import { font } from '@/theme/fonts';
 
 const dateFormat = new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -54,14 +55,17 @@ const styles = StyleSheet.create({
   },
   stars: {
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.accentAmber,
   },
   date: {
     fontSize: 13,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   comment: {
     fontSize: 14,
+    fontFamily: font.regular,
     lineHeight: 20,
     color: color.textPrimary,
   },

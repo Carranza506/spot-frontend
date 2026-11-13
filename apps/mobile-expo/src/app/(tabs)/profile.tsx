@@ -25,6 +25,7 @@ import { TextField } from '@/components/TextField';
 import { useToast } from '@/components/Toast';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { resetTo } from '@/navigation/resetTo';
+import { font } from '@/theme/fonts';
 
 type User = components['schemas']['User'];
 
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   center: {
@@ -291,7 +292,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
     marginBottom: 16,
   },
@@ -300,6 +301,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 13,
+    fontFamily: font.regular,
     color: color.textSecondary,
     marginBottom: 16,
   },

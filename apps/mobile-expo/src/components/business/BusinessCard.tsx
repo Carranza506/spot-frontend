@@ -5,6 +5,7 @@ import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { BusinessAvatar } from './BusinessAvatar';
 import { bannerTintFor } from './businessDisplay';
 import { useOpenBusiness } from './useOpenBusiness';
+import { font } from '@/theme/fonts';
 
 type Business = components['schemas']['Business'];
 
@@ -89,11 +90,12 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   description: {
     fontSize: 14,
+    fontFamily: font.regular,
     lineHeight: 20,
     color: color.textSecondary,
     minHeight: 40,
@@ -109,7 +111,7 @@ const styles = StyleSheet.create({
   },
   cta: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentTeal,
   },
   favorite: {

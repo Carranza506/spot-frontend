@@ -8,6 +8,7 @@ import { requireSession } from '@/auth/sessionGates';
 import { formatBusinessShortDateTime } from '@/bookings/format';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { ErrorMessage } from '@/components/ErrorMessage';
+import { font } from '@/theme/fonts';
 
 type Notification = components['schemas']['Notification'];
 
@@ -174,17 +175,18 @@ const styles = StyleSheet.create({
   },
   back: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.accentTeal,
     marginBottom: 8,
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   count: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   actionError: {
@@ -200,6 +202,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 15,
+    fontFamily: font.regular,
     color: color.textSecondary,
     textAlign: 'center',
   },
@@ -210,7 +213,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   emptyContainer: {
@@ -248,19 +251,21 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textPrimary,
   },
   nameUnread: {
-    fontWeight: '700',
+    fontFamily: font.bold,
   },
   body: {
     fontSize: 14,
+    fontFamily: font.regular,
     lineHeight: 20,
     color: color.textSecondary,
   },
   date: {
     fontSize: 13,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
 });

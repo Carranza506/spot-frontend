@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { color } from '@spot/shared';
 import type { AsyncData } from '@/hooks/useAsyncData';
+import { font } from '@/theme/fonts';
 
 interface SectionProps<T> {
   title: string;
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   loading: {
@@ -47,6 +48,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
 });

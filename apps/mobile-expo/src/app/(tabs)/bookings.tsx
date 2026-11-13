@@ -23,6 +23,7 @@ import { resetTo } from '@/navigation/resetTo';
 import { BookingReview, type BookingReviewProps } from '@/reviews/BookingReview';
 import { useBookingReview } from '@/reviews/useBookingReview';
 import { Chip } from '@/search/Chip';
+import { font } from '@/theme/fonts';
 
 type Booking = components['schemas']['Booking'];
 type BookingStatus = components['schemas']['BookingStatus'];
@@ -408,11 +409,12 @@ const styles = StyleSheet.create({
   // 44 x 44 on every platform, and not stretched across the header.
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   count: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   filterRow: {
@@ -433,12 +435,13 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 15,
+    fontFamily: font.regular,
     color: color.textSecondary,
     textAlign: 'center',
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
     textAlign: 'center',
   },
@@ -472,22 +475,23 @@ const styles = StyleSheet.create({
   serviceName: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   businessName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textSecondary,
   },
   cardText: {
     fontSize: 14,
+    fontFamily: font.regular,
     lineHeight: 20,
     color: color.textPrimary,
   },
   cardMeta: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.accentTeal,
   },
   badge: {
@@ -497,7 +501,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: font.bold,
   },
   // 44 tall so it's easy to hit, and only as wide as its text.
   cancelButton: {
@@ -508,7 +512,7 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.danger,
   },
   confirm: {

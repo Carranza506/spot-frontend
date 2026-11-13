@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { color } from '@spot/shared';
+import { font } from '@/theme/fonts';
 
 const TOAST_MS = 4000;
 
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textPrimary,
   },
 });

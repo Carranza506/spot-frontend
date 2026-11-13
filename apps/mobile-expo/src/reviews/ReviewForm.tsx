@@ -5,6 +5,7 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { ActionButtons } from '@/components/ActionButtons';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { TextField } from '@/components/TextField';
+import { font } from '@/theme/fonts';
 
 interface ReviewFormProps {
   /** Keeps the label's id unique on the screen. */
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textSecondary,
   },
   stars: {
@@ -104,6 +105,7 @@ const styles = StyleSheet.create({
   },
   starText: {
     fontSize: 28,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   starSelected: {
@@ -111,6 +113,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 13,
+    fontFamily: font.regular,
     color: color.textSecondary,
     marginBottom: 8,
   },
