@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { color, validateHttpUrl, type components } from '@spot/shared';
 import { businessInitial } from './businessDisplay';
+import { font } from '@/theme/fonts';
 
 type Business = components['schemas']['Business'];
 
@@ -25,7 +26,7 @@ export function BusinessAvatar({ business, size, shape = 'circle', style }: Busi
       {logo ? (
         <Image source={{ uri: logo }} style={styles.logo} accessibilityIgnoresInvertColors />
       ) : (
-        <Text style={[styles.initial, { fontSize: Math.round(size * 0.4) }]}>{businessInitial(business.name)}</Text>
+        <Text style={[styles.initial, { fontFamily: font.regular, fontSize: Math.round(size * 0.4) }]}>{businessInitial(business.name)}</Text>
       )}
     </View>
   );
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   initial: {
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.onPanelDark,
   },
 });

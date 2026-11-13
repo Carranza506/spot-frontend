@@ -1,6 +1,7 @@
 import { Linking, Pressable, StyleSheet, Text } from 'react-native';
 import { color, validateEmail, validateHttpUrl, type components } from '@spot/shared';
 import { phoneUrl, whatsappUrl } from './businessInfo';
+import { font } from '@/theme/fonts';
 
 type BusinessContact = components['schemas']['BusinessContact'];
 
@@ -59,12 +60,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   value: {
     flexShrink: 1,
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.accentTeal,
   },
   // Not tappable, so not in the link color.

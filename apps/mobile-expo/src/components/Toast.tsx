@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { color } from '@spot/shared';
+import { font } from '@/theme/fonts';
 
 const TOAST_MS = 4000;
 
@@ -66,11 +67,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    boxShadow: '0 8px 24px rgba(21, 42, 38, 0.12)',
+    boxShadow: '0 8px 24px rgba(15, 36, 56, 0.12)',
   },
   text: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textPrimary,
   },
 });

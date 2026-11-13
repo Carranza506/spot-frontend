@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { REVIEW_RATING_MAX, color } from '@spot/shared';
 import { ReviewForm } from './ReviewForm';
 import { filledStars, stars } from './stars';
+import { font } from '@/theme/fonts';
 
 export interface BookingReviewProps {
   bookingId: string;
@@ -64,13 +65,13 @@ const styles = StyleSheet.create({
   },
   reviewText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentTeal,
   },
   reviewedText: {
     marginTop: 4,
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textSecondary,
   },
 });

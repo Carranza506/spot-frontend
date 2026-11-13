@@ -41,6 +41,6 @@ const styles = StyleSheet.create({
     maxWidth: 360,
     backgroundColor: color.surface,
     borderRadius: 8,
-    boxShadow: '0 8px 24px rgba(21, 42, 38, 0.12)',
+    boxShadow: '0 8px 24px rgba(15, 36, 56, 0.12)',
   },
 });

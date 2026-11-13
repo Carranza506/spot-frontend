@@ -28,6 +28,18 @@
   gap: var(--spacing-xs);
 }
 
+.nav + .nav {
+  margin-top: var(--spacing-lg);
+}
+
+.navGroup {
+  margin: 0;
+  padding: 0 var(--spacing-sm) var(--spacing-xs);
+  font-size: var(--fontSize-xs);
+  font-weight: 500;
+  color: var(--color-onPanelDarkMuted);
+}
+
 .navItem {
   display: flex;
   align-items: center;
@@ -50,8 +62,50 @@
   font-weight: 600;
 }
 
-.logoutButton {
+/* The plan and its service limit, always in sight at the foot of the menu (#101). */
+.planCard {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 8%);
+  color: var(--color-onPanelDark);
+  font-size: var(--fontSize-xs);
+  text-decoration: none;
+}
+
+.planCard:hover {
+  background: rgb(255 255 255 / 12%);
+}
+
+.planName {
+  font-size: var(--fontSize-sm);
+  font-weight: 600;
+}
+
+.meter {
+  height: 6px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 15%);
+  overflow: hidden;
+  margin: var(--spacing-xs) 0;
+}
+
+.meter > span {
+  display: block;
+  height: 100%;
+  background: var(--color-accentAmber);
+}
+
+.planLink {
+  color: var(--color-accentAmber);
+  font-weight: 600;
+}
+
+.logoutButton {
+  margin-top: var(--spacing-sm);
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -82,6 +136,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--spacing-md);
 }
 
 .title {
@@ -109,12 +164,74 @@
   justify-content: center;
   font-size: var(--fontSize-sm);
   font-weight: 700;
+  text-decoration: none;
+}
+
+.avatar:hover {
+  background: var(--color-accentTealHover);
+}
+
+.avatar:focus-visible {
+  outline: 3px solid var(--color-accentAmber);
+  outline-offset: 2px;
 }
 
 .content {
   flex: 1 1 auto;
   background: var(--color-background);
   padding: var(--spacing-xl);
+}
+
+/* Shaped like a search field, but a link: the search isn't built yet (#101). */
+.searchLink {
+  flex: 0 1 320px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: 44px;
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-textSecondary);
+  font-size: var(--fontSize-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.newBooking {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-accentTeal);
+  color: var(--color-onPanelDark);
+  font-size: var(--fontSize-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.newBooking:hover {
+  background: var(--color-accentTealHover);
+}
+
+.iconLink {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-textPrimary);
+}
+
+.iconLink:hover {
+  background: var(--color-background);
 }
 
 .titleBlock {
@@ -170,6 +287,12 @@
   .topbar {
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
+  }
+
+  /* No room for the search field and the button's text on a phone: the bell and avatar stay. */
+  .searchLink,
+  .newBooking {
+    display: none;
   }
 
   .title {

@@ -7,12 +7,9 @@ type IconProps = { size?: number };
 export function LogoIcon({ size = 22 }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden="true">
-      <path
-        d="M12 2C7.58 2 4 5.58 4 10c0 5.25 6.72 11.19 7.01 11.44a1.5 1.5 0 0 0 1.98 0C13.28 21.19 20 15.25 20 10c0-4.42-3.58-8-8-8Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <circle cx="12" cy="10" r="2.6" fill="var(--color-accentAmber)" />
+      {/* On the dark panel a navy square would vanish: a translucent white one keeps the mark visible. */}
+      <rect x="2" y="2" width="20" height="20" rx="6" fill="rgba(255, 255, 255, 0.16)" />
+      <circle cx="16.5" cy="16.5" r="3" fill="var(--color-accentAmber)" />
     </svg>
   );
 }
@@ -34,6 +31,32 @@ export function CalendarIcon({ size = 18 }: IconProps) {
       <rect x="2.5" y="3.5" width="15" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
       <path d="M2.5 8h15" stroke="currentColor" strokeWidth="1.6" />
       <path d="M6.5 2v3M13.5 2v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function BellIcon({ size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
+      <path d="M5 13.5V9a5 5 0 0 1 10 0v4.5l1.3 1.7H3.7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M8.3 17.2a1.8 1.8 0 0 0 3.4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SearchIcon({ size = 18 }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M13.2 13.2 17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function ListIcon({ size = 18 }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" width={size} height={size} fill="none" aria-hidden="true">
+      <path d="M4 5.5h12M4 10h12M4 14.5h7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }

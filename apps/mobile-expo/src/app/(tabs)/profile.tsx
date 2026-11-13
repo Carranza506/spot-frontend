@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import {
   ApiError,
   changePassword,
@@ -26,6 +25,7 @@ import { TextField } from '@/components/TextField';
 import { useToast } from '@/components/Toast';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { resetTo } from '@/navigation/resetTo';
+import { font } from '@/theme/fonts';
 
 type User = components['schemas']['User'];
 
@@ -59,15 +59,8 @@ function ProfileScreen() {
   }, [attempt]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Pressable
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-          hitSlop={8}
-          accessibilityRole="button"
-        >
-          <Text style={styles.back}>‹ Volver</Text>
-        </Pressable>
         <Text style={styles.title} accessibilityRole="header">
           Perfil
         </Text>
@@ -89,6 +82,7 @@ function ProfileScreen() {
           <>
             <ProfileForm user={user} onSaved={setUser} />
             <PasswordForm />
+            <SignOutButton />
           </>
         )}
       </ScrollView>
@@ -176,6 +170,23 @@ function ProfileForm({ user, onSaved }: { user: User; onSaved: (user: User) => v
 
 type PasswordField = 'currentPassword' | 'newPassword' | 'confirmPassword';
 
+/** "Salir" lived on the home's header; with Perfil as a tab it's here (#101). */
+function SignOutButton() {
+  const favorites = useFavorites();
+  const [signingOut, setSigningOut] = useState(false);
+  return (
+    <PrimaryButton
+      title="Cerrar sesión"
+      variant="secondary"
+      loading={signingOut}
+      onPress={() => {
+        setSigningOut(true);
+        void signOut(favorites.reset);
+      }}
+    />
+  );
+}
+
 function PasswordForm() {
   const showToast = useToast();
   const favorites = useFavorites();
@@ -262,14 +273,9 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 16,
   },
-  back: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: color.accentTeal,
-  },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   center: {
@@ -286,7 +292,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
     marginBottom: 16,
   },
@@ -295,6 +301,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 13,
+    fontFamily: font.regular,
     color: color.textSecondary,
     marginBottom: 16,
   },

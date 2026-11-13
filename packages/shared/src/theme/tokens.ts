@@ -1,36 +1,36 @@
 /**
- * Design tokens shared by every platform UI. Values sampled directly from the
- * business login mockup screenshot (dark green left panel, amber pin dot,
- * teal button/links).
+ * Design tokens shared by every platform UI: the "marino y girasol" identity (#101). The names
+ * predate it and stay, so callers don't change: `accentTeal` is the navy of actions and links,
+ * `accentAmber` the sunflower that marks a time slot, `panelDark` the ink of panels and text.
  */
 export const color = {
-  panelDark: '#152a26',
+  panelDark: '#0f2438',
   onPanelDark: '#ffffff',
-  onPanelDarkMuted: '#d0d4d4',
-  accentAmber: '#e9a619',
-  accentTeal: '#3f9488',
-  accentTealHover: '#357e74',
+  onPanelDarkMuted: '#c9d4e0',
+  accentAmber: '#ffc83d',
+  accentTeal: '#12395e',
+  accentTealHover: '#0c2a47',
   surface: '#ffffff',
-  surfaceMuted: '#f5f6f4',
-  background: '#f4f3ef',
-  textPrimary: '#152a26',
-  textSecondary: '#6e7b77',
-  placeholder: '#9ea8a4',
-  border: '#e6e5e0',
+  surfaceMuted: '#eef2f6',
+  background: '#f2f5f8',
+  textPrimary: '#0f2438',
+  textSecondary: '#56677a',
+  placeholder: '#8a97a6',
+  border: '#dce3ea',
   danger: '#d1453b',
-  /** Filled danger buttons: `danger` is for text, and too loud as a large surface next to the greens. */
+  /** Filled danger buttons: `danger` is for text, and too loud as a large surface. */
   dangerSolid: '#a9483f',
-  onPanelDarkInactive: '#adb5b3',
+  onPanelDarkInactive: '#a9b7c6',
   success: '#35803a',
   successBg: '#e1fce6',
-  warningText: '#a85403',
-  warningBg: '#fbf3c6',
+  warningText: '#8a5a00',
+  warningBg: '#fff6d9',
 } as const;
 
 export const radius = {
   sm: '8px',
-  md: '14px',
-  lg: '20px',
+  md: '12px',
+  lg: '18px',
   pill: '999px',
 } as const;
 

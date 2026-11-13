@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { color } from '@spot/shared';
+import { font } from '@/theme/fonts';
 
 interface ErrorMessageProps {
   children: string;
@@ -28,6 +29,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.danger,
   },
 });

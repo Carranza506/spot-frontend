@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { color, type components } from '@spot/shared';
 import { Chip } from './Chip';
 import type { LocationState } from './useCurrentLocation';
+import { font } from '@/theme/fonts';
 
 type AiSearchCriteria = components['schemas']['AiSearchCriteria'];
 
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: font.bold,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
     color: color.textSecondary,
@@ -101,6 +102,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 13,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
 });

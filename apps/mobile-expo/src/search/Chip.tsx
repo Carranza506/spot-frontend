@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { color } from '@spot/shared';
+import { font } from '@/theme/fonts';
 
 interface ChipProps {
   label: string;
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.textPrimary,
   },
   selectedText: {

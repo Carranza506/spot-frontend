@@ -1,24 +1,37 @@
 import { useEffect, useState } from 'react';
-import { BOOKING_STATUS_LABELS, formatPrice } from '@spot/shared';
+import { useNavigate } from 'react-router-dom';
+import { ApiError, BOOKING_STATUS_LABELS, formatPrice, type components } from '@spot/shared';
 import { Button } from '../components/Button';
-import { CalendarIcon, CheckCircleIcon, ClockIcon, DollarIcon } from '../components/dashboard/icons';
+import { useFeedback } from '../components/feedback/feedbackContext';
 import { useBusinessContext } from '../routes/businessContext';
+import { bookingsApi } from './bookings/bookingsApi';
 import { formatDay, formatTimeRange } from './bookings/format';
 import { loadDashboard, type DashboardData } from './dashboard/dashboardData';
 import formStyles from './AuthForm.module.css';
 import pageStyles from './BusinessProfilePage.module.css';
 import styles from './DashboardPage.module.css';
 
+type Booking = components['schemas']['Booking'];
 type DashboardState = { key: string; status: 'ready'; data: DashboardData } | { key: string; status: 'error' };
 
+const NETWORK_ERROR = 'No se pudo conectar con el servidor. Intentá de nuevo.';
+const todayFormat = new Intl.DateTimeFormat('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
+const hourFormat = new Intl.DateTimeFormat('es-CR', { hour: 'numeric', minute: '2-digit' });
+
+/** Hoy (#101): the day's agenda, what's waiting for confirmation, and the week's figures. */
 export function DashboardPage() {
   const { business } = useBusinessContext();
+  const navigate = useNavigate();
+  const { confirm, showToast } = useFeedback();
   const [reloadKey, setReloadKey] = useState(0);
   const [loaded, setLoaded] = useState<DashboardState | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // A response for an older business or reload is ignored, so the page reads as loading until its own arrives.
   const key = `${business.id}:${reloadKey}`;
   const state = loaded?.key === key ? loaded : null;
+  const reload = () => setReloadKey((k) => k + 1);
 
   useEffect(() => {
     let ignore = false;
@@ -30,13 +43,46 @@ export function DashboardPage() {
     };
   }, [business.id, key]);
 
+  async function decide(booking: Booking, accept: boolean) {
+    const who = booking.clientName ?? 'el cliente';
+    if (
+      !accept &&
+      !(await confirm({
+        title: 'Rechazar reservación',
+        message: `¿Rechazar la reservación de ${who} (${booking.serviceName}, ${formatDay(booking.startAt)})? Se cancela y se le avisa.`,
+        confirmLabel: 'Rechazar',
+        danger: true,
+      }))
+    ) {
+      return;
+    }
+    setActionError(null);
+    setPendingId(booking.id);
+    try {
+      if (accept) await bookingsApi.confirm(booking.id);
+      else await bookingsApi.cancel(booking.id);
+      showToast(accept ? 'Reservación confirmada.' : 'Reservación rechazada.');
+      reload();
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      // 404 or 422: it was cancelled or changed meanwhile; the refreshed lists show where it stands.
+      setActionError(error instanceof ApiError ? error.message : NETWORK_ERROR);
+      reload();
+    } finally {
+      setPendingId(null);
+    }
+  }
+
   if (!state) return <p className={pageStyles.placeholder}>Cargando…</p>;
 
   if (state.status === 'error') {
     return (
       <div className={styles.page}>
-        <p className={formStyles.generalError}>No se pudo cargar el resumen de tu negocio.</p>
-        <Button type="button" onClick={() => setReloadKey((k) => k + 1)}>
+        <p className={formStyles.generalError}>No se pudo cargar tu agenda de hoy.</p>
+        <Button type="button" onClick={reload}>
           Reintentar
         </Button>
       </div>
@@ -44,105 +90,114 @@ export function DashboardPage() {
   }
 
   const { data } = state;
-  // At least 1, so an empty week draws flat bars instead of dividing by zero.
-  const maxDayValue = Math.max(1, ...data.week.map((day) => day.value));
+  const now = new Date();
 
   return (
     <div className={styles.page}>
-      <section className={styles.statsGrid}>
-        <article className={styles.statCard}>
-          <div className={styles.statHeader}>
-            <span>Total reservaciones</span>
-            <span className={styles.iconTeal}>
-              <CalendarIcon />
-            </span>
-          </div>
-          <span className={styles.statValue}>{data.total}</span>
-        </article>
-        <article className={styles.statCard}>
-          <div className={styles.statHeader}>
-            <span>Pendientes</span>
-            <span className={styles.iconAmber}>
-              <ClockIcon />
-            </span>
-          </div>
-          <span className={styles.statValue}>{data.pending}</span>
-        </article>
-        <article className={styles.statCard}>
-          <div className={styles.statHeader}>
-            <span>Confirmadas</span>
-            <span className={styles.iconGreen}>
-              <CheckCircleIcon />
-            </span>
-          </div>
-          <span className={styles.statValue}>{data.confirmed}</span>
-        </article>
-        <article className={styles.statCard}>
-          <div className={styles.statHeader}>
-            <span>Ingresos (completadas)</span>
-            <span className={styles.iconNeutral}>
-              <DollarIcon />
-            </span>
-          </div>
-          <span className={styles.statValue}>{formatPrice(data.revenue)}</span>
-        </article>
+      <section className={styles.agendaColumn}>
+        <div className={styles.dayHeader}>
+          {/* The top bar already says "Hoy": the date is the title here. */}
+          <h2 className={styles.dayTitle}>{capitalize(todayFormat.format(now))}</h2>
+          <p className={styles.daySubtitle}>
+            {data.todayCount === 0 ? 'No tenés citas hoy.' : data.todayCount === 1 ? '1 cita hoy' : `${data.todayCount} citas hoy`}
+          </p>
+        </div>
+
+        <ol className={styles.agenda} aria-label="Agenda de hoy">
+          {data.agenda.map(({ hour, bookings }) => (
+            <li key={hour} className={styles.hourRow}>
+              <span className={styles.hourLabel}>{hourFormat.format(new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour))}</span>
+              <div className={styles.hourSlot}>
+                {hour === now.getHours() && (
+                  <div className={styles.nowLine} role="presentation">
+                    <span>Ahora</span>
+                  </div>
+                )}
+                {bookings.map((booking) => (
+                  <AgendaItem key={booking.id} booking={booking} />
+                ))}
+              </div>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      <section className={styles.contentGrid}>
-        <article className={styles.card}>
-          <h2 className={styles.cardTitle}>Reservaciones esta semana</h2>
-          <div className={styles.chart}>
-            {data.week.map((day) => (
-              <div key={day.date} className={styles.chartColumn} title={`${day.value} el ${formatDay(`${day.date}T12:00:00`)}`}>
-                <div className={styles.chartBar} style={{ height: `${(day.value / maxDayValue) * 100}%` }} />
-                <span className={styles.chartLabel}>{day.label}</span>
-              </div>
-            ))}
-          </div>
-        </article>
+      <aside className={styles.sideColumn}>
+        <div className={styles.stats}>
+          <article className={styles.statCard}>
+            <span className={styles.statLabel}>Citas esta semana</span>
+            <span className={styles.statValue}>{data.weekCount}</span>
+          </article>
+          <article className={styles.statCard}>
+            <span className={styles.statLabel}>Ingresos estimados</span>
+            <span className={styles.statValue}>{formatPrice(data.weekIncome)}</span>
+            <span className={styles.statHint}>Esta semana</span>
+          </article>
+        </div>
 
         <article className={styles.card}>
-          <h2 className={styles.cardTitle}>Próximas citas</h2>
-          {data.upcoming.length === 0 ? (
-            <p className={pageStyles.placeholder}>No tenés citas pendientes ni confirmadas próximamente.</p>
+          <h2 className={styles.cardTitle}>
+            Por confirmar <span className={styles.cardCount}>{data.toConfirmTotal}</span>
+          </h2>
+          {actionError && <p className={formStyles.generalError}>{actionError}</p>}
+          {data.toConfirm.length === 0 ? (
+            <p className={pageStyles.placeholder}>No hay reservaciones esperando tu confirmación.</p>
           ) : (
-            <ul className={styles.appointmentList}>
-              {data.upcoming.map((booking) => {
-                const pending = booking.status === 'PENDING';
-                // An account without a name (clientName null) still gets a readable row.
-                const clientName = booking.clientName ?? 'Cliente';
-                return (
-                  <li key={booking.id} className={styles.appointmentRow}>
-                    <span className={`${styles.appointmentAvatar} ${pending ? styles.avatarAmber : styles.avatarTeal}`}>
-                      {initials(clientName)}
+            <ul className={styles.requestList}>
+              {data.toConfirm.map((booking) => (
+                <li key={booking.id} className={styles.request}>
+                  <div className={styles.requestInfo}>
+                    <span className={styles.requestName}>{booking.clientName ?? 'Cliente'}</span>
+                    <span className={styles.requestMeta}>
+                      {formatDay(booking.startAt)} · {formatTimeRange(booking.startAt, booking.endAt)} · {booking.serviceName}
                     </span>
-                    <div className={styles.appointmentInfo}>
-                      <span className={styles.appointmentName}>{clientName}</span>
-                      <span className={styles.appointmentService}>
-                        {booking.serviceName} · {formatDay(booking.startAt)} · {formatTimeRange(booking.startAt, booking.endAt)}
-                      </span>
-                    </div>
-                    <span className={`${styles.badge} ${pending ? styles.badgePending : styles.badgeConfirmed}`}>
-                      {BOOKING_STATUS_LABELS[booking.status]}
-                    </span>
-                  </li>
-                );
-              })}
+                  </div>
+                  <div className={styles.requestActions}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className={styles.smallButton}
+                      disabled={pendingId !== null}
+                      onClick={() => void decide(booking, false)}
+                    >
+                      Rechazar
+                    </Button>
+                    <Button
+                      type="button"
+                      className={styles.smallButton}
+                      disabled={pendingId !== null}
+                      onClick={() => void decide(booking, true)}
+                    >
+                      {pendingId === booking.id ? 'Guardando…' : 'Confirmar'}
+                    </Button>
+                  </div>
+                </li>
+              ))}
             </ul>
           )}
         </article>
-      </section>
+      </aside>
     </div>
   );
 }
 
-/** "María Rodríguez" → "MR". Array.from keeps an emoji or other surrogate pair whole. */
-function initials(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => Array.from(part)[0] ?? '')
-    .join('')
-    .toUpperCase();
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** One booking on the agenda. Pending ones are the sunflower ticket: they still need the owner. */
+function AgendaItem({ booking }: { booking: Booking }) {
+  const pending = booking.status === 'PENDING';
+  const done = booking.status === 'COMPLETED' || booking.status === 'NO_SHOW';
+  return (
+    <div className={[styles.item, pending ? styles.itemPending : done ? styles.itemDone : styles.itemConfirmed].join(' ')}>
+      <div className={styles.itemInfo}>
+        <span className={styles.itemTitle}>
+          {formatTimeRange(booking.startAt, booking.endAt)} · {booking.serviceName}
+        </span>
+        <span className={styles.itemMeta}>{booking.clientName ?? 'Cliente'}</span>
+      </div>
+      <span className={styles.itemStatus}>{pending ? 'Por confirmar' : BOOKING_STATUS_LABELS[booking.status]}</span>
+    </div>
+  );
 }

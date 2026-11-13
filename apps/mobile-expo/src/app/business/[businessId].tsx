@@ -16,6 +16,7 @@ import { FavoriteActionError } from '@/favorites/FavoriteActionError';
 import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
 import { useAsyncData } from '@/hooks/useAsyncData';
+import { font } from '@/theme/fonts';
 
 function BusinessDetailScreen() {
   const { businessId } = useLocalSearchParams<{ businessId: string }>();
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.accentTeal,
   },
   centered: {
@@ -87,6 +88,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textSecondary,
     textAlign: 'center',
   },

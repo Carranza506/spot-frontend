@@ -4,6 +4,7 @@ import { color, formatPrice, listBusinessServices } from '@spot/shared';
 import { authClient } from '@/api/client';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { Section } from './Section';
+import { font } from '@/theme/fonts';
 
 export function ServicesSection({ businessId }: { businessId: string }) {
   // shortcut: shows the first 50 active services only; add paging if a business ever has more.
@@ -54,16 +55,17 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   description: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   meta: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: font.semibold,
     color: color.accentTeal,
   },
   // A 44 px touch target, aligned with the card's text.
@@ -74,7 +76,7 @@ const styles = StyleSheet.create({
   },
   bookText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentTeal,
   },
 });

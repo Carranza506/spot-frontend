@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  ActivityIndicator,
   Linking,
   Platform,
   Pressable,
@@ -33,18 +32,17 @@ import { requireSession } from '@/auth/sessionGates';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Logo } from '@/components/Logo';
 import { PrimaryButton } from '@/components/PrimaryButton';
-import { LogoutIcon, UserIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
+import { BellIcon, SearchIcon, SlidersIcon, SparkleIcon } from '@/components/icons';
 import { FavoriteActionError } from '@/favorites/FavoriteActionError';
-import { useFavorites } from '@/favorites/FavoritesProvider';
+import { NextAppointment } from '@/home/NextAppointment';
 import { BusinessCard } from '@/components/business/BusinessCard';
-import { QuickActions } from '@/home/QuickActions';
 import { registerForPush } from '@/notifications/push';
-import { signOut } from '@/auth/signOut';
 import { Chip } from '@/search/Chip';
 import { CriteriaSummary, FilterGroup, FilterLabel, MAX_RADIUS_KM, NearbyToggle, PROVINCES } from '@/search/SearchFilters';
 import { googleMapsSearchUrl } from '@/search/googleMaps';
 import { useBusinessSearch, type SearchResults } from '@/search/useBusinessSearch';
 import { useCurrentLocation } from '@/search/useCurrentLocation';
+import { font } from '@/theme/fonts';
 
 type User = components['schemas']['User'];
 type Category = components['schemas']['Category'];
@@ -94,13 +92,11 @@ function columnsFor(width: number): number {
 /**
  * Inicio (#58): the consumer's home is where businesses are discovered. It lists active businesses
  * right away, filters them as the user types or picks a category/province/city/radius, offers the
- * natural-language (AI) search, and keeps favorites, bookings and notifications one tap away.
+ * natural-language (AI) search. Favoritos, Reservas and Perfil are tabs (#101); Notificaciones is the bell.
  */
 function HomeScreen() {
   const { width } = useWindowDimensions();
-  const favorites = useFavorites();
   const [user, setUser] = useState<User | null>(null);
-  const [loggingOut, setLoggingOut] = useState(false);
   const [unread, setUnread] = useState(0);
 
   const [mode, setMode] = useState<Mode>('browse');
@@ -245,11 +241,6 @@ function HomeScreen() {
     else searchWithAi();
   }
 
-  async function handleLogout() {
-    setLoggingOut(true);
-    await signOut(favorites.reset);
-  }
-
   const columns = columnsFor(Math.min(width, CONTENT_MAX_WIDTH));
 
   return (
@@ -263,27 +254,25 @@ function HomeScreen() {
                 <Logo />
                 <View style={styles.topActions}>
                   <Pressable
+                    onPress={() => router.push('/notifications')}
+                    accessibilityRole="button"
+                    accessibilityLabel={unread ? `Notificaciones, ${unread} sin leer` : 'Notificaciones'}
+                    style={({ pressed, hovered }) => [styles.roundButton, (hovered || pressed) && styles.roundButtonActive]}
+                  >
+                    <BellIcon size={22} color={color.onPanelDark} />
+                    {unread > 0 && (
+                      <View style={styles.unreadBadge}>
+                        <Text style={styles.unreadBadgeText}>{unread > 99 ? '99+' : unread}</Text>
+                      </View>
+                    )}
+                  </Pressable>
+                  <Pressable
                     onPress={() => router.push('/profile')}
                     accessibilityRole="button"
                     accessibilityLabel="Perfil"
-                    style={({ pressed, hovered }) => [styles.logout, (hovered || pressed) && styles.logoutActive]}
+                    style={({ pressed, hovered }) => [styles.avatar, (hovered || pressed) && styles.avatarActive]}
                   >
-                    <UserIcon size={18} color={color.onPanelDark} />
-                    <Text style={styles.logoutText}>Perfil</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleLogout}
-                    disabled={loggingOut}
-                    accessibilityRole="button"
-                    accessibilityLabel="Cerrar sesión"
-                    style={({ pressed, hovered }) => [styles.logout, (hovered || pressed) && styles.logoutActive]}
-                  >
-                    {loggingOut ? (
-                      <ActivityIndicator size="small" color={color.onPanelDark} />
-                    ) : (
-                      <LogoutIcon size={18} color={color.onPanelDark} />
-                    )}
-                    <Text style={styles.logoutText}>Salir</Text>
+                    <Text style={styles.avatarText}>{initialsOf(user)}</Text>
                   </Pressable>
                 </View>
               </View>
@@ -362,10 +351,7 @@ function HomeScreen() {
         </View>
 
         <View style={styles.inner}>
-          {/* Overlaps the bottom of the header. */}
-          <View style={styles.quickActions}>
-            <QuickActions unreadNotifications={unread} />
-          </View>
+          <NextAppointment />
 
           {mode === 'browse' ? (
             <>
@@ -634,7 +620,8 @@ const styles = StyleSheet.create({
   },
   hero: {
     backgroundColor: color.panelDark,
-    paddingBottom: 56,
+    paddingBottom: 28,
+    marginBottom: 20,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
@@ -649,32 +636,61 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  logout: {
-    flexDirection: 'row',
+  roundButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
-    gap: 6,
-    minHeight: 40,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
-  logoutActive: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+  roundButtonActive: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  logoutText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: color.onPanelDark,
+  unreadBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: color.accentAmber,
+    borderWidth: 2,
+    borderColor: color.panelDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unreadBadgeText: {
+    fontSize: 10,
+    fontFamily: font.extrabold,
+    color: color.panelDark,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: color.accentAmber,
+  },
+  avatarActive: {
+    opacity: 0.85,
+  },
+  avatarText: {
+    fontSize: 15,
+    fontFamily: font.bold,
+    color: color.panelDark,
   },
   greeting: {
     fontSize: 30,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.onPanelDark,
   },
   subtitle: {
     marginTop: 4,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.onPanelDarkMuted,
     marginBottom: 20,
   },
@@ -699,7 +715,7 @@ const styles = StyleSheet.create({
   },
   modeTabText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.onPanelDarkMuted,
   },
   modeTabTextActive: {
@@ -728,11 +744,13 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textPrimary,
     paddingVertical: 12,
   },
   clearText: {
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   filterButton: {
@@ -762,7 +780,7 @@ const styles = StyleSheet.create({
   },
   filterBadgeText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.panelDark,
   },
   aiBox: {
@@ -773,14 +791,11 @@ const styles = StyleSheet.create({
   aiInput: {
     minHeight: 72,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textPrimary,
     textAlignVertical: 'top',
     paddingHorizontal: 4,
     paddingVertical: 4,
-  },
-  quickActions: {
-    marginTop: -36,
-    marginBottom: 20,
   },
   categoryRow: {
     gap: 8,
@@ -808,6 +823,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
+    fontFamily: font.regular,
     color: color.textPrimary,
     backgroundColor: color.surface,
   },
@@ -817,7 +833,7 @@ const styles = StyleSheet.create({
   },
   clearFiltersText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentTeal,
   },
   aiExtras: {
@@ -834,11 +850,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.textPrimary,
   },
   sectionCount: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   grid: {
@@ -868,11 +885,12 @@ const styles = StyleSheet.create({
   },
   stateTitle: {
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   stateText: {
     fontSize: 14,
+    fontFamily: font.regular,
     lineHeight: 20,
     color: color.textSecondary,
     textAlign: 'center',
@@ -891,7 +909,7 @@ const styles = StyleSheet.create({
   },
   stateButtonText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.onPanelDark,
   },
   skeletonCard: {
@@ -916,5 +934,10 @@ const styles = StyleSheet.create({
     backgroundColor: color.surfaceMuted,
   },
 });
+
+/** "MR" for María Rodríguez; just the first letter, or nothing, when there's less to go on. */
+function initialsOf(user: { firstName?: string | null; lastName?: string | null } | null): string {
+  return `${user?.firstName?.trim()[0] ?? ''}${user?.lastName?.trim()[0] ?? ''}`.toUpperCase();
+}
 
 export default requireSession(HomeScreen);

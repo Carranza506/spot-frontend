@@ -3,9 +3,10 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { color } from '@spot/shared';
 import { Logo } from './Logo';
+import { font } from '@/theme/fonts';
 
 // Sampled from the mockup; not part of the shared token set.
-const TAGLINE_COLOR = '#bcc2c1';
+const TAGLINE_COLOR = '#c9d4e0';
 
 interface AuthScreenProps {
   children: ReactNode;
@@ -18,7 +19,7 @@ export function AuthScreen({ children }: AuthScreenProps) {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <Logo />
-          <Text style={styles.tagline}>Reservá servicios de belleza y cuidado personal.</Text>
+          <Text style={styles.tagline}>Tu próxima cita, en un par de toques: barbería, salón, veterinaria, clínica y más.</Text>
           <View style={styles.card}>{children}</View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -43,6 +44,7 @@ const styles = StyleSheet.create({
   tagline: {
     marginTop: 16,
     fontSize: 16,
+    fontFamily: font.regular,
     lineHeight: 22,
     color: TAGLINE_COLOR,
   },

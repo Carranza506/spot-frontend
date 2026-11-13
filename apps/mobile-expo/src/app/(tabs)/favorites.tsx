@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import { color, type components } from '@spot/shared';
 import { requireSession } from '@/auth/sessionGates';
 import { BusinessLinkArea } from '@/components/business/BusinessLinkArea';
@@ -9,6 +8,7 @@ import { ErrorMessage } from '@/components/ErrorMessage';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { useFavorites } from '@/favorites/FavoritesProvider';
+import { font } from '@/theme/fonts';
 
 type FavoriteBusiness = components['schemas']['FavoriteBusiness'];
 
@@ -35,16 +35,8 @@ function FavoritesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
-        <Pressable
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-          style={styles.backButton}
-          role="button"
-          aria-label="Volver"
-        >
-          <Text style={styles.back}>‹ Volver</Text>
-        </Pressable>
         <Text style={styles.title} role="heading" aria-level={1}>
           Mis favoritos
         </Text>
@@ -117,25 +109,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   // 44 x 44 on every platform, and not stretched across the header.
-  backButton: {
-    minWidth: 44,
-    minHeight: 44,
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-    marginBottom: 4,
-  },
-  back: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: color.accentTeal,
-  },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   count: {
     fontSize: 14,
+    fontFamily: font.regular,
     color: color.textSecondary,
   },
   actionError: {
@@ -151,12 +132,13 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 15,
+    fontFamily: font.regular,
     color: color.textSecondary,
     textAlign: 'center',
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   emptyContainer: {

@@ -1,186 +1,315 @@
+/* Hoy (#101): the agenda on the left, what needs the owner on the right; stacked on narrow screens. */
 .page {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--spacing-lg);
+  align-items: flex-start;
 }
 
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-lg);
-}
-
-.card,
-.statCard {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  box-sizing: border-box;
-}
-
-.statCard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.statHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--color-textSecondary);
-  font-size: var(--fontSize-sm);
-}
-
-.statValue {
-  font-size: var(--fontSize-xxl);
-  font-weight: 700;
-  color: var(--color-textPrimary);
-}
-
-.iconTeal {
-  color: var(--color-accentTeal);
-  display: inline-flex;
-}
-
-.iconAmber {
-  color: var(--color-accentAmber);
-  display: inline-flex;
-}
-
-.iconGreen {
-  color: var(--color-success);
-  display: inline-flex;
-}
-
-.iconNeutral {
-  color: var(--color-textSecondary);
-  display: inline-flex;
-}
-
-.contentGrid {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: var(--spacing-lg);
-  align-items: start;
-}
-
-.cardTitle {
-  font-size: var(--fontSize-md);
-  font-weight: 700;
-  color: var(--color-textPrimary);
-  margin: 0 0 var(--spacing-lg);
-}
-
-.chart {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-sm);
-  height: 220px;
-}
-
-.chartColumn {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  height: 100%;
-  gap: var(--spacing-sm);
-}
-
-.chartBar {
-  width: 60%;
-  max-width: 32px;
-  background: var(--color-accentTeal);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-}
-
-.chartLabel {
-  font-size: var(--fontSize-xs);
-  color: var(--color-textSecondary);
-}
-
-.appointmentList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.appointmentRow {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.appointmentRow:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.appointmentRow:first-child {
-  padding-top: 0;
-}
-
-.appointmentAvatar {
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-pill);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-onPanelDark);
-  font-size: var(--fontSize-xs);
-  font-weight: 700;
-}
-
-.avatarTeal {
-  background: var(--color-accentTeal);
-}
-
-.avatarAmber {
-  background: var(--color-accentAmber);
-}
-
-.appointmentInfo {
-  flex: 1 1 auto;
+.agendaColumn {
+  flex: 999 1 480px;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-md);
 }
 
-.appointmentName {
-  font-size: var(--fontSize-md);
-  font-weight: 600;
+.sideColumn {
+  flex: 1 1 380px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.dayHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.dayTitle {
+  margin: 0;
+  font-size: var(--fontSize-lg);
+  font-weight: 700;
   color: var(--color-textPrimary);
 }
 
-.appointmentService {
+.daySubtitle {
+  margin: 0;
   font-size: var(--fontSize-sm);
   color: var(--color-textSecondary);
 }
 
-.badge {
-  flex: 0 0 auto;
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-pill);
+.agenda {
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-xs) 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.hourRow {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  min-height: 60px;
+}
+
+.hourRow + .hourRow {
+  border-top: 1px solid var(--color-surfaceMuted);
+}
+
+.hourLabel {
+  white-space: nowrap;
+  padding: var(--spacing-sm) 0 0 var(--spacing-lg);
+  font-size: var(--fontSize-xs);
+  color: var(--color-textSecondary);
+}
+
+.hourSlot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) 0;
+}
+
+.nowLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   font-size: var(--fontSize-xs);
   font-weight: 600;
-}
-
-.badgeConfirmed {
-  background: var(--color-successBg);
-  color: var(--color-success);
-}
-
-.badgePending {
-  background: var(--color-warningBg);
   color: var(--color-warningText);
+}
+
+.nowLine::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-accentAmber);
+  flex: 0 0 auto;
+}
+
+.nowLine::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--color-accentAmber);
+}
+
+.nowLine span {
+  order: 2;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+}
+
+.itemConfirmed {
+  background: var(--color-surfaceMuted);
+  box-shadow: inset 4px 0 0 var(--color-accentTeal);
+}
+
+.itemDone {
+  background: var(--color-surfaceMuted);
+  color: var(--color-textSecondary);
+}
+
+/* The ticket: a pending booking, with the notches of the brand's time slot. */
+.itemPending {
+  background: var(--color-accentAmber);
+}
+
+.itemPending::before,
+.itemPending::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.itemPending::before {
+  left: -7px;
+}
+
+.itemPending::after {
+  right: -7px;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-size: var(--fontSize-sm);
+  font-weight: 600;
+  color: var(--color-textPrimary);
+}
+
+.itemDone .itemTitle {
+  color: var(--color-textSecondary);
+}
+
+.itemMeta {
+  font-size: var(--fontSize-xs);
+  color: inherit;
+}
+
+.itemStatus {
+  flex: 0 0 auto;
+  font-size: var(--fontSize-xs);
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-accentTeal);
+}
+
+.itemPending .itemStatus {
+  background: var(--color-panelDark);
+  color: var(--color-accentAmber);
+}
+
+.itemDone .itemStatus {
+  color: var(--color-textSecondary);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.statCard,
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.statCard {
+  padding: var(--spacing-md);
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.statLabel,
+.statHint {
+  font-size: var(--fontSize-xs);
+  color: var(--color-textSecondary);
+}
+
+.statValue {
+  font-size: var(--fontSize-xl);
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--color-textPrimary);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cardTitle {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--fontSize-md);
+  font-weight: 700;
+  color: var(--color-textPrimary);
+}
+
+.cardCount {
+  font-size: var(--fontSize-sm);
+  font-weight: 500;
+  color: var(--color-textSecondary);
+}
+
+.requestList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.request {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+}
+
+.request + .request {
+  border-top: 1px solid var(--color-surfaceMuted);
+}
+
+.requestInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.requestName {
+  font-size: var(--fontSize-sm);
+  font-weight: 600;
+  color: var(--color-textPrimary);
+}
+
+.requestMeta {
+  font-size: var(--fontSize-xs);
+  color: var(--color-textSecondary);
+}
+
+.requestActions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.smallButton {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--fontSize-sm);
+}
+
+/* Phone width: a narrower hour column, and the status tag under the booking instead of beside it. */
+@media (max-width: 600px) {
+  .hourRow {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+
+  .hourLabel {
+    padding-left: var(--spacing-sm);
+  }
+
+  .hourSlot {
+    padding-right: var(--spacing-sm);
+  }
+
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
 }

@@ -2,6 +2,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { color, formatPhone, validateHttpUrl, type components } from '@spot/shared';
 import { phoneUrl } from './businessInfo';
 import { ContactLink, emailUrl, httpUrl } from './ContactLink';
+import { font } from '@/theme/fonts';
 
 type Business = components['schemas']['Business'];
 
@@ -55,11 +56,12 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   description: {
     fontSize: 16,
+    fontFamily: font.regular,
     lineHeight: 22,
     color: color.textSecondary,
   },

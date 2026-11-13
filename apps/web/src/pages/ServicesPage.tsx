@@ -5,10 +5,10 @@ import { Button } from '../components/Button';
 import { SelectField } from '../components/SelectField';
 import { useFeedback } from '../components/feedback/feedbackContext';
 import { useBusinessContext } from '../routes/businessContext';
-import { billingApi } from './billing/billingApi';
 import { ServiceForm, type ServiceFormValues } from './services/ServiceForm';
 import { ServiceRow } from './services/ServiceRow';
 import { servicesApi } from './services/servicesApi';
+import { usePlanUsage } from './services/usePlanUsage';
 import formStyles from './AuthForm.module.css';
 import pageStyles from './BusinessProfilePage.module.css';
 import styles from './services/Services.module.css';
@@ -54,8 +54,6 @@ export function ServicesPage() {
   const [creating, setCreating] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  // Active services against the plan's maxServices; null on a plan without a limit, or if it failed.
-  const [usage, setUsage] = useState<{ active: number; max: number } | null>(null);
 
   const handleAuthError = useCallback(
     (error: unknown) => {
@@ -96,22 +94,9 @@ export function ServicesPage() {
     };
   }, [business.id, statusFilter, page, query, handleAuthError]);
 
-  useEffect(() => {
-    let ignore = false;
-    Promise.all([
-      billingApi.getSubscription(),
-      servicesApi.list(business.id, { page: 1, pageSize: 1, isActive: true }),
-    ])
-      .then(([subscription, active]) => {
-        const max = subscription.plan.features.maxServices;
-        if (!ignore) setUsage(max == null ? null : { active: active.pagination.total, max });
-      })
-      // Only a hint: the backend still enforces the limit (409 SERVICE_LIMIT_REACHED).
-      .catch(() => !ignore && setUsage(null));
-    return () => {
-      ignore = true;
-    };
-  }, [business.id, reloadKey]);
+  // Active services against the plan's limit; nothing on a plan without one, or if it failed.
+  const planUsage = usePlanUsage(business.id, reloadKey);
+  const usage = planUsage?.max != null ? { active: planUsage.active, max: planUsage.max } : null;
 
   const reload = () => setReloadKey((key) => key + 1);
 

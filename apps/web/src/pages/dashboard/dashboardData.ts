@@ -6,27 +6,31 @@ type Booking = components['schemas']['Booking'];
 
 /** The list endpoint's maximum page size. */
 const MAX_PAGE_SIZE = 100;
-const UPCOMING_COUNT = 5;
-const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const TO_CONFIRM_COUNT = 5;
+/** The agenda always shows at least this span, so a quiet day still reads as a day. */
+const DEFAULT_FIRST_HOUR = 8;
+const DEFAULT_LAST_HOUR = 17;
 
-export interface DashboardData {
-  total: number;
-  pending: number;
-  confirmed: number;
-  revenue: number;
-  week: { label: string; date: string; value: number }[];
-  upcoming: Booking[];
+export interface AgendaHour {
+  hour: number;
+  bookings: Booking[];
 }
 
-/** Only the total: one row is enough, the count comes from the pagination. */
-async function countBookings(businessId: string, filter: BusinessBookingsFilter = {}): Promise<number> {
-  const page = await bookingsApi.list(businessId, { ...filter, page: 1, pageSize: 1 });
-  return page.pagination.total;
+export interface DashboardData {
+  /** Today's bookings, by the local hour they start in; cancelled ones left out. */
+  agenda: AgendaHour[];
+  todayCount: number;
+  /** This week's bookings that weren't cancelled, and what they add up to (no-shows left out). */
+  weekCount: number;
+  weekIncome: number;
+  /** The next pending bookings that haven't started, earliest first. */
+  toConfirm: Booking[];
+  toConfirmTotal: number;
 }
 
 /** Every page of a filtered list. */
-// shortcut: reads every page (100 per request); move revenue and the weekly chart to a backend
-// stats endpoint once a business has thousands of bookings.
+// shortcut: reads every page (100 per request); move the week's figures to a backend stats endpoint
+// once a business has thousands of bookings a week.
 async function listAllBookings(businessId: string, filter: BusinessBookingsFilter): Promise<Booking[]> {
   const bookings: Booking[] = [];
   for (let page = 1; ; page++) {
@@ -39,45 +43,51 @@ async function listAllBookings(businessId: string, filter: BusinessBookingsFilte
 /** Monday to Sunday of the week that contains `today`, as local dates (YYYY-MM-DD). */
 export function currentWeek(today: Date): string[] {
   const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - ((today.getDay() + 6) % 7));
-  return WEEKDAY_LABELS.map((_, i) => localIsoDate(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)));
+  return Array.from({ length: 7 }, (_, i) => localIsoDate(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)));
 }
 
-/** Bookings per local day of the week, cancelled ones left out. */
-export function bookingsPerDay(week: string[], bookings: Booking[]): DashboardData['week'] {
-  const counts = new Map(week.map((date) => [date, 0]));
-  for (const booking of bookings) {
-    if (booking.status === 'CANCELLED') continue;
-    const date = localIsoDate(new Date(booking.startAt));
-    if (counts.has(date)) counts.set(date, counts.get(date)! + 1);
-  }
-  return week.map((date, i) => ({ label: WEEKDAY_LABELS[i], date, value: counts.get(date)! }));
+/**
+ * One row per local hour from 8:00 to 17:00, stretched to the day's first and last booking, each
+ * with the bookings that start in it, in time order. Cancelled bookings aren't on the agenda.
+ */
+export function agendaByHour(bookings: Booking[]): AgendaHour[] {
+  const active = bookings
+    .filter((b) => b.status !== 'CANCELLED')
+    .sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt));
+  const hourOf = (b: Booking) => new Date(b.startAt).getHours();
+  const first = Math.min(DEFAULT_FIRST_HOUR, ...active.map(hourOf));
+  const last = Math.max(DEFAULT_LAST_HOUR, ...active.map(hourOf));
+  return Array.from({ length: last - first + 1 }, (_, i) => ({
+    hour: first + i,
+    bookings: active.filter((b) => hourOf(b) === first + i),
+  }));
 }
 
-/** The next pending or confirmed bookings that haven't started yet, earliest first. */
-export function nextBookings(bookings: Booking[], now: Date): Booking[] {
-  return bookings
-    .filter((b) => (b.status === 'PENDING' || b.status === 'CONFIRMED') && new Date(b.startAt) >= now)
-    .slice(0, UPCOMING_COUNT);
+/** The week's bookings that count: not cancelled; the income leaves no-shows out too. */
+export function weekSummary(bookings: Booking[]): { count: number; income: number } {
+  const counted = bookings.filter((b) => b.status !== 'CANCELLED');
+  const income = counted.filter((b) => b.status !== 'NO_SHOW').reduce((sum, b) => sum + b.servicePrice, 0);
+  return { count: counted.length, income };
 }
 
-/** Everything the dashboard shows, read from the business's bookings (there's no stats endpoint). */
+/** Everything the Hoy view shows, read from the business's bookings (there's no stats endpoint). */
 export async function loadDashboard(businessId: string, now = new Date()): Promise<DashboardData> {
+  const today = localIsoDate(now);
   const week = currentWeek(now);
-  const [total, pending, confirmed, completed, weekBookings, fromToday] = await Promise.all([
-    countBookings(businessId),
-    countBookings(businessId, { status: 'PENDING' }),
-    countBookings(businessId, { status: 'CONFIRMED' }),
-    listAllBookings(businessId, { status: 'COMPLETED' }),
+  const [todayBookings, weekBookings, pending] = await Promise.all([
+    listAllBookings(businessId, { from: today, to: today }),
     listAllBookings(businessId, { from: week[0], to: week[6] }),
-    // Ordered by startAt; one page is plenty to find the next few active ones.
-    bookingsApi.list(businessId, { from: localIsoDate(now), page: 1, pageSize: MAX_PAGE_SIZE }),
+    // Ordered by startAt; the next few pending ones are on the first page.
+    bookingsApi.list(businessId, { status: 'PENDING', from: today, page: 1, pageSize: MAX_PAGE_SIZE }),
   ]);
+  const upcomingPending = pending.data.filter((b) => Date.parse(b.startAt) >= now.getTime());
+  const summary = weekSummary(weekBookings);
   return {
-    total,
-    pending,
-    confirmed,
-    revenue: completed.reduce((sum, b) => sum + b.servicePrice, 0),
-    week: bookingsPerDay(week, weekBookings),
-    upcoming: nextBookings(fromToday.data, now),
+    agenda: agendaByHour(todayBookings),
+    todayCount: todayBookings.filter((b) => b.status !== 'CANCELLED').length,
+    weekCount: summary.count,
+    weekIncome: summary.income,
+    toConfirm: upcomingPending.slice(0, TO_CONFIRM_COUNT),
+    toConfirmTotal: upcomingPending.length,
   };
 }

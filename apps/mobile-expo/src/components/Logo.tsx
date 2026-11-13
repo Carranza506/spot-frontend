@@ -1,18 +1,16 @@
 import { StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, Rect } from 'react-native-svg';
 import { color } from '@spot/shared';
+import { font } from '@/theme/fonts';
 
-/** Same pin mark as apps/web's AuthLayout logo (white outline, amber dot). */
+/** Same mark as apps/web's logo: a rounded square with the sunflower dot (#101). */
 export function Logo() {
   return (
     <View style={styles.row}>
       <Svg viewBox="0 0 24 24" width={32} height={32} fill="none">
-        <Path
-          d="M12 2C7.58 2 4 5.58 4 10c0 5.25 6.72 11.19 7.01 11.44a1.5 1.5 0 0 0 1.98 0C13.28 21.19 20 15.25 20 10c0-4.42-3.58-8-8-8Z"
-          stroke={color.onPanelDark}
-          strokeWidth={1.6}
-        />
-        <Circle cx={12} cy={10} r={2.6} fill={color.accentAmber} />
+        {/* Always on the dark panel, where a navy square would vanish. */}
+        <Rect x={2} y={2} width={20} height={20} rx={6} fill="rgba(255, 255, 255, 0.16)" />
+        <Circle cx={16.5} cy={16.5} r={3} fill={color.accentAmber} />
       </Svg>
       <Text style={styles.text}>Spot</Text>
     </View>
@@ -27,7 +25,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: font.extrabold,
     color: color.onPanelDark,
   },
 });

@@ -2,11 +2,11 @@
 // tested with `node --test` (see tests/businessDisplay.test.mjs).
 
 /** Light teal used behind icons and as the first banner tint. */
-export const TEAL_TINT = '#e1efec';
+export const TEAL_TINT = '#e6eef6';
 
 // Soft banner tints, picked per business so a grid isn't one flat color. All keep the dark
 // initial readable (contrast well above 4.5:1 against panelDark).
-export const BANNER_TINTS = [TEAL_TINT, '#f8eed6', '#e9ece6', '#e4ece9', '#f1e9e1'];
+export const BANNER_TINTS = [TEAL_TINT, '#fff6d9', '#eef2f6', '#e3ecf7', '#f7efd9'];
 
 /** Taps on the same card closer than this are one tap (avoids stacking the detail screen twice). */
 export const DOUBLE_TAP_MS = 600;

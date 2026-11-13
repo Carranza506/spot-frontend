@@ -5,6 +5,7 @@ import { FavoriteButton } from '@/favorites/FavoriteButton';
 import { BusinessAvatar } from './BusinessAvatar';
 import { bannerTintFor } from './businessDisplay';
 import { useOpenBusiness } from './useOpenBusiness';
+import { font } from '@/theme/fonts';
 
 type Business = components['schemas']['Business'];
 
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     borderColor: color.border,
     overflow: 'hidden',
     // Soft lift (boxShadow works on web and native; the shadow* props are deprecated on web).
-    boxShadow: '0px 4px 12px rgba(21, 42, 38, 0.06)',
+    boxShadow: '0px 4px 12px rgba(15, 36, 56, 0.06)',
   },
   pressable: {
     flex: 1,
@@ -89,11 +90,12 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.textPrimary,
   },
   description: {
     fontSize: 14,
+    fontFamily: font.regular,
     lineHeight: 20,
     color: color.textSecondary,
     minHeight: 40,
@@ -109,7 +111,7 @@ const styles = StyleSheet.create({
   },
   cta: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: font.bold,
     color: color.accentTeal,
   },
   favorite: {

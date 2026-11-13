@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
 import { color } from '@spot/shared';
+import { font } from '@/theme/fonts';
 
 interface PrimaryButtonProps extends Omit<PressableProps, 'style'> {
   title: string;
@@ -64,12 +65,13 @@ const styles = StyleSheet.create({
   text: {
     color: color.onPanelDark,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: font.bold,
   },
   secondaryText: {
     color: color.textPrimary,
   },
   compactText: {
     fontSize: 14,
+    fontFamily: font.regular,
   },
 });
